@@ -140,6 +140,11 @@ with an unmatched quote. Write large files with the Write tool.
 the client imports `@aspire/contracts`. `docker build -f apps/web/Dockerfile .`,
 never from `apps/web`.
 
+**`vite preview` caches the file list when it starts.** After a `pnpm build`
+the new hashed assets 404 on a preview that was already running, the app
+never boots, and a tab with the service worker keeps showing the old build
+as if nothing had happened. Restart the preview after every build.
+
 ---
 
 ## Where the answers are
