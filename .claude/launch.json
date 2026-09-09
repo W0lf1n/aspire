@@ -2,6 +2,12 @@
 	"version": "0.0.1",
 	"configurations": [
 		{
+			"name": "aspire-api",
+			"runtimeExecutable": "pnpm",
+			"runtimeArgs": ["api"],
+			"port": 5300
+		},
+		{
 			"name": "aspire-dev",
 			"runtimeExecutable": "pnpm",
 			"runtimeArgs": ["--filter", "web", "dev", "--port", "5173", "--strictPort"],
