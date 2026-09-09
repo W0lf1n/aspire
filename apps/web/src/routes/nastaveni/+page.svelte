@@ -5,8 +5,10 @@
 	 * a live one-line summary of what is in the room, so the hub reads as a
 	 * status page before it is a menu.
 	 */
-	import { version } from '$app/environment';
 	import { resolve } from '$app/paths';
+	// The package version, not `$app/environment`'s: that one is the build
+	// stamp the service worker keys its cache on, and reads as a timestamp.
+	import { version } from '../../../package.json';
 	import { readToken } from '$lib/api/token';
 	import Icon from '$lib/ui/Icon.svelte';
 	import TabBar from '$lib/ui/TabBar.svelte';

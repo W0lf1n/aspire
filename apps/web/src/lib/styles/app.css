@@ -303,8 +303,16 @@ a {
 	z-index: 1;
 	display: flex;
 	flex-direction: column;
+	align-items: flex-start;
 	gap: var(--space-2);
 	padding: var(--space-5) var(--space-4) var(--space-4);
+}
+
+/* Text still takes the full width to wrap against; only a pill or a badge
+   shrinks to its content. */
+.dream__body > .dream__title,
+.dream__body > .dream__why {
+	align-self: stretch;
 }
 
 .dream__title {
