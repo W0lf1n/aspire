@@ -206,3 +206,18 @@ batch and scored resolved on the verdict pass:
 
 Noted and kept: the Síň slávy empty state is an icon-circle card rather
 than a sky tile like the board's. That is for M3, when the wall has a shape.
+
+### D20 — Pairing has no address field and no probe
+
+Prosper's pairing screen takes a server address, and before it sends the
+code it probes `/api/v1/health` at that address, so that a mistyped domain
+reads as "that is not the server" rather than "the code is wrong". Aspire's
+client is always the same origin as its API (D8), so there is no address to
+mistype and nothing for the probe to distinguish: the screen is the code, a
+name for the device list, and one pill. Every failure arrives as a status
+and each status has its Czech sentence in `apps/web/src/lib/api/pairing.ts`,
+which is tested; a browser's own message never reaches the screen.
+
+The card is a form, so the keyboard's return key pairs. *Odpojit* forgets
+the token on the device only; the row on the server stays until it is
+deleted there, which is what revocation is (D6). Same as Prosper.

@@ -211,10 +211,12 @@ cd /srv/aspire/deploy && docker compose exec api ls -la /data/media
 
 ## Pairing a device
 
-Arrives with M1. The shape is Prosper's: open the site, add it to the home
-screen, Nastavení → Párování, type the code, name the device. The server
-stores only the token's hash; a database dump does not hand anybody a
-working phone.
+The shape is Prosper's, without the address: open the site, add it to the
+home screen, Nastavení → Párování, type `PAIRING_CODE`, name the device,
+*Spárovat*. The phone keeps its token in `localStorage`; the server stores
+only the token's hash, so a database dump does not hand anybody a working
+phone. *Odpojit* on the same screen forgets the token on the phone and
+nothing else; to revoke a device, delete its row (see above).
 
 ---
 

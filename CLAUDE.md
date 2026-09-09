@@ -2,7 +2,7 @@
 
 Guidance for Claude Code working in this repository.
 
-**Last revised:** 2026-09-09 · M0 · 8 web tests · 36 API tests
+**Last revised:** 2026-09-09 · M0 · 16 web tests · 36 API tests
 
 ---
 
