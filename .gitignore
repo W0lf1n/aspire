@@ -17,6 +17,7 @@ obj/
 .vscode/*
 !.vscode/extensions.json
 .playwright/
+.playwright-cli/
 .impeccable/hook.cache.json
 
 # OS
