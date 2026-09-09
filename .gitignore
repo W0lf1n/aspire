@@ -19,6 +19,7 @@ obj/
 .playwright/
 .playwright-cli/
 .impeccable/hook.cache.json
+.impeccable/review/
 
 # OS
 .DS_Store

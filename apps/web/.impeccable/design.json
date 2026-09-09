@@ -1,0 +1,215 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-09-09T00:00:00Z",
+  "title": "Design System: Aspire",
+  "extensions": {
+    "colorMeta": {
+      "ground": { "role": "neutral", "displayName": "Linen", "canonical": "#f6f2ee", "tonalRamp": ["#141210", "#292421", "#5d554e", "#7d746b", "#b5aba0", "#d1c8bd", "#e6dfd6", "#f6f2ee"] },
+      "surface": { "role": "neutral", "displayName": "Card", "canonical": "#ffffff", "tonalRamp": ["#1f1b19", "#292421", "#efe9e2", "#f4efe9", "#f6f2ee", "#faf8f5", "#fdfcfb", "#ffffff"] },
+      "surface-pressed": { "role": "neutral", "displayName": "Card, pressed", "canonical": "#f4efe9", "tonalRamp": ["#292421", "#5d554e", "#7d746b", "#b5aba0", "#d1c8bd", "#e6dfd6", "#efe9e2", "#f4efe9"] },
+      "surface-soft": { "role": "neutral", "displayName": "Soft", "canonical": "#efe9e2", "tonalRamp": ["#292421", "#5d554e", "#7d746b", "#b5aba0", "#d1c8bd", "#e6dfd6", "#efe9e2", "#f6f2ee"] },
+      "hairline": { "role": "neutral", "displayName": "Hairline", "canonical": "#e6dfd6", "tonalRamp": ["#292421", "#5d554e", "#7d746b", "#b5aba0", "#d1c8bd", "#e6dfd6", "#efe9e2", "#f6f2ee"] },
+      "ink": { "role": "neutral", "displayName": "Warm ink", "canonical": "#211c19", "tonalRamp": ["#141210", "#211c19", "#3d3530", "#5d554e", "#7d746b", "#b5aba0", "#d1c8bd", "#f7f2ee"] },
+      "ink-2": { "role": "neutral", "displayName": "Ink, secondary", "canonical": "#5d554e", "tonalRamp": ["#141210", "#211c19", "#3d3530", "#5d554e", "#7d746b", "#b5aba0", "#d1c8bd", "#f7f2ee"] },
+      "ink-3": { "role": "neutral", "displayName": "Ink, tertiary", "canonical": "#7d746b", "tonalRamp": ["#141210", "#211c19", "#3d3530", "#5d554e", "#7d746b", "#b5aba0", "#d1c8bd", "#f7f2ee"] },
+      "pill": { "role": "neutral", "displayName": "Primary pill", "canonical": "#211c19", "tonalRamp": ["#141210", "#211c19", "#3d3530", "#5d554e", "#7d746b", "#b5aba0", "#d1c8bd", "#f7f2ee"] },
+      "ember": { "role": "primary", "displayName": "Ember", "canonical": "#cc4a1c", "tonalRamp": ["#3a1407", "#6b250d", "#9c3714", "#cc4a1c", "#e5602a", "#ff8a55", "#ffb593", "#ffe1d3"] },
+      "dusk": { "role": "secondary", "displayName": "Dusk", "canonical": "#5a4fd6", "tonalRamp": ["#17133d", "#2c2673", "#433aa5", "#5a4fd6", "#7a70e6", "#a49cff", "#c8c3ff", "#e9e7ff"] },
+      "sky-1": { "role": "tertiary", "displayName": "Sky, sunrise", "canonical": "#e5602a", "tonalRamp": ["#3a1407", "#6b250d", "#9c3714", "#cc4a1c", "#e5602a", "#ff8a55", "#ffb593", "#ffe1d3"] },
+      "sky-2": { "role": "tertiary", "displayName": "Sky, rose", "canonical": "#d84b7a", "tonalRamp": ["#3b0f20", "#6d1c3b", "#a22d59", "#d84b7a", "#e56f97", "#ef98b5", "#f7c2d3", "#fce7ee"] },
+      "sky-3": { "role": "tertiary", "displayName": "Sky, dusk", "canonical": "#5a4fd6", "tonalRamp": ["#17133d", "#2c2673", "#433aa5", "#5a4fd6", "#7a70e6", "#a49cff", "#c8c3ff", "#e9e7ff"] },
+      "danger": { "role": "tertiary", "displayName": "Danger", "canonical": "#d93a4a", "tonalRamp": ["#3c0d12", "#6e1a22", "#a32836", "#d93a4a", "#e5606d", "#ee8a94", "#f5b7bd", "#fbe3e6"] },
+      "photo-ink": { "role": "neutral", "displayName": "Photo ink", "canonical": "#ffffff", "tonalRamp": ["#141210", "#211c19", "#5d554e", "#7d746b", "#b5aba0", "#d1c8bd", "#f6f2ee", "#ffffff"] },
+      "glass": { "role": "neutral", "displayName": "Glass", "canonical": "rgb(255 255 255 / 72%)", "tonalRamp": ["rgb(31 27 25 / 72%)", "rgb(255 255 255 / 9%)", "rgb(255 255 255 / 18%)", "rgb(255 255 255 / 32%)", "rgb(255 255 255 / 60%)", "rgb(255 255 255 / 72%)", "rgb(255 255 255 / 95%)", "#ffffff"] },
+      "dark-ground": { "role": "neutral", "displayName": "Charcoal", "canonical": "#141210", "tonalRamp": ["#141210", "#1a1715", "#1f1b19", "#292421", "#3d3530", "#5d554e", "#7d746b", "#f7f2ee"] },
+      "dark-surface": { "role": "neutral", "displayName": "Graphite card", "canonical": "#1f1b19", "tonalRamp": ["#141210", "#1a1715", "#1f1b19", "#292421", "#3d3530", "#5d554e", "#7d746b", "#f7f2ee"] },
+      "dark-ink": { "role": "neutral", "displayName": "Warm white", "canonical": "#f7f2ee", "tonalRamp": ["#141210", "#211c19", "#3d3530", "#5d554e", "#7d746b", "#b5aba0", "#d1c8bd", "#f7f2ee"] },
+      "dark-ember": { "role": "primary", "displayName": "Ember, lit", "canonical": "#ff8a55", "tonalRamp": ["#3a1407", "#6b250d", "#9c3714", "#cc4a1c", "#e5602a", "#ff8a55", "#ffb593", "#ffe1d3"] },
+      "dark-dusk": { "role": "secondary", "displayName": "Dusk, lit", "canonical": "#a49cff", "tonalRamp": ["#17133d", "#2c2673", "#433aa5", "#5a4fd6", "#7a70e6", "#a49cff", "#c8c3ff", "#e9e7ff"] }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Wordmark", "purpose": "The word Aspire at the top of the board, in the flow." },
+      "title": { "displayName": "Dream title", "purpose": "A dream's title on its tile on the board, balanced wrap." },
+      "title-sm": { "displayName": "Dream title, grid", "purpose": "The same title on a tile in a grid." },
+      "headline": { "displayName": "Screen title", "purpose": "A tab screen's name in the flow; scrolls away." },
+      "subtitle": { "displayName": "Back-header title", "purpose": "A detail screen's name beside the round chevron." },
+      "body": { "displayName": "Body", "purpose": "Body copy, row titles (600), inputs, the primary pill's label." },
+      "body-sm": { "displayName": "Body, small", "purpose": "The why on a tile, segment labels, the default pill, facts, the toast." },
+      "label": { "displayName": "Label", "purpose": "Card and field labels, row subs, hints, chips, links. Sentence case, +0.24 px." },
+      "badge": { "displayName": "Badge", "purpose": "A status pill." },
+      "tab": { "displayName": "Tab label", "purpose": "The bar's labels under a 24 px icon." }
+    },
+    "gradients": [
+      { "name": "dawn", "value": "linear-gradient(160deg, #e5602a 0%, #d84b7a 48%, #5a4fd6 100%)", "purpose": "The sky: stands in for a photograph on the empty board, the achieved badge, the sky circle. Theme-independent." },
+      { "name": "scrim", "value": "linear-gradient(180deg, rgb(0 0 0 / 0%) 38%, rgb(0 0 0 / 58%) 100%)", "purpose": "Between a photograph and its words; bottom only." },
+      { "name": "scrim-top", "value": "linear-gradient(180deg, rgb(0 0 0 / 32%) 0%, rgb(0 0 0 / 0%) 32%)", "purpose": "Defined for chrome over the top of a full-screen photograph; unused in M0." },
+      { "name": "dark-glow", "value": "radial-gradient(60% 34% at 18% 6%, rgb(229 96 42 / 30%), transparent 70%), radial-gradient(50% 30% at 88% 52%, rgb(90 79 214 / 26%), transparent 70%)", "purpose": "Two lights behind the glass in the dark theme; none in the light." }
+    ],
+    "shadows": [
+      { "name": "elev-photo", "value": "0 12px 32px -8px rgb(33 28 25 / 28%)", "purpose": "The dream tile only: a print pinned to the wall. Dark: 0 16px 40px -8px rgb(0 0 0 / 60%)." },
+      { "name": "elev-glass", "value": "0 8px 32px rgb(33 28 25 / 14%)", "purpose": "The tab bar and the toast. Dark: 0 8px 32px rgb(0 0 0 / 45%)." },
+      { "name": "elev-sheet", "value": "0 -12px 48px rgb(0 0 0 / 25%)", "purpose": "The bottom sheet; defined, no sheet built in M0. Dark: 60% black." },
+      { "name": "knob", "value": "0 1px 2px rgb(0 0 0 / 20%)", "purpose": "The toggle's 18 px knob so it reads on the ember track. A control detail, not a surface shadow." }
+    ],
+    "motion": [
+      { "name": "dur-fast", "value": "150ms", "purpose": "State changes: colour, the toggle's knob, press." },
+      { "name": "dur-base", "value": "220ms", "purpose": "Entrances: the toast." },
+      { "name": "dur-slow", "value": "360ms", "purpose": "The lens moving between tab slots." },
+      { "name": "dur-drift", "value": "16s", "purpose": "The sky's drift on the empty board, alternate, infinite." },
+      { "name": "ease-out", "value": "cubic-bezier(0.16, 1, 0.3, 1)", "purpose": "Default easing for state transitions and the toast." },
+      { "name": "ease-in-out", "value": "cubic-bezier(0.65, 0, 0.35, 1)", "purpose": "The sky's drift." },
+      { "name": "ease-settle", "value": "cubic-bezier(0.22, 1, 0.36, 1)", "purpose": "The splash mark's rise." },
+      { "name": "ease-spring", "value": "cubic-bezier(0.3, 1.45, 0.5, 1)", "purpose": "The lens only: overshoots and comes back." }
+    ],
+    "breakpoints": [
+      { "name": "desktop", "value": "35rem", "purpose": "The column shows hairline edges; the first board tile caps its height under the bar." }
+    ],
+    "sizes": [
+      { "name": "touch", "value": "44px" },
+      { "name": "touch-lg", "value": "48px" },
+      { "name": "tabbar", "value": "62px" },
+      { "name": "tabbar-lift", "value": "max(24px, 12px + env(safe-area-inset-bottom))" },
+      { "name": "column", "value": "34rem" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The primary pill: 48 px, inverts with the theme. One per screen at most.",
+      "html": "<button class=\"ds-btn ds-btn-primary\">Spárovat</button>",
+      "css": ".ds-btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 40px; padding: 0 16px; border: none; border-radius: 9999px; background: var(--surface-3, #efe9e2); color: var(--ink, #211c19); font-family: Inter, system-ui, sans-serif; font-size: 0.875rem; font-weight: 600; letter-spacing: 0.24px; white-space: nowrap; cursor: pointer; transition: background 150ms cubic-bezier(0.16, 1, 0.3, 1), color 150ms cubic-bezier(0.16, 1, 0.3, 1); } .ds-btn:focus-visible { outline: 2px solid var(--signal, #cc4a1c); outline-offset: 2px; } .ds-btn-primary { min-height: 48px; padding: 0 24px; background: var(--pill, #211c19); color: var(--pill-ink, #ffffff); font-size: 0.9375rem; } .ds-btn-primary:active { background: color-mix(in srgb, var(--pill, #211c19) 80%, var(--surface, #ffffff)); } .ds-btn:disabled { opacity: 0.4; cursor: default; }"
+    },
+    {
+      "name": "Accent Button",
+      "kind": "button",
+      "refersTo": "button-accent",
+      "description": "The ember pill for the one action a screen is about.",
+      "html": "<button class=\"ds-btn ds-btn-accent\">Přidat sen</button>",
+      "css": ".ds-btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 40px; padding: 0 16px; border: none; border-radius: 9999px; font-family: Inter, system-ui, sans-serif; font-weight: 600; letter-spacing: 0.24px; white-space: nowrap; cursor: pointer; transition: background 150ms cubic-bezier(0.16, 1, 0.3, 1); } .ds-btn:focus-visible { outline: 2px solid var(--signal, #cc4a1c); outline-offset: 2px; } .ds-btn-accent { min-height: 48px; padding: 0 24px; background: var(--signal, #cc4a1c); color: var(--signal-ink, #ffffff); font-size: 0.9375rem; } .ds-btn-accent:active { background: color-mix(in srgb, var(--signal, #cc4a1c) 85%, var(--ink, #211c19)); }"
+    },
+    {
+      "name": "Soft, Quiet and Danger Buttons",
+      "kind": "button",
+      "refersTo": "button",
+      "description": "The default soft pill inside a card, the quiet text pill, and the outlined danger pill. Rank is fill, not shape.",
+      "html": "<div class=\"ds-actions\"><button class=\"ds-btn\">Upravit</button><button class=\"ds-btn ds-btn-quiet\">Zrušit</button><button class=\"ds-btn ds-btn-danger\">Smazat</button></div>",
+      "css": ".ds-actions { display: flex; flex-wrap: wrap; gap: 8px; } .ds-btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 40px; padding: 0 16px; border: none; border-radius: 9999px; background: var(--surface-3, #efe9e2); color: var(--ink, #211c19); font-family: Inter, system-ui, sans-serif; font-size: 0.875rem; font-weight: 600; letter-spacing: 0.24px; white-space: nowrap; cursor: pointer; transition: background 150ms cubic-bezier(0.16, 1, 0.3, 1), color 150ms cubic-bezier(0.16, 1, 0.3, 1); } .ds-btn:active { background: var(--hairline, #e6dfd6); } .ds-btn:focus-visible { outline: 2px solid var(--signal, #cc4a1c); outline-offset: 2px; } .ds-btn-quiet { background: transparent; color: var(--ink-2, #5d554e); } .ds-btn-quiet:active { background: var(--surface-3, #efe9e2); } .ds-btn-danger { background: transparent; border: 1.5px solid var(--danger, #d93a4a); color: var(--danger, #d93a4a); } .ds-btn-danger:active { background: var(--danger-wash, rgb(217 58 74 / 10%)); }"
+    },
+    {
+      "name": "Card with Rows",
+      "kind": "card",
+      "refersTo": "card-list",
+      "description": "White on the ground, 20 px corners, no shadow. Rows carry a 40 px circle, a title over a sub, and a chevron; a hairline between.",
+      "html": "<section class=\"ds-card ds-card-list\"><a class=\"ds-row\" href=\"#\"><span class=\"ds-circle\"><svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M12 8a2.83 2.83 0 0 0 4 4 4 4 0 1 1-4-4\"/><path d=\"M12 2v2\"/><path d=\"M12 20v2\"/><path d=\"m4.9 4.9 1.4 1.4\"/><path d=\"m17.7 17.7 1.4 1.4\"/><path d=\"M2 12h2\"/><path d=\"M20 12h2\"/><path d=\"m6.3 17.7-1.4 1.4\"/><path d=\"m19.1 4.9-1.4 1.4\"/></svg></span><span class=\"ds-row-body\"><span class=\"ds-row-title\">Vzhled</span><span class=\"ds-row-sub\">Systém</span></span><span class=\"ds-go\"><svg width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M9.5 5.5 16 12l-6.5 6.5\"/></svg></span></a><a class=\"ds-row\" href=\"#\"><span class=\"ds-circle\"><svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M9 17H7A5 5 0 0 1 7 7h2\"/><path d=\"M15 7h2a5 5 0 1 1 0 10h-2\"/><path d=\"M8 12h8\"/></svg></span><span class=\"ds-row-body\"><span class=\"ds-row-title\">Párování</span><span class=\"ds-row-sub\">Nespárováno</span></span><span class=\"ds-go\"><svg width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M9.5 5.5 16 12l-6.5 6.5\"/></svg></span></a></section>",
+      "css": ".ds-card { display: flex; flex-direction: column; gap: 12px; padding: 16px; background: var(--surface, #ffffff); border-radius: 20px; color: var(--ink, #211c19); font-family: Inter, system-ui, sans-serif; } .ds-card-list { gap: 0; padding: 4px 16px; } .ds-row { display: flex; align-items: center; gap: 12px; min-height: 64px; margin-inline: -16px; padding-inline: 16px; color: inherit; text-decoration: none; transition: background 150ms cubic-bezier(0.16, 1, 0.3, 1); } .ds-row + .ds-row { border-top: 1px solid var(--hairline, #e6dfd6); } .ds-row:hover, .ds-row:active { background: var(--surface-2, #f4efe9); } .ds-row:focus-visible { outline: 2px solid var(--signal, #cc4a1c); outline-offset: 2px; border-radius: 12px; } .ds-circle { display: grid; place-items: center; flex: none; width: 40px; height: 40px; border-radius: 9999px; background: var(--surface-3, #efe9e2); color: var(--ink, #211c19); } .ds-row-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; } .ds-row-title { font-size: 0.9375rem; font-weight: 600; } .ds-row-sub { font-size: 0.8125rem; color: var(--ink-2, #5d554e); } .ds-go { display: grid; place-items: center; flex: none; color: var(--ink-3, #7d746b); }"
+    },
+    {
+      "name": "Dream Tile",
+      "kind": "custom",
+      "refersTo": "dream",
+      "description": "A photograph, 4:5, title and why in white over a bottom scrim, a glass pill, a glass status tag in the corner, and the one shadow on the ground. With no photograph the sky stands in.",
+      "html": "<article class=\"ds-dream\"><span class=\"ds-badge ds-tag\">Sním</span><div class=\"ds-dream-body\"><h2 class=\"ds-dream-title\">Zatím žádný sen</h2><p class=\"ds-dream-why\">Přidej první. Obrázek, který ti připomene, proč to všechno děláš.</p><a class=\"ds-btn-photo\" href=\"#\"><svg width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M12 6.4v11.2M6.4 12h11.2\"/></svg>Přidat sen</a></div></article>",
+      "css": ".ds-dream { position: relative; display: flex; flex-direction: column; justify-content: flex-end; aspect-ratio: 4 / 5; max-width: 320px; overflow: hidden; border-radius: 20px; background: var(--dawn, linear-gradient(160deg, #e5602a 0%, #d84b7a 48%, #5a4fd6 100%)); color: var(--photo-ink, #ffffff); box-shadow: var(--elev-photo, 0 12px 32px -8px rgb(33 28 25 / 28%)); isolation: isolate; font-family: Inter, system-ui, sans-serif; } .ds-dream::after { content: ''; position: absolute; inset: 0; background: var(--scrim, linear-gradient(180deg, rgb(0 0 0 / 0%) 38%, rgb(0 0 0 / 58%) 100%)); pointer-events: none; } .ds-dream-body { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: flex-start; gap: 8px; padding: 24px 16px 16px; } .ds-dream-title { margin: 0; align-self: stretch; font-size: 2.125rem; font-weight: 600; line-height: 1.1; letter-spacing: -0.8px; text-wrap: balance; } .ds-dream-why { margin: 0; align-self: stretch; max-width: 32ch; font-size: 0.875rem; line-height: 1.5; color: var(--photo-ink-2, rgb(255 255 255 / 78%)); text-wrap: pretty; } .ds-btn-photo { display: inline-flex; align-items: center; gap: 8px; min-height: 48px; margin-top: 8px; padding: 0 16px; border-radius: 9999px; background: rgb(255 255 255 / 18%); color: var(--photo-ink, #ffffff); font-size: 0.9375rem; font-weight: 600; letter-spacing: 0.24px; text-decoration: none; -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px); transition: background 150ms cubic-bezier(0.16, 1, 0.3, 1); } .ds-btn-photo:hover, .ds-btn-photo:active { background: rgb(255 255 255 / 30%); } .ds-btn-photo:focus-visible { outline: 2px solid var(--photo-ink, #ffffff); outline-offset: 2px; } .ds-badge { display: inline-flex; align-items: center; padding: 4px 10px; border-radius: 9999px; font-size: 0.75rem; font-weight: 600; white-space: nowrap; } .ds-tag { position: absolute; top: 12px; left: 12px; z-index: 1; background: rgb(0 0 0 / 28%); color: var(--photo-ink, #ffffff); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); }"
+    },
+    {
+      "name": "Status Badges",
+      "kind": "chip",
+      "refersTo": "badge",
+      "description": "A 12 px pill. Dreaming is dusk, in progress is ember, achieved is the whole sky.",
+      "html": "<div class=\"ds-badges\"><span class=\"ds-badge ds-badge-dreaming\">Sním</span><span class=\"ds-badge ds-badge-progress\">Pracuju na tom</span><span class=\"ds-badge ds-badge-achieved\">Splněno</span></div>",
+      "css": ".ds-badges { display: flex; gap: 8px; font-family: Inter, system-ui, sans-serif; } .ds-badge { display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; border-radius: 9999px; background: var(--surface-3, #efe9e2); color: var(--ink-2, #5d554e); font-size: 0.75rem; font-weight: 600; white-space: nowrap; } .ds-badge-dreaming { background: var(--dusk-wash, rgb(90 79 214 / 12%)); color: var(--dusk, #5a4fd6); } .ds-badge-progress { background: var(--signal-wash, rgb(204 74 28 / 12%)); color: var(--signal, #cc4a1c); } .ds-badge-achieved { background: var(--dawn, linear-gradient(160deg, #e5602a 0%, #d84b7a 48%, #5a4fd6 100%)); color: var(--photo-ink, #ffffff); }"
+    },
+    {
+      "name": "Filter Chip",
+      "kind": "chip",
+      "refersTo": "chip",
+      "description": "A 40 px glass pill on the ground; the chosen one is the primary pill.",
+      "html": "<div class=\"ds-chips\"><button class=\"ds-chip ds-chip-on\">Vše</button><button class=\"ds-chip\">Cesty</button><button class=\"ds-chip\">Domov</button></div>",
+      "css": ".ds-chips { display: flex; gap: 8px; font-family: Inter, system-ui, sans-serif; } .ds-chip { display: inline-flex; align-items: center; gap: 8px; height: 40px; padding: 0 14px; border: 1px solid var(--glass-edge, rgb(255 255 255 / 60%)); border-radius: 9999px; background: var(--glass, rgb(255 255 255 / 72%)); color: var(--ink, #211c19); font-size: 0.8125rem; font-weight: 600; letter-spacing: 0.2px; white-space: nowrap; cursor: pointer; -webkit-backdrop-filter: blur(20px) saturate(1.6); backdrop-filter: blur(20px) saturate(1.6); transition: background 150ms cubic-bezier(0.16, 1, 0.3, 1), color 150ms cubic-bezier(0.16, 1, 0.3, 1); } .ds-chip:active { background: var(--surface-2, #f4efe9); } .ds-chip:focus-visible { outline: 2px solid var(--signal, #cc4a1c); outline-offset: 2px; } .ds-chip-on, .ds-chip-on:active { background: var(--pill, #211c19); border-color: transparent; color: var(--pill-ink, #ffffff); }"
+    },
+    {
+      "name": "Segmented Pill",
+      "kind": "chip",
+      "refersTo": "segment",
+      "description": "A soft track with 3 px of padding inside a card; the chosen segment is the primary pill. Sentence-case labels.",
+      "html": "<div class=\"ds-seg\" role=\"group\" aria-label=\"Motiv\"><button class=\"ds-seg-item\" aria-pressed=\"true\">Systém</button><button class=\"ds-seg-item\" aria-pressed=\"false\">Světlý</button><button class=\"ds-seg-item\" aria-pressed=\"false\">Tmavý</button></div>",
+      "css": ".ds-seg { display: flex; padding: 3px; border-radius: 9999px; background: var(--surface-3, #efe9e2); font-family: Inter, system-ui, sans-serif; } .ds-seg-item { flex: 1; min-height: 36px; border: none; border-radius: 9999px; background: transparent; color: var(--ink-2, #5d554e); font-size: 0.875rem; font-weight: 600; white-space: nowrap; cursor: pointer; transition: background 150ms cubic-bezier(0.16, 1, 0.3, 1), color 150ms cubic-bezier(0.16, 1, 0.3, 1); } .ds-seg-item:focus-visible { outline: 2px solid var(--signal, #cc4a1c); outline-offset: 2px; } .ds-seg-item[aria-pressed='true'] { background: var(--pill, #211c19); color: var(--pill-ink, #ffffff); }"
+    },
+    {
+      "name": "Text Field",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "A 48 px soft field with no border and an ember focus ring; label above, hint below.",
+      "html": "<label class=\"ds-field\"><span class=\"ds-field-label\">Párovací kód</span><input class=\"ds-field-input\" type=\"text\" placeholder=\"Šest znaků\" /><span class=\"ds-field-hint\">Najdeš ho v Prosperu pod Synchronizace.</span></label>",
+      "css": ".ds-field { display: flex; flex-direction: column; gap: 8px; font-family: Inter, system-ui, sans-serif; color: var(--ink, #211c19); } .ds-field-label { font-size: 0.8125rem; font-weight: 400; letter-spacing: 0.24px; color: var(--ink-2, #5d554e); } .ds-field-input { width: 100%; min-height: 48px; padding: 0 16px; border: none; border-radius: 12px; background: var(--surface-3, #efe9e2); color: var(--ink, #211c19); font: inherit; font-size: 0.9375rem; caret-color: var(--signal, #cc4a1c); transition: box-shadow 150ms cubic-bezier(0.16, 1, 0.3, 1); } .ds-field-input::placeholder { color: var(--ink-3, #7d746b); } .ds-field-input:focus-visible { outline: none; box-shadow: 0 0 0 1.5px var(--signal, #cc4a1c); } .ds-field-input:disabled { opacity: 0.5; } .ds-field-hint { font-size: 0.8125rem; line-height: 1.5; color: var(--ink-2, #5d554e); }"
+    },
+    {
+      "name": "Toggle",
+      "kind": "input",
+      "refersTo": "toggle",
+      "description": "40 by 24, hairline track, ember when on, a white knob travelling 16 px in 150 ms.",
+      "html": "<div class=\"ds-toggles\"><button class=\"ds-toggle\" role=\"switch\" aria-checked=\"false\" aria-label=\"Vypnuto\"></button><button class=\"ds-toggle\" role=\"switch\" aria-checked=\"true\" aria-label=\"Zapnuto\"></button></div>",
+      "css": ".ds-toggles { display: flex; gap: 16px; } .ds-toggle { position: relative; width: 40px; height: 24px; border: none; border-radius: 9999px; background: var(--hairline-2, #d1c8bd); cursor: pointer; transition: background 150ms cubic-bezier(0.16, 1, 0.3, 1); } .ds-toggle::after { content: ''; position: absolute; top: 3px; left: 3px; width: 18px; height: 18px; border-radius: 9999px; background: var(--knob, #ffffff); box-shadow: 0 1px 2px rgb(0 0 0 / 20%); transition: transform 150ms cubic-bezier(0.16, 1, 0.3, 1); } .ds-toggle:focus-visible { outline: 2px solid var(--signal, #cc4a1c); outline-offset: 2px; } .ds-toggle[aria-checked='true'] { background: var(--signal, #cc4a1c); } .ds-toggle[aria-checked='true']::after { transform: translateX(16px); }"
+    },
+    {
+      "name": "Tab Bar",
+      "kind": "nav",
+      "refersTo": "tabbar",
+      "description": "The floating glass pill: four slots, the ember disc in the second, a lit rim, and a lens under the current tab.",
+      "html": "<nav class=\"ds-tabbar\" aria-label=\"Hlavní navigace\"><span class=\"ds-lens\" aria-hidden=\"true\"></span><a class=\"ds-tab ds-tab-on\" href=\"#\" aria-current=\"page\"><svg width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"4\" y=\"5.5\" width=\"12.5\" height=\"15\" rx=\"2.6\"/><path d=\"M9.2 3.6h8.2a2.6 2.6 0 0 1 2.6 2.6v9.3\"/></svg><span class=\"ds-tab-label\">Nástěnka</span></a><a class=\"ds-add\" href=\"#\" aria-label=\"Přidat sen\"><span class=\"ds-add-disc\"><svg width=\"26\" height=\"26\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M12 6.4v11.2M6.4 12h11.2\"/></svg></span></a><a class=\"ds-tab\" href=\"#\"><svg width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M6 9H4.5a2.5 2.5 0 0 1 0-5H6\"/><path d=\"M18 9h1.5a2.5 2.5 0 0 0 0-5H18\"/><path d=\"M4 22h16\"/><path d=\"M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22\"/><path d=\"M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22\"/><path d=\"M18 2H6v7a6 6 0 0 0 12 0V2Z\"/></svg><span class=\"ds-tab-label\">Síň slávy</span></a><a class=\"ds-tab\" href=\"#\"><svg width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M3.8 7.6h4.4M13.2 7.6h7M3.8 16.4h7.4M16.2 16.4h4\"/><circle cx=\"10.7\" cy=\"7.6\" r=\"2.2\"/><circle cx=\"13.7\" cy=\"16.4\" r=\"2.2\"/></svg><span class=\"ds-tab-label\">Nastavení</span></a></nav>",
+      "css": ".ds-tabbar { position: relative; display: grid; grid-template-columns: repeat(4, 1fr); align-items: center; width: 100%; max-width: 360px; height: 62px; padding: 0 8px; border-radius: 9999px; background: var(--glass, rgb(255 255 255 / 72%)); box-shadow: var(--elev-glass, 0 8px 32px rgb(33 28 25 / 14%)); -webkit-backdrop-filter: blur(24px) saturate(1.6); backdrop-filter: blur(24px) saturate(1.6); isolation: isolate; font-family: Inter, system-ui, sans-serif; } .ds-tabbar::before, .ds-lens::before { content: ''; position: absolute; inset: 0; z-index: -1; padding: 1px; border-radius: inherit; background: linear-gradient(135deg, var(--glass-shine, rgb(255 255 255 / 95%)) 0%, var(--glass-edge, rgb(255 255 255 / 60%)) 30%, var(--glass-rim, rgb(33 28 25 / 10%)) 65%, var(--glass-shine, rgb(255 255 255 / 95%)) 100%); -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask-composite: exclude; pointer-events: none; } .ds-tabbar::after { content: ''; position: absolute; inset: 1px; z-index: -1; border-radius: inherit; background: linear-gradient(180deg, var(--glass-shine, rgb(255 255 255 / 95%)) -40%, transparent 55%); opacity: 0.45; pointer-events: none; } .ds-lens { position: absolute; top: 6px; bottom: 6px; left: 8px; z-index: -1; width: calc((100% - 16px) / 4); border-radius: 9999px; background: var(--glass-lens, rgb(255 255 255 / 60%)); transition: left 360ms cubic-bezier(0.3, 1.45, 0.5, 1); } .ds-lens::before { background: linear-gradient(180deg, var(--glass-shine, rgb(255 255 255 / 95%)) 0%, var(--glass-edge, rgb(255 255 255 / 60%)) 45%, var(--glass-rim, rgb(33 28 25 / 10%)) 100%); } .ds-tab { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; min-width: 0; height: 62px; color: var(--ink-3, #7d746b); text-decoration: none; transition: color 150ms cubic-bezier(0.16, 1, 0.3, 1); } .ds-tab:hover { color: var(--ink-2, #5d554e); } .ds-tab-on, .ds-tab-on:hover { color: var(--ink, #211c19); } .ds-tab:focus-visible { outline: 2px solid var(--signal, #cc4a1c); outline-offset: -4px; border-radius: 9999px; } .ds-tab-label { font-size: 0.6875rem; font-weight: 600; line-height: 1; white-space: nowrap; } .ds-add { display: flex; align-items: center; justify-content: center; height: 62px; text-decoration: none; } .ds-add-disc { display: grid; place-items: center; width: 48px; height: 48px; border-radius: 9999px; background: var(--signal, #cc4a1c); color: var(--signal-ink, #ffffff); transition: background 150ms cubic-bezier(0.16, 1, 0.3, 1); } .ds-add:active .ds-add-disc { background: color-mix(in srgb, var(--signal, #cc4a1c) 85%, var(--ink, #211c19)); } .ds-add:focus-visible { outline: none; } .ds-add:focus-visible .ds-add-disc { outline: 2px solid var(--signal, #cc4a1c); outline-offset: 2px; }"
+    },
+    {
+      "name": "Toast",
+      "kind": "custom",
+      "refersTo": "toast",
+      "description": "One glass pill in the ink above the bar; an action rides on the right as a small primary pill.",
+      "html": "<div class=\"ds-toast\" role=\"status\"><span class=\"ds-toast-text\">Sen uložen</span><button class=\"ds-toast-action\">Zpět</button></div>",
+      "css": ".ds-toast { display: flex; align-items: center; justify-content: center; gap: 12px; width: 100%; max-width: 26rem; min-height: 48px; padding: 14px 20px; border: 1px solid var(--glass-edge, rgb(255 255 255 / 60%)); border-radius: 9999px; background: var(--glass, rgb(255 255 255 / 72%)); color: var(--ink, #211c19); font-family: Inter, system-ui, sans-serif; font-size: 0.875rem; font-weight: 600; text-align: center; box-shadow: var(--elev-glass, 0 8px 32px rgb(33 28 25 / 14%)); -webkit-backdrop-filter: blur(24px) saturate(1.6); backdrop-filter: blur(24px) saturate(1.6); animation: ds-toast-in 220ms cubic-bezier(0.16, 1, 0.3, 1); } .ds-toast-text { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; } .ds-toast-action { flex: none; margin: -6px -8px -6px 0; padding: 6px 12px; border: none; border-radius: 9999px; background: var(--pill, #211c19); color: var(--pill-ink, #ffffff); font: inherit; font-size: 0.8125rem; font-weight: 600; cursor: pointer; } .ds-toast-action:focus-visible { outline: 2px solid var(--signal, #cc4a1c); outline-offset: 2px; } @keyframes ds-toast-in { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }"
+    }
+  ],
+  "narrative": {
+    "northStar": "A Wall of Photographs",
+    "overview": "Aspire is a private dreamboard: a wall of the person's own pictures, each with a title and one line saying why. The interface is the wall, not the pictures. Its ground is warm linen with a hint of rose, its ink is warm, and its cards are white raised by nothing but luminance. Every control is a pill or a circle. There are exactly two accents and one gradient: ember acts, dusk marks, and the sunrise gradient between them stands in for a photograph wherever there is not one yet, so the empty board already looks like the board.\n\nDensity is a phone's: one column at most 34 rem wide, 16 px gutters, 12 px between cards, and a frosted bar floating over the bottom edge. Nothing in the chrome competes with a picture. The dark theme is not an inversion but a different room, a print on a dark wall: charcoal ground, graphite cards, the two accents lifted to lit hues with dark ink on them, and two faint coloured lights behind the glass.",
+    "keyCharacteristics": [
+      "Warm linen ground and warm ink in the light; warm charcoal in the dark",
+      "Two accents only: ember (`--signal`) acts, dusk (`--dusk`) marks",
+      "One gradient (`--dawn`) that is theme-independent, like a photograph",
+      "White type over a bottom scrim on every photograph, in both themes",
+      "Elevation by luminance; the dream tile is the one object that casts a shadow",
+      "Every button a pill; every identity a circle; Inter 400/600, sentence case",
+      "One colour source: a literal hex outside `tokens.css` is a bug"
+    ],
+    "rules": [
+      { "name": "The Ember Acts, Dusk Marks Rule", "body": "Ember goes only on things that do something. Dusk goes only on things that say what state something is in. Neither is decoration, and there is no third accent.", "section": "colors" },
+      { "name": "The One Sky Rule", "body": "`--dawn` is the only gradient. It stands in for a photograph and is allowed at scale only where a photograph would be; it does not tint chrome, cards or backgrounds.", "section": "colors" },
+      { "name": "The Scrim Rule", "body": "Type on an image is `--photo-ink` over `--scrim`, bottom only, in both themes. The top of a photograph stays a photograph.", "section": "colors" },
+      { "name": "The One Hex Rule", "body": "Every colour lives in `tokens.css`. The single exception is the ground, written once more in `app.html`'s `theme-color` and the manifest, which cannot take a custom property.", "section": "colors" },
+      { "name": "The Two-Weight Rule", "body": "The face is loaded at 400–600, but the build sets only 400 and 600. 500 is available and unused; do not introduce it without a reason, and never 700.", "section": "typography" },
+      { "name": "The Sentence Case Rule", "body": "No `text-transform: uppercase` anywhere; the label tracking (+0.24 px) is the only thing that distinguishes a label.", "section": "typography" },
+      { "name": "The Luminance Rule", "body": "Resting surfaces have no shadow, no border and no edge. A card is raised because it is lighter than the ground; that is the whole elevation.", "section": "elevation" },
+      { "name": "The One Print Rule", "body": "The dream tile is the only object on the ground that casts a shadow, because it is the only object that is a photograph.", "section": "elevation" },
+      { "name": "The Glass Is Never a Card Rule", "body": "Glass frosts what scrolls under it. A surface with nothing under it is the soft surface.", "section": "elevation" }
+    ],
+    "dos": [
+      "Do put every colour in `tokens.css` and reach it by role; the dark theme is a `--dark-*` bank pointed at twice, once under `prefers-color-scheme: dark` and once under `[data-theme='dark']`, and a new role is added in all three places.",
+      "Do raise a card by luminance alone: surface on ground, 20 px corners, no shadow, no border.",
+      "Do make every button a pill and rank it by fill: primary inverts, accent is ember, soft sits in a card, card-coloured sits on the ground, quiet is text, danger is an outline.",
+      "Do set type on a photograph in white over the bottom scrim, in both themes, and put a tile's status in the top corner as a glass tag.",
+      "Do use ember only for what acts and dusk only for what marks; the sky only where a photograph would be.",
+      "Do keep every label sentence case, on the 4 px grid, at 44 px targets or more, and stop all motion under `prefers-reduced-motion`.",
+      "Do use glass only for what floats over content or sits on the ground; inside a card, use the soft surface."
+    ],
+    "donts": [
+      "Don't add a third accent hue, a data colour, or a second gradient.",
+      "Don't use uppercase, weight 500 or 700, or a second typeface.",
+      "Don't put a shadow, hairline or lit edge on a card, a row or any resting surface; the dream tile is the only object on the ground that casts one.",
+      "Don't put a label above a tile's title; the title carries its own weight and status lives in the corner.",
+      "Don't frost a card or a page ground, and don't leave a floating layer translucent where the browser cannot blur.",
+      "Don't write a literal hex outside `tokens.css`, other than the ground in `theme-color` and the manifest.",
+      "Don't scale, bounce or glow on press; press is one luminance step."
+    ]
+  }
+}
