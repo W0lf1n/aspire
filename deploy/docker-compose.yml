@@ -1,0 +1,87 @@
+# The whole deployment: the app, the API, and Postgres — Prosper's shape, with
+# one addition: the media volume the photographs live in.
+#
+# Run it from this directory, with a `.env` beside it (see `.env.example`):
+#
+#     docker compose up -d --build
+#
+# **One port reaches the world, and it is bound to loopback.** The host's nginx
+# terminates TLS for the domain and proxies to it; nothing here listens on a
+# public interface, so a misconfigured firewall cannot expose Postgres or the
+# API by accident. Prosper takes 8080 on the same box; this one defaults to
+# 8081, and the two never meet.
+#
+# The full runbook, including the certificate and the backups, is
+# `docs/DEPLOYMENT.md`.
+name: aspire
+
+# Docker's default log driver keeps every line ever written, unbounded, on a
+# VPS with a small disk. Capped here, per container, rather than in
+# `daemon.json` — so the fence travels with the deployment instead of being
+# host configuration somebody has to remember.
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: 10m
+    max-file: '3'
+
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    logging: *logging
+    environment:
+      POSTGRES_DB: aspire
+      POSTGRES_USER: aspire
+      # No default, on purpose: a default password is one nobody changes.
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U aspire']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build:
+      context: ../apps/api
+    restart: unless-stopped
+    logging: *logging
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      ConnectionStrings__Postgres: Host=db;Port=5432;Database=aspire;Username=aspire;Password=${POSTGRES_PASSWORD}
+      # The code a device types once, when pairing. No default — an unset code
+      # makes the server refuse to pair rather than accept anything.
+      Pairing__Code: ${PAIRING_CODE:?set PAIRING_CODE in .env}
+      # Where the resized images go (PLAN.md §4). The image creates the
+      # directory owned by the app user, so the volume inherits that on its
+      # first mount and the non-root API can write into it.
+      Media__Root: /data/media
+    volumes:
+      - media:/data/media
+    # Deliberately not published. The only way in is through `web`, which is
+    # what makes the client and the API one origin and retires CORS.
+    expose:
+      - '8080'
+
+  web:
+    build:
+      context: ..
+      dockerfile: apps/web/Dockerfile
+    restart: unless-stopped
+    logging: *logging
+    depends_on:
+      - api
+    volumes:
+      # The same media volume, read-only: nginx serves `/media/` straight
+      # from disk with a year of cache, and never needs the API for a byte.
+      - media:/usr/share/nginx/media:ro
+    ports:
+      - '127.0.0.1:${ASPIRE_PORT:-8081}:80'
+
+volumes:
+  pgdata:
+  media:
