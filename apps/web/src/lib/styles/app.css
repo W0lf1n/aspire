@@ -496,6 +496,22 @@ a {
 	backdrop-filter: blur(12px);
 }
 
+/**
+ * A dream's status, on its photograph: in the top corner, in dark glass so
+ * it reads on any picture, and never above the title — a label over a
+ * heading is a kicker, and the title carries its own weight.
+ */
+.dream__tag {
+	position: absolute;
+	top: var(--space-3);
+	left: var(--space-3);
+	z-index: 1;
+	background: rgb(0 0 0 / 28%);
+	color: var(--photo-ink);
+	-webkit-backdrop-filter: blur(12px);
+	backdrop-filter: blur(12px);
+}
+
 .badge--tiny {
 	padding: 2px 8px;
 	font-size: var(--text-2xs);

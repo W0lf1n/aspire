@@ -14,9 +14,9 @@
 	let chip = $state<'vse' | 'sny' | 'cesta'>('vse');
 
 	const THEMES: { value: Theme; label: string }[] = [
-		{ value: 'system', label: 'systém' },
-		{ value: 'light', label: 'světlý' },
-		{ value: 'dark', label: 'tmavý' }
+		{ value: 'system', label: 'Systém' },
+		{ value: 'light', label: 'Světlý' },
+		{ value: 'dark', label: 'Tmavý' }
 	];
 
 	/** The colour roles, read off the root so the swatch says what it is. */
@@ -108,7 +108,6 @@
 
 	<div class="dream dream--sky dream--wide">
 		<div class="dream__body">
-			<span class="badge badge--photo badge--tiny">obloha</span>
 			<h3 class="dream__title dream__title--sm">Jeden přechod, dva akcenty</h3>
 			<p class="dream__why">Ember přes růžovou do dusku. Stojí na místě fotky, dokud žádná není.</p>
 		</div>
@@ -244,15 +243,15 @@
 	<!-- ── the dream tile ─────────────────────────────────────────────── -->
 	<h2 class="section">Sen</h2>
 	<div class="dream dream--sky">
+		<span class="badge dream__tag">sním</span>
 		<div class="dream__body">
-			<span class="badge badge--photo badge--tiny">sním</span>
 			<h3 class="dream__title">Dům u lesa</h3>
 			<p class="dream__why">Ráno s kávou na verandě, ticho a les za oknem.</p>
 		</div>
 	</div>
 	<div class="dream sample" aria-label="Ukázka snu se stmavlou fotkou">
+		<span class="badge dream__tag">na cestě · 2028</span>
 		<div class="dream__body">
-			<span class="badge badge--photo badge--tiny">na cestě · 2028</span>
 			<h3 class="dream__title">Rok v Japonsku</h3>
 			<p class="dream__why">Text vždy bílý, přes stmívání odspoda. Fotka nahoře zůstává fotkou.</p>
 		</div>

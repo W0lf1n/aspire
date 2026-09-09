@@ -57,7 +57,6 @@
 		<article class="dream dream--sky first" aria-labelledby="first-title">
 			<span class="sky" aria-hidden="true"></span>
 			<div class="dream__body">
-				<span class="badge badge--photo badge--tiny">první sen</span>
 				<h2 id="first-title" class="dream__title">Zatím žádný sen</h2>
 				<p class="dream__why">Přidej první. Obrázek, který ti připomene, proč to všechno děláš.</p>
 				<div class="actions first__actions">
@@ -95,6 +94,16 @@
 	   app.css. The tile is the one authored motion on the screen. */
 	.first {
 		flex: none;
+	}
+
+	/* On a desktop the column is 34rem wide and a 4:5 tile would run under
+	   the bar, hiding the pill on first paint. The tile gives up its ratio
+	   before it gives up its foot: capped to what is left of the viewport
+	   under the wordmark and above the bar. */
+	@media (min-width: 35rem) {
+		.first {
+			max-height: calc(100dvh - 6.5rem - var(--page-end, 0px));
+		}
 	}
 
 	.sky {

@@ -11,9 +11,9 @@
 	let theme = $state<Theme>(readTheme());
 
 	const OPTIONS: { value: Theme; label: string }[] = [
-		{ value: 'system', label: 'systém' },
-		{ value: 'light', label: 'světlý' },
-		{ value: 'dark', label: 'tmavý' }
+		{ value: 'system', label: 'Systém' },
+		{ value: 'light', label: 'Světlý' },
+		{ value: 'dark', label: 'Tmavý' }
 	];
 
 	function chooseTheme(next: Theme) {
