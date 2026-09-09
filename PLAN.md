@@ -130,10 +130,23 @@ Smallest of the three apps. Good candidate to build **first** if you want a quic
 
 ## 8. Open questions
 
-1. Same auth as Prosper — which? (shared open question with Planner)
-2. Images stay on VPS disk, or MinIO/S3 from the start?
+Answered ones are struck through; the reasoning is in `docs/DECISIONS.md`.
+
+1. ~~Same auth as Prosper — which?~~ — answered 2026-09-09: Prosper's pairing code + device-bound token, copied whole. No users table; §5 loses `users` and every `user_id` (D6).
+2. ~~Images stay on VPS disk, or MinIO/S3 from the start?~~ — answered 2026-09-09: disk, in a named `media` volume served by nginx as `/media/`; path `/data/media/{dreamId}/{size}.webp` (D7).
 3. Categories: fixed Yager set above, or fully free-form?
 4. Voice memo: worth it in v1.1, or drop?
-5. Czech / English UI?
-6. Will Zuzana use it too (shared board vs. separate accounts)?
+5. ~~Czech / English UI?~~ — answered 2026-09-09: Czech UI, English code, like Prosper (D2).
+6. Will Zuzana use it too (shared board vs. separate accounts)? — narrowed 2026-09-09: with Prosper's auth it is one board, many devices; a *second* board would be a real design question, not a column (D6).
 7. ~~Build order~~ — decided: Aspire first.
+
+## 9. M0 — what was built · 2026-09-09
+
+Repository in Prosper's shape (`apps/api`, `apps/web`, `packages/contracts`,
+`deploy/`), not the `backend/` + `frontend/` tree in §4 (D1). .NET 10 rather
+than 9 (D3). The three backend projects from §4, real EF migrations with a
+SQLite laptop mode (D5). Pairing auth, `/api/v1/health`, `/api/v1/dreams`
+answering an empty list. The client shell: the design system with light and
+dark, the empty board, the four-slot bar, Settings with the theme choice, the
+styleguide at `/styleguide`. Compose, nginx, the host vhost for
+`aspire.petrbohac.eu`, the nightly backup, CI.
