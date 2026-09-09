@@ -1,0 +1,10 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Aspire.Domain/Aspire.Domain.csproj" />
+    <Project Path="src/Aspire.Infrastructure/Aspire.Infrastructure.csproj" />
+    <Project Path="src/Aspire.Api/Aspire.Api.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Aspire.Api.Tests/Aspire.Api.Tests.csproj" />
+  </Folder>
+</Solution>
