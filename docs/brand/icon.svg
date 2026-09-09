@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+	<!-- Aspire: a sun coming up over a horizon, on the sky. -->
+	<defs>
+		<linearGradient id="dawn" x1="0" y1="0" x2="1" y2="1">
+			<stop offset="0" stop-color="#e5602a"/>
+			<stop offset="0.48" stop-color="#d84b7a"/>
+			<stop offset="1" stop-color="#5a4fd6"/>
+		</linearGradient>
+		<clipPath id="above"><rect x="0" y="0" width="512" height="292"/></clipPath>
+	</defs>
+	<rect width="512" height="512" rx="116" fill="url(#dawn)"/>
+	<circle cx="256" cy="250" r="104" fill="#ffffff" clip-path="url(#above)"/>
+	<rect x="128" y="316" width="256" height="40" rx="20" fill="#ffffff"/>
+</svg>

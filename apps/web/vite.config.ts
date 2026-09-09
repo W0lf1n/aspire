@@ -1,0 +1,42 @@
+import { defineConfig } from 'vitest/config';
+import adapter from '@sveltejs/adapter-static';
+import { sveltekit } from '@sveltejs/kit/vite';
+
+export default defineConfig({
+	plugins: [
+		sveltekit({
+			compilerOptions: {
+				// Force runes mode for the project, except for libraries. Can be removed in svelte 6.
+				runes: ({ filename }) =>
+					filename.split(/[/\\]/).includes('node_modules') ? undefined : true
+			},
+
+			// Static output: an app shell plus assets, served by nginx in the
+			// same container that proxies `/api/` to the API (deploy/).
+			adapter: adapter({ fallback: '200.html', precompress: true })
+		})
+	],
+	server: {
+		// The client is always same-origin with the API. In development that
+		// origin is Vite's, so `/api` is proxied to the API's dev port (see
+		// apps/api/src/Aspire.Api/Properties/launchSettings.json) rather than
+		// opening a CORS door.
+		proxy: {
+			'/api': 'http://127.0.0.1:5300'
+		}
+	},
+	test: {
+		expect: { requireAssertions: true },
+		projects: [
+			{
+				extends: './vite.config.ts',
+				test: {
+					name: 'server',
+					environment: 'node',
+					include: ['src/**/*.{test,spec}.{js,ts}'],
+					exclude: ['src/**/*.svelte.{test,spec}.{js,ts}']
+				}
+			}
+		]
+	}
+});

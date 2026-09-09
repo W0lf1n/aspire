@@ -1,0 +1,897 @@
+@import './tokens.css';
+
+/**
+ * The one typeface, self-hosted: a CDN would break the offline promise.
+ *
+ * Inter as a variable face, one file per subset, covering the whole 400–600
+ * ladder the app uses. Latin and latin-ext — Czech lives in the second.
+ */
+
+@font-face {
+	font-family: 'Inter';
+	font-style: normal;
+	font-weight: 400 600;
+	font-display: swap;
+	src: url('/fonts/inter-latin.woff2') format('woff2');
+	unicode-range:
+		U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
+		U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+	font-family: 'Inter';
+	font-style: normal;
+	font-weight: 400 600;
+	font-display: swap;
+	src: url('/fonts/inter-latin-ext.woff2') format('woff2');
+	unicode-range:
+		U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329,
+		U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F,
+		U+A720-A7FF;
+}
+
+/* ── base ────────────────────────────────────────────────────────────────── */
+
+*,
+*::before,
+*::after {
+	box-sizing: border-box;
+}
+
+/**
+ * App shell: the window itself never scrolls. Every screen is a fixed frame
+ * and anything long scrolls inside it, so the tab bar can never drift up the
+ * page and a board that swipes owns its own scroll region.
+ */
+html,
+body {
+	height: 100%;
+	height: 100dvh;
+	overflow: hidden;
+	overscroll-behavior: none;
+}
+
+html {
+	-webkit-text-size-adjust: 100%;
+}
+
+body {
+	margin: 0;
+	min-height: 100%;
+	/* A flat ground. The cards float on it by luminance and nothing else. */
+	background-color: var(--ground);
+	color: var(--ink);
+	font-family: var(--font-ui);
+	font-size: var(--text-base);
+	line-height: var(--leading-snug);
+	letter-spacing: var(--track-body);
+	font-variant-numeric: tabular-nums;
+	font-synthesis-weight: none;
+	text-rendering: optimizeLegibility;
+	-webkit-font-smoothing: antialiased;
+	touch-action: manipulation;
+	-webkit-tap-highlight-color: transparent;
+}
+
+/**
+ * How far the toast, and the end of a page, have to stand off the bottom edge:
+ * clear of the floating tab bar on a screen that has one, a plain margin on
+ * the one that does not.
+ */
+.app {
+	--toast-lift: calc(var(--space-5) + env(safe-area-inset-bottom, 0px));
+	--page-end: calc(var(--space-5) + env(safe-area-inset-bottom, 0px));
+}
+
+.app:has(.tabbar) {
+	--toast-lift: calc(var(--tabbar-lift) + var(--tabbar) + var(--space-4));
+	--page-end: calc(var(--tabbar-lift) + var(--tabbar) + var(--space-6));
+}
+
+h1,
+h2,
+h3,
+p,
+figure {
+	margin: 0;
+}
+
+button {
+	font: inherit;
+	letter-spacing: inherit;
+	color: inherit;
+	background: none;
+	border: none;
+	padding: 0;
+	cursor: pointer;
+}
+
+input,
+select,
+textarea {
+	font: inherit;
+	letter-spacing: inherit;
+	color: inherit;
+	caret-color: var(--signal);
+}
+
+a {
+	color: inherit;
+}
+
+::selection {
+	background: var(--signal-wash);
+	color: var(--ink);
+}
+
+:focus-visible {
+	outline: 2px solid var(--signal);
+	outline-offset: 2px;
+	border-radius: var(--radius-sm);
+}
+
+/* No scrollbars anywhere: the rails and the pages are swiped, and a phone
+   never shows one. */
+* {
+	scrollbar-width: none;
+}
+
+::-webkit-scrollbar {
+	display: none;
+}
+
+/* ── the page ────────────────────────────────────────────────────────────
+   The one scroll region every tab screen owns: a column of cards under the
+   status bar, above the tab bar. Cards in it never shrink — `overflow` inside
+   one drops its automatic minimum size to zero and the list gets silently
+   clipped. */
+
+.page {
+	flex: 1;
+	min-height: 0;
+	overflow-y: auto;
+	overscroll-behavior: contain;
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-3);
+	padding: calc(var(--space-3) + env(safe-area-inset-top, 0px)) var(--space-4)
+		var(--page-end, var(--space-5));
+}
+
+.page > * {
+	flex: none;
+}
+
+/* The screen title, in the flow rather than in a bar: it scrolls away. */
+.title {
+	margin: var(--space-2) 0 var(--space-1);
+	font-size: var(--text-2xl);
+	font-weight: 600;
+	letter-spacing: var(--track-title);
+	color: var(--ink);
+}
+
+/* ── primitives ──────────────────────────────────────────────────────────── */
+
+/**
+ * Glass: a frosted surface for a layer or a control that sits *over* content
+ * or on the ground — the tab bar, the toast, a round button, a chip. Never a
+ * card and never a page ground: inside a card nothing scrolls under the
+ * surface, so there is nothing to frost. Where the browser cannot blur, a
+ * floating layer goes opaque rather than translucent over text.
+ */
+.glass,
+.round,
+.chip {
+	background: var(--glass);
+	border: 1px solid var(--glass-edge);
+	-webkit-backdrop-filter: blur(20px) saturate(1.6);
+	backdrop-filter: blur(20px) saturate(1.6);
+}
+
+/**
+ * The card: white on the ground, 20 px corners, no shadow. Raised because it
+ * is lighter than the ground, and that is the whole elevation.
+ */
+.card {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-3);
+	padding: var(--space-4);
+	background: var(--surface);
+	border-radius: var(--radius-lg);
+	color: var(--ink);
+}
+
+/* A card that is a link or a button presses by luminance. */
+.card--press {
+	width: 100%;
+	text-align: left;
+	text-decoration: none;
+	transition: background var(--dur-fast) var(--ease-out);
+}
+
+.card--press:active {
+	background: var(--surface-2);
+}
+
+@media (hover: hover) {
+	.card--press:hover {
+		background: var(--surface-2);
+	}
+}
+
+/* A card of rows: the rows carry the vertical padding themselves. */
+.card--list {
+	gap: 0;
+	padding: var(--space-1) var(--space-4);
+}
+
+/** The card label: sentence case, small, quiet. Never uppercase. */
+.label {
+	font-size: var(--text-sm);
+	font-weight: 400;
+	letter-spacing: var(--track-label);
+	color: var(--ink-2);
+}
+
+.card__head {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: var(--space-2);
+	min-height: 20px;
+}
+
+/* The chevron on a card that opens somewhere. */
+.card__go {
+	display: grid;
+	place-items: center;
+	flex: none;
+	color: var(--ink-3);
+}
+
+/**
+ * The dream: a photograph, portrait, with its title and its why set on it in
+ * white over a scrim. The one object on the ground that casts a shadow,
+ * because it is the one object that is physically a print. Until there is a
+ * photograph, `.dream--sky` paints the sky in its place — so the empty board
+ * already looks like the board.
+ */
+.dream {
+	position: relative;
+	display: flex;
+	flex-direction: column;
+	justify-content: flex-end;
+	aspect-ratio: 4 / 5;
+	overflow: hidden;
+	border-radius: var(--radius-lg);
+	background: var(--surface-3);
+	color: var(--photo-ink);
+	box-shadow: var(--elev-photo);
+	isolation: isolate;
+}
+
+.dream--sky {
+	background: var(--dawn);
+}
+
+.dream--wide {
+	aspect-ratio: 16 / 10;
+}
+
+.dream__img {
+	position: absolute;
+	inset: 0;
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+}
+
+/* The scrim sits between the image and the words, and only at the bottom:
+   the top of a photograph stays a photograph. */
+.dream::after {
+	content: '';
+	position: absolute;
+	inset: 0;
+	background: var(--scrim);
+	pointer-events: none;
+}
+
+.dream__body {
+	position: relative;
+	z-index: 1;
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-2);
+	padding: var(--space-5) var(--space-4) var(--space-4);
+}
+
+.dream__title {
+	font-size: var(--text-3xl);
+	font-weight: 600;
+	line-height: var(--leading-tight);
+	letter-spacing: var(--track-3xl);
+	text-wrap: balance;
+}
+
+.dream__title--sm {
+	font-size: var(--text-xl);
+	letter-spacing: var(--track-xl);
+}
+
+.dream__why {
+	font-size: var(--text-md);
+	line-height: var(--leading-base);
+	color: var(--photo-ink-2);
+	text-wrap: pretty;
+	max-width: 32ch;
+}
+
+/**
+ * The circle: an identity — a category, a status — 40 px, its colour behind
+ * a white glyph. The colour arrives as `--c`.
+ */
+.circle {
+	display: grid;
+	place-items: center;
+	flex: none;
+	width: 40px;
+	height: 40px;
+	border-radius: var(--radius-full);
+	background: var(--c, var(--surface-3));
+	color: var(--c-ink, var(--ink));
+	font-size: var(--text-sm);
+	font-weight: 600;
+	letter-spacing: 0;
+}
+
+.circle--sm {
+	width: 34px;
+	height: 34px;
+}
+
+.circle--xs {
+	width: 28px;
+	height: 28px;
+}
+
+.circle--lg {
+	width: 52px;
+	height: 52px;
+}
+
+.circle--accent {
+	background: var(--signal);
+	color: var(--signal-ink);
+}
+
+.circle--dusk {
+	background: var(--dusk);
+	color: var(--dusk-ink);
+}
+
+.circle--sky {
+	background: var(--dawn);
+	color: var(--photo-ink);
+}
+
+/**
+ * The list row: a circle, a title with a sub under it, an end slot. The
+ * settings hub, a list of dreams in the grid view.
+ */
+.row {
+	display: flex;
+	align-items: center;
+	gap: var(--space-3);
+	width: 100%;
+	min-height: 64px;
+	color: var(--ink);
+	text-align: left;
+	text-decoration: none;
+}
+
+.row--short {
+	min-height: 52px;
+}
+
+/* A pressable row bleeds to the card's edge so the press has somewhere to be. */
+.row--press {
+	width: auto;
+	margin-inline: calc(var(--space-4) * -1);
+	padding-inline: var(--space-4);
+	transition: background var(--dur-fast) var(--ease-out);
+}
+
+.row--press:active {
+	background: var(--surface-2);
+}
+
+@media (hover: hover) {
+	.row--press:hover {
+		background: var(--surface-2);
+	}
+}
+
+.row + .row {
+	border-top: 1px solid var(--hairline);
+}
+
+.row__body {
+	flex: 1;
+	min-width: 0;
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+}
+
+.row__title {
+	font-size: var(--text-base);
+	font-weight: 600;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.row__sub {
+	font-size: var(--text-sm);
+	color: var(--ink-2);
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.row__end {
+	flex: none;
+	display: flex;
+	flex-direction: column;
+	align-items: flex-end;
+	gap: 2px;
+}
+
+/** A small badge: a pill of 12 px, 600. The status of a dream wears one. */
+.badge {
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+	flex: none;
+	padding: 4px 10px;
+	border-radius: var(--radius-full);
+	background: var(--surface-3);
+	font-size: var(--text-xs);
+	font-weight: 600;
+	color: var(--ink-2);
+	white-space: nowrap;
+}
+
+/* Dreaming is dusk; in progress is ember; achieved is the whole sky. */
+.badge--dreaming {
+	background: var(--dusk-wash);
+	color: var(--dusk);
+}
+
+.badge--progress {
+	background: var(--signal-wash);
+	color: var(--signal);
+}
+
+.badge--achieved {
+	background: var(--dawn);
+	color: var(--photo-ink);
+}
+
+/* A badge on a photograph is glass over the scrim. */
+.badge--photo {
+	background: rgb(255 255 255 / 18%);
+	color: var(--photo-ink);
+	-webkit-backdrop-filter: blur(12px);
+	backdrop-filter: blur(12px);
+}
+
+.badge--tiny {
+	padding: 2px 8px;
+	font-size: var(--text-2xs);
+}
+
+/**
+ * The segmented pill: a track with 3 px of padding and one segment in the
+ * primary pill's colours — the chosen one reads against any track. On the
+ * ground the track is the card colour; `.seg--soft` sits inside a card.
+ */
+.seg {
+	display: flex;
+	padding: 3px;
+	border-radius: var(--radius-full);
+	background: var(--surface);
+}
+
+.seg__item {
+	flex: 1;
+	min-height: 34px;
+	padding: 0 var(--space-4);
+	border-radius: var(--radius-full);
+	font-size: var(--text-md);
+	font-weight: 600;
+	color: var(--ink-2);
+	white-space: nowrap;
+	transition:
+		background var(--dur-fast) var(--ease-out),
+		color var(--dur-fast) var(--ease-out);
+}
+
+.seg__item[aria-pressed='true'] {
+	background: var(--pill);
+	color: var(--pill-ink);
+}
+
+.seg--soft {
+	background: var(--surface-3);
+}
+
+.seg--soft .seg__item {
+	min-height: 36px;
+	padding: 0;
+}
+
+/** A 40 px round glass button on the ground: close, back. */
+.round {
+	display: grid;
+	place-items: center;
+	flex: none;
+	width: 40px;
+	height: 40px;
+	border-radius: var(--radius-full);
+	color: var(--ink);
+	text-decoration: none;
+	transition: background var(--dur-fast) var(--ease-out);
+}
+
+.round:active {
+	background: var(--surface-2);
+}
+
+/**
+ * The chip: a 40 px glass pill on the ground with a name — the category
+ * filter over the board. The chosen one is the primary pill.
+ */
+.chip {
+	flex: none;
+	display: inline-flex;
+	align-items: center;
+	gap: var(--space-2);
+	height: 40px;
+	padding: 0 14px;
+	border-radius: var(--radius-full);
+	color: var(--ink);
+	font-size: var(--text-sm);
+	font-weight: 600;
+	letter-spacing: 0.2px;
+	white-space: nowrap;
+	transition:
+		background var(--dur-fast) var(--ease-out),
+		color var(--dur-fast) var(--ease-out);
+}
+
+.chip:active {
+	background: var(--surface-2);
+}
+
+.chip--on,
+.chip--on:active {
+	background: var(--pill);
+	border-color: transparent;
+	color: var(--pill-ink);
+}
+
+/** The toggle: 40 × 24, hairline track, ember when on, white knob. */
+.toggle {
+	position: relative;
+	flex: none;
+	width: 40px;
+	height: 24px;
+	border-radius: var(--radius-full);
+	background: var(--hairline-2);
+	transition: background var(--dur-fast) var(--ease-out);
+}
+
+.toggle::after {
+	content: '';
+	position: absolute;
+	top: 3px;
+	left: 3px;
+	width: 18px;
+	height: 18px;
+	border-radius: var(--radius-full);
+	background: var(--knob);
+	box-shadow: 0 1px 2px rgb(0 0 0 / 20%);
+	transition: transform var(--dur-fast) var(--ease-out);
+}
+
+.toggle[aria-checked='true'] {
+	background: var(--signal);
+}
+
+.toggle[aria-checked='true']::after {
+	transform: translateX(16px);
+}
+
+/** The facts list: a dt/dd per row, hairline between. */
+.facts {
+	margin: 0;
+	display: flex;
+	flex-direction: column;
+	font-size: var(--text-md);
+}
+
+.facts > div {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: var(--space-3);
+	padding: 10px 0;
+	border-top: 1px solid var(--hairline);
+}
+
+.facts > div:first-child {
+	border-top: none;
+}
+
+.facts dt {
+	color: var(--ink-2);
+}
+
+.facts dd {
+	margin: 0;
+	font-weight: 600;
+	color: var(--ink);
+}
+
+/** A recessed slab inside a card: the why, quoted. */
+.well {
+	padding: 14px var(--space-4);
+	border-radius: var(--radius-sm);
+	background: var(--ground-2);
+}
+
+.hint {
+	font-size: var(--text-sm);
+	line-height: var(--leading-base);
+	color: var(--ink-2);
+	text-wrap: pretty;
+}
+
+.hint strong {
+	font-weight: 600;
+	color: var(--ink);
+}
+
+.prose {
+	max-width: 62ch;
+	line-height: var(--leading-base);
+	text-wrap: pretty;
+}
+
+.visually-hidden {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	padding: 0;
+	margin: -1px;
+	overflow: hidden;
+	clip-path: inset(50%);
+	white-space: nowrap;
+}
+
+/* ── controls ────────────────────────────────────────────────────────────── */
+
+.field {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-2);
+}
+
+.field__label {
+	display: flex;
+	align-items: baseline;
+	justify-content: space-between;
+	gap: var(--space-2);
+	font-size: var(--text-sm);
+	font-weight: 400;
+	letter-spacing: var(--track-label);
+	color: var(--ink-2);
+}
+
+.field__input {
+	width: 100%;
+	min-height: var(--touch-lg);
+	padding: 0 var(--space-4);
+	border: none;
+	border-radius: var(--radius-sm);
+	background: var(--surface-3);
+	color: var(--ink);
+	font-size: var(--text-base);
+	transition: box-shadow var(--dur-fast) var(--ease-out);
+}
+
+.field__input::placeholder {
+	color: var(--ink-3);
+}
+
+.field__input:focus-visible {
+	outline: none;
+	box-shadow: 0 0 0 1.5px var(--signal);
+}
+
+.field__input--area {
+	min-height: 5.5rem;
+	padding-block: var(--space-3);
+	line-height: var(--leading-base);
+	resize: vertical;
+}
+
+.field__input:disabled {
+	opacity: 0.5;
+}
+
+.field__hint {
+	font-size: var(--text-sm);
+	color: var(--ink-2);
+	line-height: var(--leading-base);
+}
+
+/**
+ * Buttons. Every one is a pill. The rank is the fill: primary inverts, the
+ * default is soft, a card-coloured one sits on the ground, and quiet is text.
+ * They press by luminance — nothing scales.
+ */
+.btn {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: var(--space-2);
+	min-height: 40px;
+	padding: 0 var(--space-4);
+	border: none;
+	border-radius: var(--radius-full);
+	background: var(--surface-3);
+	color: var(--ink);
+	font-size: var(--text-md);
+	font-weight: 600;
+	letter-spacing: var(--track-label);
+	text-align: center;
+	text-decoration: none;
+	white-space: nowrap;
+	transition:
+		background var(--dur-fast) var(--ease-out),
+		color var(--dur-fast) var(--ease-out),
+		opacity var(--dur-fast) var(--ease-out);
+}
+
+.btn:active {
+	background: var(--hairline);
+}
+
+.btn--primary {
+	min-height: var(--touch-lg);
+	padding: 0 var(--space-5);
+	background: var(--pill);
+	color: var(--pill-ink);
+	font-size: var(--text-base);
+}
+
+.btn--primary:active {
+	background: color-mix(in srgb, var(--pill) 80%, var(--surface));
+}
+
+/* The accent pill: ember. For the one action a screen is about. */
+.btn--accent {
+	min-height: var(--touch-lg);
+	padding: 0 var(--space-5);
+	background: var(--signal);
+	color: var(--signal-ink);
+	font-size: var(--text-base);
+}
+
+.btn--accent:active {
+	background: color-mix(in srgb, var(--signal) 85%, var(--ink));
+}
+
+/* On a photograph: glass over the scrim. */
+.btn--photo {
+	background: rgb(255 255 255 / 18%);
+	color: var(--photo-ink);
+	-webkit-backdrop-filter: blur(16px);
+	backdrop-filter: blur(16px);
+}
+
+.btn--photo:active {
+	background: rgb(255 255 255 / 30%);
+}
+
+.btn--card {
+	background: var(--surface);
+}
+
+.btn--card:active {
+	background: var(--surface-2);
+}
+
+.btn--quiet {
+	background: transparent;
+	color: var(--ink-2);
+}
+
+.btn--quiet:active {
+	background: var(--surface-3);
+}
+
+.btn--danger {
+	background: transparent;
+	border: 1.5px solid var(--danger);
+	color: var(--danger);
+}
+
+.btn--danger:active {
+	background: var(--danger-wash);
+}
+
+.btn--lg {
+	min-height: var(--touch-lg);
+	font-size: var(--text-base);
+}
+
+.btn--sm {
+	min-height: 32px;
+	padding: 0 14px;
+	font-size: var(--text-sm);
+}
+
+.btn--block {
+	width: 100%;
+}
+
+/* Refusing keeps the shape and dims: the label says what is missing. */
+.btn:disabled {
+	opacity: 0.4;
+	cursor: default;
+}
+
+/* A text link in the accent. */
+.link {
+	color: var(--signal);
+	font-size: var(--text-sm);
+	font-weight: 600;
+	text-decoration: none;
+}
+
+.error-text {
+	font-size: var(--text-md);
+	color: var(--danger);
+	line-height: var(--leading-snug);
+}
+
+/* A row of pills under a card's content. */
+.actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: var(--space-2);
+}
+
+.actions--fill .btn {
+	flex: 1 1 auto;
+}
+
+.actions--end {
+	justify-content: flex-end;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	*,
+	*::before,
+	*::after {
+		animation-duration: 0.01ms !important;
+		animation-iteration-count: 1 !important;
+		transition-duration: 0.01ms !important;
+		scroll-behavior: auto !important;
+	}
+}

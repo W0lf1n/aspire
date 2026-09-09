@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+	<!-- The mark alone, in one colour: the splash, a favicon on paper. -->
+	<defs>
+		<clipPath id="above"><rect x="0" y="0" width="512" height="292"/></clipPath>
+	</defs>
+	<circle cx="256" cy="250" r="104" fill="currentColor" clip-path="url(#above)"/>
+	<rect x="128" y="316" width="256" height="40" rx="20" fill="currentColor"/>
+</svg>

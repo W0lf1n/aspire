@@ -1,0 +1,337 @@
+/**
+ * Design tokens — the first edition, 2026-09-09. Prosper's system, warmed up
+ * and given a sky.
+ *
+ * Aspire is Prosper's sibling: the same 4 px grid, the same type ladder, the
+ * same radii, every button a pill, a floating glass bar. What changes is the
+ * temperature and the job. Prosper is an instrument for money; its ground is
+ * a cool grey and its one accent is cobalt. Aspire is a wall of photographs;
+ * its ground is warm linen, its ink is warm, and it has exactly two accents:
+ *
+ *   · EMBER (--signal) is the accent that acts: the add disc, links, the
+ *     active toggle, the "in progress" badge. Sunrise orange, deep enough to
+ *     pass AA as text on white; in the dark it lifts to a lighter orange and
+ *     takes dark ink on it, the way a sun does.
+ *   · DUSK (--dusk) is the second accent and it never acts: it marks a dream
+ *     still being dreamed, and it is the far end of the sky.
+ *   · THE SKY (--dawn) is the one gradient, ember through rose to dusk. It is
+ *     where colour is allowed at scale — the empty board, the achieved badge,
+ *     the app icon — and it stands in for a photograph until there is one.
+ *
+ * Everything else is neutral, because the photographs bring the colour and
+ * the interface steps back. The photo tokens (--photo-ink, --scrim) are what
+ * type wears on top of an image, in either theme: white on a scrim, always.
+ *
+ * Weight ladder: 400 / 500 / 600. Inter, self-hosted as a variable face. No
+ * uppercase anywhere. A literal hex outside this file is a bug.
+ */
+
+:root {
+	color-scheme: light dark;
+
+	/* ═══ light — the default ════════════════════════════════════════════ */
+
+	/* Warm linen. Not cream: a hint of rose, so the ember reads warm against
+	   it rather than the ground reading yellow. */
+	--ground: #f6f2ee;
+	/* The well: a recessed slab inside a card takes the ground's own colour. */
+	--ground-2: #f6f2ee;
+	--surface: #ffffff;
+	/* A card, pressed. Luminance only — nothing scales. */
+	--surface-2: #f4efe9;
+	/* Soft: chips, meter tracks, secondary pills, inputs. */
+	--surface-3: #efe9e2;
+
+	--hairline: #e6dfd6;
+	--hairline-2: #d1c8bd;
+
+	--raised: var(--surface);
+
+	--ink: #211c19;
+	--ink-2: #5d554e;
+	--ink-3: #7d746b;
+
+	/* The primary pill. Inverts with the theme. */
+	--pill: #211c19;
+	--pill-ink: #ffffff;
+
+	/* ── the two accents ─────────────────────────────────────────────────── */
+	--signal: #cc4a1c;
+	--signal-ink: #ffffff;
+	--signal-wash: rgb(204 74 28 / 12%);
+
+	--dusk: #5a4fd6;
+	--dusk-ink: #ffffff;
+	--dusk-wash: rgb(90 79 214 / 12%);
+
+	--danger: #d93a4a;
+	--danger-wash: rgb(217 58 74 / 10%);
+
+	/* ── the sky ── the one gradient, theme-independent like a photograph:
+	   the colour of a sunrise does not change with the lights. Three stops,
+	   because ember to dusk straight through sRGB goes brown in the middle
+	   and a rose stop is what a sunrise actually does. */
+	--sky-1: #e5602a;
+	--sky-2: #d84b7a;
+	--sky-3: #5a4fd6;
+	--dawn: linear-gradient(160deg, var(--sky-1) 0%, var(--sky-2) 48%, var(--sky-3) 100%);
+
+	/* ── on a photograph ── white type over a scrim, in both themes. */
+	--photo-ink: #ffffff;
+	--photo-ink-2: rgb(255 255 255 / 78%);
+	--scrim: linear-gradient(180deg, rgb(0 0 0 / 0%) 38%, rgb(0 0 0 / 58%) 100%);
+	--scrim-top: linear-gradient(180deg, rgb(0 0 0 / 32%) 0%, rgb(0 0 0 / 0%) 32%);
+
+	/* The toggle knob: white in both themes, like the glyph on a circle. */
+	--knob: #ffffff;
+
+	/* ── elevation ─────────────────────────────────────────────────────────
+	   No shadow on a resting surface. Only the layers that float: the sheet
+	   has its own, and every other floating layer is glass. A photo tile
+	   carries a soft, offset, warm shadow — it is the one object on the
+	   ground that is physically a print. */
+	--elev-sheet: 0 -12px 48px rgb(0 0 0 / 25%);
+	--elev-photo: 0 12px 32px -8px rgb(33 28 25 / 28%);
+	--overlay: rgb(0 0 0 / 45%);
+
+	/* ── glass ── a frosted surface for what sits *over* content or on the
+	   ground — the tab bar, the toast, the round buttons. Never a card. */
+	--glass: rgb(255 255 255 / 72%);
+	--glass-edge: rgb(255 255 255 / 60%);
+	--elev-glass: 0 8px 32px rgb(33 28 25 / 14%);
+	--glass-shine: rgb(255 255 255 / 95%);
+	--glass-rim: rgb(33 28 25 / 10%);
+	--glass-lens: rgb(255 255 255 / 60%);
+
+	/* The lights behind the board in the dark — ember and dusk, at the
+	   strength of a lamp in the next room. Nothing in the light theme. */
+	--glow: none;
+
+	/* ═══ theme-independent ══════════════════════════════════════════════ */
+
+	/* ── type ── one family, three weights, tabular figures everywhere. */
+	--font-ui:
+		'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue',
+		sans-serif;
+
+	--text-2xs: 0.6875rem; /* 11 — tab labels */
+	--text-xs: 0.75rem; /* 12 — badges, notes */
+	--text-sm: 0.8125rem; /* 13 — card labels, row subs, hints */
+	--text-md: 0.875rem; /* 14 — segment labels, the why on a card */
+	--text-base: 0.9375rem; /* 15 — body, row titles, pills */
+	--text-lg: 1.0625rem; /* 17 — back-header title, sheet title */
+	--text-xl: 1.375rem; /* 22 — a dream's title in a grid */
+	--text-2xl: 1.75rem; /* 28 — screen title */
+	--text-3xl: 2.125rem; /* 34 — a dream's title on the board */
+	--text-4xl: 2.5rem; /* 40 */
+	--text-hero: 2.75rem; /* 44 — the wordmark on the board */
+	--text-display: 3.5rem; /* 56 */
+
+	--track-display: -1.8px;
+	--track-hero: -1.3px;
+	--track-4xl: -1.2px;
+	--track-3xl: -0.8px;
+	--track-title: -0.5px;
+	--track-xl: -0.4px;
+	--track-name: -0.3px;
+	--track-body: 0.1px;
+	--track-label: 0.24px;
+
+	--leading-tight: 1.1;
+	--leading-snug: 1.35;
+	--leading-base: 1.5;
+
+	/* ── space ── 4 px base. */
+	--space-1: 0.25rem; /* 4 */
+	--space-2: 0.5rem; /* 8 */
+	--space-3: 0.75rem; /* 12 */
+	--space-4: 1rem; /* 16 */
+	--space-5: 1.5rem; /* 24 */
+	--space-6: 2rem; /* 32 */
+	--space-7: 2.5rem; /* 40 */
+	--space-8: 3.5rem; /* 56 */
+
+	/* ── radius ── 12 for inputs and cells, 16 for a small tile, 20 for
+	   cards and photo tiles, 28 for the sheet, and the pill for every button. */
+	--radius-sm: 12px;
+	--radius-md: 16px;
+	--radius-lg: 20px;
+	--radius-xl: 28px;
+	--radius-full: 9999px;
+
+	/* ── targets ── */
+	--touch: 44px;
+	--touch-lg: 48px;
+	--tabbar: 62px; /* the floating bar's height */
+	/* How far the bar stands off the bottom edge: 24 px, or 12 px past the
+	   home indicator on a phone that has one, whichever is more. */
+	--tabbar-lift: max(var(--space-5), calc(var(--space-3) + env(safe-area-inset-bottom, 0px)));
+
+	/* ── motion ── */
+	--dur-fast: 150ms;
+	--dur-base: 220ms;
+	--dur-slow: 360ms;
+	/* The sky's drift: slow enough to be felt and not seen. */
+	--dur-drift: 16s;
+
+	--ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+	--ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+	--ease-settle: cubic-bezier(0.22, 1, 0.36, 1);
+	/* Overshoots and comes back — liquid, not mechanical. The lens only. */
+	--ease-spring: cubic-bezier(0.3, 1.45, 0.5, 1);
+
+	--transition: var(--dur-fast) var(--ease-out);
+
+	/* ── layers ── */
+	--z-raised: 1;
+	--z-nav: 20;
+	--z-sticky: 30;
+	--z-toast: 60;
+}
+
+/**
+ * Dark — warm charcoal ground, graphite cards, warm white ink. This is the
+ * theme the photographs live in: a print on a dark wall. Charcoal rather
+ * than black so glass has a tone to frost against and a card is still a
+ * step lighter than its ground.
+ *
+ * Selected twice — once for the system preference, once for the explicit
+ * choice, so the Settings toggle wins in both directions — and CSS gives no
+ * way to put one declaration block behind two selectors when one of them
+ * lives inside a media query. So the selectors are duplicated and **the
+ * values are not**: every dark value is named once, here, and each block
+ * below only points the role at it.
+ */
+:root {
+	--dark-ground: #141210;
+	--dark-ground-2: #1a1715;
+	--dark-surface: #1f1b19;
+	--dark-surface-2: #292421;
+	--dark-surface-3: rgb(255 255 255 / 8%);
+
+	--dark-hairline: rgb(255 255 255 / 12%);
+	--dark-hairline-2: rgb(255 255 255 / 20%);
+
+	--dark-ink: #f7f2ee;
+	--dark-ink-2: rgb(247 242 238 / 74%);
+	--dark-ink-3: rgb(247 242 238 / 52%);
+
+	--dark-pill: #f7f2ee;
+	--dark-pill-ink: #141210;
+
+	/* Ember lifts and takes dark ink: a lit sun, not a dark one. */
+	--dark-signal: #ff8a55;
+	--dark-signal-ink: #141210;
+	--dark-signal-wash: rgb(255 138 85 / 18%);
+
+	--dark-dusk: #a49cff;
+	--dark-dusk-ink: #141210;
+	--dark-dusk-wash: rgb(164 156 255 / 18%);
+
+	--dark-danger-wash: rgb(217 58 74 / 16%);
+
+	--dark-elev-sheet: 0 -12px 48px rgb(0 0 0 / 60%);
+	--dark-elev-photo: 0 16px 40px -8px rgb(0 0 0 / 60%);
+	--dark-overlay: rgb(0 0 0 / 60%);
+	--dark-glass: rgb(31 27 25 / 72%);
+	--dark-glass-edge: rgb(255 255 255 / 10%);
+	--dark-elev-glass: 0 8px 32px rgb(0 0 0 / 45%);
+	--dark-glass-shine: rgb(255 255 255 / 32%);
+	--dark-glass-rim: rgb(0 0 0 / 40%);
+	--dark-glass-lens: rgb(255 255 255 / 9%);
+	/* Ember top-left, dusk low-right. */
+	--dark-glow:
+		radial-gradient(60% 34% at 18% 6%, rgb(229 96 42 / 30%), transparent 70%),
+		radial-gradient(50% 30% at 88% 52%, rgb(90 79 214 / 26%), transparent 70%);
+}
+
+@media (prefers-color-scheme: dark) {
+	:root:not([data-theme='light']) {
+		--ground: var(--dark-ground);
+		--ground-2: var(--dark-ground-2);
+		--surface: var(--dark-surface);
+		--surface-2: var(--dark-surface-2);
+		--surface-3: var(--dark-surface-3);
+
+		--hairline: var(--dark-hairline);
+		--hairline-2: var(--dark-hairline-2);
+
+		--ink: var(--dark-ink);
+		--ink-2: var(--dark-ink-2);
+		--ink-3: var(--dark-ink-3);
+
+		--pill: var(--dark-pill);
+		--pill-ink: var(--dark-pill-ink);
+
+		--signal: var(--dark-signal);
+		--signal-ink: var(--dark-signal-ink);
+		--signal-wash: var(--dark-signal-wash);
+
+		--dusk: var(--dark-dusk);
+		--dusk-ink: var(--dark-dusk-ink);
+		--dusk-wash: var(--dark-dusk-wash);
+
+		--danger-wash: var(--dark-danger-wash);
+
+		--elev-sheet: var(--dark-elev-sheet);
+		--elev-photo: var(--dark-elev-photo);
+		--overlay: var(--dark-overlay);
+		--glass: var(--dark-glass);
+		--glass-edge: var(--dark-glass-edge);
+		--elev-glass: var(--dark-elev-glass);
+		--glass-shine: var(--dark-glass-shine);
+		--glass-rim: var(--dark-glass-rim);
+		--glass-lens: var(--dark-glass-lens);
+		--glow: var(--dark-glow);
+	}
+}
+
+/**
+ * An explicit choice moves `color-scheme` with it, or the browser keeps
+ * painting its own surfaces — form controls, the date picker — from the
+ * system preference.
+ */
+:root[data-theme='light'] {
+	color-scheme: light;
+}
+
+:root[data-theme='dark'] {
+	color-scheme: dark;
+
+	--ground: var(--dark-ground);
+	--ground-2: var(--dark-ground-2);
+	--surface: var(--dark-surface);
+	--surface-2: var(--dark-surface-2);
+	--surface-3: var(--dark-surface-3);
+
+	--hairline: var(--dark-hairline);
+	--hairline-2: var(--dark-hairline-2);
+
+	--ink: var(--dark-ink);
+	--ink-2: var(--dark-ink-2);
+	--ink-3: var(--dark-ink-3);
+
+	--pill: var(--dark-pill);
+	--pill-ink: var(--dark-pill-ink);
+
+	--signal: var(--dark-signal);
+	--signal-ink: var(--dark-signal-ink);
+	--signal-wash: var(--dark-signal-wash);
+
+	--dusk: var(--dark-dusk);
+	--dusk-ink: var(--dark-dusk-ink);
+	--dusk-wash: var(--dark-dusk-wash);
+
+	--danger-wash: var(--dark-danger-wash);
+
+	--elev-sheet: var(--dark-elev-sheet);
+	--elev-photo: var(--dark-elev-photo);
+	--overlay: var(--dark-overlay);
+	--glass: var(--dark-glass);
+	--glass-edge: var(--dark-glass-edge);
+	--elev-glass: var(--dark-elev-glass);
+	--glass-shine: var(--dark-glass-shine);
+	--glass-rim: var(--dark-glass-rim);
+	--glass-lens: var(--dark-glass-lens);
+	--glow: var(--dark-glow);
+}
