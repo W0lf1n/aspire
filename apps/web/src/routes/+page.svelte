@@ -102,7 +102,7 @@
 	   under the wordmark and above the bar. */
 	@media (min-width: 35rem) {
 		.first {
-			max-height: calc(100dvh - 6.5rem - var(--page-end, 0px));
+			max-height: calc(100dvh - 9.5rem - var(--page-end, 0px));
 		}
 	}
 

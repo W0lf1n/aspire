@@ -185,3 +185,24 @@ Impeccable's detector flags Inter as overused and `--ease-spring` as bounce
 easing. Both are Prosper's — the one face, and the lens spring on exactly one
 element — and both are recorded as ignores in `.impeccable/config.json` with
 that reason, the way Prosper's config does.
+
+### D19 — The finish review, and what it changed
+
+Impeccable's finish reviewer, run fresh on the captured build in both
+themes, returned "fix" with three material findings, all applied in one
+batch and scored resolved on the verdict pass:
+
+- **No label above a title.** The `první sen` badge over "Zatím žádný sen"
+  read as a kicker, which the craft floor bans outright. A dream's status
+  lives in the tile's top corner as `.dream__tag`, dark glass on any
+  photograph, never above the heading.
+- **The tile clears the bar on a desktop.** In the 34rem column a 4:5 tile
+  ran under the floating bar and hid the add pill on first paint. Above
+  35rem the first tile caps its height to what the viewport leaves under
+  the wordmark and above the bar; it gives up its ratio before its foot.
+- **Segments agree on case.** `Systém · Světlý · Tmavý`, like every other
+  segmented pill; the hub's `podle systému` stays lowercase as a summary
+  line.
+
+Noted and kept: the Síň slávy empty state is an icon-circle card rather
+than a sky tile like the board's. That is for M3, when the wall has a shape.
