@@ -10,3 +10,6 @@ bun.lockb
 
 # Tool caches
 .impeccable/
+
+# Design tooling output: Stitch front matter, double-quoted, rewritten by every documentation pass
+/DESIGN.md
