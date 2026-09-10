@@ -2,6 +2,10 @@
  * The API, from the client's side. Same origin always: nginx proxies `/api/`
  * to the API in production and Vite proxies it in development, so there is
  * no server address to configure and no CORS to think about.
+ *
+ * Every request also tells the connection flag what it learned: nobody
+ * answering, or the service worker answering from its cache, means offline;
+ * anything else means the server is there.
  */
 
 import type {
@@ -12,7 +16,11 @@ import type {
 	PairRequest,
 	PairResponse
 } from '@aspire/contracts';
+import { connection } from '$lib/offline/status.svelte';
 import { readToken } from './token';
+
+/** The service worker sets it on a board it served from the cache. */
+const FROM_CACHE = 'x-aspire-cache';
 
 export class ApiError extends Error {
 	constructor(
@@ -26,7 +34,7 @@ export class ApiError extends Error {
 	}
 }
 
-async function call<T>(path: string, init: RequestInit = {}): Promise<T> {
+async function send(path: string, init: RequestInit = {}): Promise<Response> {
 	const headers = new Headers(init.headers);
 	const token = readToken();
 	if (token) headers.set('Authorization', `Bearer ${token}`);
@@ -35,9 +43,24 @@ async function call<T>(path: string, init: RequestInit = {}): Promise<T> {
 		headers.set('Content-Type', 'application/json');
 	}
 
-	const response = await fetch(`/api/v1${path}`, { ...init, headers });
+	let response: Response;
+	try {
+		response = await fetch(`/api/v1${path}`, { ...init, headers });
+	} catch (e) {
+		connection.set(false);
+		throw e;
+	}
+
+	// A 5xx is the proxy answering for a server that is not there: on a
+	// laptop Vite's, on the VPS nginx's. Either way, not a server.
+	connection.set(response.headers.get(FROM_CACHE) !== 'hit' && response.status < 500);
 	if (!response.ok)
 		throw new ApiError(response.status, response.statusText, await detailOf(response));
+	return response;
+}
+
+async function call<T>(path: string, init: RequestInit = {}): Promise<T> {
+	const response = await send(path, init);
 	if (response.status === 204) return undefined as T;
 	return (await response.json()) as T;
 }
@@ -62,9 +85,19 @@ export function pair(request: PairRequest): Promise<PairResponse> {
 	return call<PairResponse>('/pair', { method: 'POST', body: JSON.stringify(request) });
 }
 
-/** The board, in board order. */
-export function listDreams(): Promise<Dream[]> {
-	return call<Dream[]>('/dreams');
+export interface BoardSnapshot {
+	dreams: Dream[];
+	/** The last board the device saw, because the server could not be asked. */
+	fromCache: boolean;
+}
+
+/** The board, in board order, and whether it is the server's or the cache's. */
+export async function listBoard(): Promise<BoardSnapshot> {
+	const response = await send('/dreams');
+	return {
+		dreams: (await response.json()) as Dream[],
+		fromCache: response.headers.get(FROM_CACHE) === 'hit'
+	};
 }
 
 export function getDream(id: string): Promise<Dream> {

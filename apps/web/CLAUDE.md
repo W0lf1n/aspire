@@ -15,14 +15,22 @@ runes forced outside `node_modules`, `adapter-static` with `fallback:
 
 `routes/+layout.ts` sets `ssr = false` and `prerender = true`: the board is
 fetched with the device's token, which lives on the device, so a server has
-nothing to render.
+nothing to render. `routes/sen/+layout.ts` turns prerendering off again for
+a dream's screens: an id in the path has nothing to prerender, and the
+shell's `200.html` carries them.
 
 ## Svelte 5, as used here
 
 Runes only: `$state`, `$derived`, `$props`, `$effect`. No `export let`, no
 stores. Anything that must happen "when the app opens" belongs in
 `routes/+layout.svelte`'s effects: the status bar colour, the update watcher,
-the splash.
+the connection watcher, the splash.
+
+Two rune modules hold app-wide state: `lib/ui/toast.svelte.ts` and
+`lib/offline/status.svelte.ts`. The second is the connection flag (D24):
+`connection.online` is read by the bar, the board, the forms and a dream's
+screen, and every write rests while it is false. The API client sets it
+from what each request learned.
 
 ## The design system
 
@@ -65,6 +73,6 @@ decides which one a path lights and has the test.
 
 Vitest, node environment, `requireAssertions: true`. `nav.test.ts`,
 `settings.test.ts`, `api/pairing.test.ts`, `dreams/rules.test.ts` and
-`images/downscale.test.ts`; a new
+`images/downscale.test.ts` and `offline/cache.test.ts`; a new
 rule gets a test before it gets a screen, and it lives in a `.ts` module the
 component imports, never in the component.

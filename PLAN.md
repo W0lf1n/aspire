@@ -115,8 +115,8 @@ Daily pick rule: `ORDER BY last_shown_at NULLS FIRST, random() LIMIT 1` among st
 | # | Milestone | Scope | Est. |
 |---|---|---|---|
 | M0 | Scaffold | Copy Prosper/Planner skeleton, media volume, deploy | 1 weekend |
-| M1 | Dreams + board | CRUD, upload + resize pipeline, mobile swipe board, desktop grid, categories | 2 weekends |
-| M2 | PWA offline | Service worker image cache, add-to-home-screen, instant cold open | 1 weekend |
+| M1 | Dreams + board | Done 2026-09-10 (§10), less the desktop grid and categories (§8.3) | 2 weekends |
+| M2 | PWA offline | Folded into M1 on 2026-09-10 (D24): the photographs and the board cached, read-only offline | done |
 | **→ MVP live. Load real dreams. Use 2 weeks.** | | | |
 | M3 | Hall of Fame + affirmations | Achieved flow, before/after, affirmation line, voice memo | 1–2 weekends |
 | M4 | Wallpaper export | Collage renderer, presets, save flow | 1 weekend |
@@ -153,3 +153,18 @@ answering an empty list. The client shell: the design system with light and
 dark, the empty board, the four-slot bar, Settings with the theme choice, the
 styleguide at `/styleguide`. Compose, nginx, the host vhost for
 `aspire.petrbohac.eu`, the nightly backup, CI.
+
+## 10. M1 — what was built · 2026-09-10
+
+Boards as tenants (D21): a pairing code opens a board, devices and dreams
+belong to one, and `board add | code | list` in the API's image makes more.
+Dreams made, changed, felt and let go — POST, PUT, DELETE and the heart, a
+counter within the board (D22) — through one form behind Přidat and
+Upravit, a dream's own screen, and the board as a reel: one tile the height
+of the screen per dream, snapping, the heart on each. Photographs downscaled
+on the device to 2048 px, resized by a background worker into thumb, screen
+and full WebP under `/media/{dreamId}/{imageId}/` with the EXIF gone (D23).
+M2 folded in (D24): the photographs and the board cached on the device, the
+board readable without a signal, every write locked while there is none,
+and a dead token named rather than shown as an empty board. Not built:
+categories (§8.3), the desktop grid, the daily pick, drag to reorder.

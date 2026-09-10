@@ -2,7 +2,7 @@
 
 Guidance for Claude Code working in this repository.
 
-**Last revised:** 2026-09-10 · M1 in progress · 26 web tests · 82 API tests
+**Last revised:** 2026-09-10 · M1 · 28 web tests · 82 API tests
 
 ---
 
@@ -17,8 +17,9 @@ Prosper's conventions so the three feel like one family and share a VPS.
 **Where Prosper does X, Aspire does X**, and the exceptions are recorded in
 `docs/DECISIONS.md` with reasons.
 
-`PLAN.md` at the root is the plan. M0 (this scaffold) is done; M1 is dreams
-and the board.
+`PLAN.md` at the root is the plan. M0 (the scaffold) and M1 (boards, dreams,
+photographs, the reel, offline) are done; §10 there says what M1 built and
+what it left out. M3, the hall of fame, is next.
 
 ---
 
@@ -86,10 +87,13 @@ apps/web/src/
 │                  pairing.ts (the flow) and errors.ts (the sentences).
 ├─ lib/dreams/     rules.ts — what a dream may be, tested — and format.ts.
 ├─ lib/images/     downscale.ts — the photograph to 2048 px on the device.
+├─ lib/offline/    status.svelte.ts — the connection flag every screen reads —
+│                  and cache.ts, which fills and prunes the photo cache.
 ├─ routes/         / · /pridat · /sen/[id] · /sen/[id]/upravit · /sin-slavy
 │                  · /nastaveni · /nastaveni/vzhled · /nastaveni/parovani
 │                  · /styleguide (unlinked, for review)
-└─ service-worker.ts
+└─ service-worker.ts  three caches: the shell per build, the photographs
+                      cache-first, the board network-first (D24).
 
 apps/api/src/
 ├─ Aspire.Api/             Program.cs (minimal APIs), Auth/, Boards/, Dreams/,

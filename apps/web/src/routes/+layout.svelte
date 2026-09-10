@@ -4,6 +4,8 @@
 	import Toaster from '$lib/ui/Toaster.svelte';
 	import { syncThemeColor } from '$lib/ui/theme';
 	import { applyUpdate, watchUpdates } from '$lib/ui/update';
+	import { health } from '$lib/api/client';
+	import { watchConnection } from '$lib/offline/status.svelte';
 	import type { LayoutProps } from './$types';
 
 	let { children }: LayoutProps = $props();
@@ -23,6 +25,17 @@
 	 */
 	$effect(() => watchUpdates());
 	afterNavigate(applyUpdate);
+
+	/**
+	 * Offline is a state every screen reads; the flag is kept here. One ping
+	 * on start, because the browser's flag says nothing about the server and
+	 * a screen opened cold has not asked it anything yet.
+	 */
+	$effect(() => {
+		const stop = watchConnection();
+		void health().catch(() => undefined);
+		return stop;
+	});
 
 	/**
 	 * The launch splash lives in `app.html`, on screen from the first paint.

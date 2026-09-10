@@ -306,3 +306,41 @@ M1's pipeline is PLAN.md §4's, with the details it left open decided:
 - **On a laptop the API serves `/media/`** with the same cache header, and
   Vite proxies it beside `/api`; in production nginx answers first and the
   API never sees a byte.
+
+### D24 — Offline is read-only, and the service worker keeps three caches
+
+Petr asked for the images and the texts to be on the device so the board
+works without a signal, and for nothing to be written while it is. That is
+PLAN.md's M2, folded into M1, and it is the opposite of Prosper: no outbox,
+no sync engine, no local database. The server stays the first copy (D7)
+and the device keeps a picture of it.
+
+- **Three caches, three rules.** The shell is precached per build and
+  replaced whole. The photographs have a cache that outlives builds and is
+  answered cache-first, because a photograph's URL never changes its
+  picture (D23); the app fills it with the screen size of every tile's
+  picture after each successful load and prunes it to the board, so a
+  deleted dream's picture leaves the device with it. The board's JSON has
+  the third: network first, always, and only when the network fails is the
+  last board handed over, with a header that says so. A 5xx counts as the
+  network failing, because that is what a proxy answers for an API that is
+  not there. Nothing else under `/api/` is cached, and no write ever is.
+- **Offline is a flag every screen reads.** The browser's own flag is a
+  hint; a request nobody answered, a 5xx from the proxy standing in for
+  the server, or a board served from the cache turns the flag off, and any
+  other answer turns it on. The app pings `/health` once on start, so a
+  screen opened cold knows too. Off, the hearts rest, the
+  disc on the bar rests, the forms say why their pill is disabled, and the
+  dream's screen hides its three pills behind one sentence. Nothing is
+  queued: a like tapped offline is a like not made, which is what Petr
+  asked for.
+- **Unpairing forgets the board**, both caches with the token: a device
+  that is no longer this board's should not keep its pictures.
+- **A dead token gets a sentence.** A 401 with a token still on the device
+  used to be an empty board; now the board says the server does not know
+  this device and links to Párování. The service worker drops the cached
+  board on a 401 for the same reason.
+
+iPhone evicts an unused PWA's storage after about a week (PLAN.md §7); the
+caches refill on the next open with a signal, and nothing here depends on
+them being there.

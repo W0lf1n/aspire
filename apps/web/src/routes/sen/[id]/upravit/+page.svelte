@@ -12,7 +12,9 @@
 	import AppBar from '$lib/ui/AppBar.svelte';
 	import DreamForm from '$lib/ui/DreamForm.svelte';
 	import { toast } from '$lib/ui/toast.svelte';
+	import { connection } from '$lib/offline/status.svelte';
 
+	const locked = $derived(connection.online ? '' : 'Bez připojení se sen nedá uložit.');
 	let dream = $state<Dream | null>(null);
 	let busy = $state(false);
 	let error = $state('');
@@ -57,7 +59,7 @@
 	<AppBar title="Upravit sen" back={{ dream: id }} />
 
 	{#if dream}
-		<DreamForm initial={dream} submitLabel="Uložit" {busy} {error} onsubmit={save} />
+		<DreamForm initial={dream} submitLabel="Uložit" {busy} {error} {locked} onsubmit={save} />
 	{:else if error}
 		<p class="error-text" role="alert">{error}</p>
 	{/if}

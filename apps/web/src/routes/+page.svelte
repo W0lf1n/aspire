@@ -10,14 +10,20 @@
 	 */
 	import { resolve } from '$app/paths';
 	import type { Dream } from '@aspire/contracts';
-	import { likeDream, listDreams } from '$lib/api/client';
+	import { ApiError, likeDream, listBoard } from '$lib/api/client';
 	import { describeError } from '$lib/api/errors';
+	import { readToken } from '$lib/api/token';
 	import { STATUS_BADGE } from '$lib/dreams/rules';
+	import { rememberBoard } from '$lib/offline/cache';
+	import { connection } from '$lib/offline/status.svelte';
 	import Icon from '$lib/ui/Icon.svelte';
 	import TabBar from '$lib/ui/TabBar.svelte';
 	import { toast } from '$lib/ui/toast.svelte';
 
 	let dreams = $state<Dream[] | null>(null);
+
+	/** The server answered 401 to a token this device still holds. */
+	let unknownDevice = $state(false);
 
 	/** The photograph a tile shows: the first one whose sizes are ready. */
 	function photoOf(dream: Dream) {
@@ -30,19 +36,27 @@
 		let asks = 0;
 
 		const load = () => {
-			listDreams()
-				.then((rows) => {
+			listBoard()
+				.then(({ dreams: rows, fromCache }) => {
 					if (!live) return;
 					dreams = rows;
+					unknownDevice = false;
+					// The cache's board is the last one seen: nothing to keep,
+					// nothing to wait for.
+					if (fromCache) return;
+					void rememberBoard(rows);
 					// A photograph still being resized shows as the sky; the
 					// sizes take a second, so the board asks again a few times.
 					const waiting = rows.some((d) => d.images.some((image) => !image.ready));
 					if (waiting && asks++ < 5) again = setTimeout(load, 1500);
 				})
-				.catch(() => {
-					// Not paired, offline, or the server is away: the board is empty
-					// either way, and the empty state says what to do next.
-					if (live) dreams = [];
+				.catch((e: unknown) => {
+					if (!live) return;
+					// Not paired, or nothing cached and no signal: the board is
+					// empty either way, and the empty state says what to do next.
+					// A token the server no longer knows gets its own sentence.
+					dreams = [];
+					unknownDevice = e instanceof ApiError && e.status === 401 && readToken() !== null;
 				});
 		};
 		load();
@@ -70,6 +84,17 @@
 
 <main class="page" class:page--reel={dreams !== null && dreams.length > 0}>
 	<h1 class="wordmark">Aspire</h1>
+
+	{#if !connection.online}
+		<p class="hint how">
+			Bez připojení. Nástěnka je z paměti; srdíčka a přidávání počkají, až bude signál.
+		</p>
+	{:else if unknownDevice}
+		<p class="hint how">
+			Server tohle zařízení nezná.
+			<a class="link" href={resolve('/nastaveni/parovani')}>Spáruj ho znovu.</a>
+		</p>
+	{/if}
 
 	{#if dreams && dreams.length > 0}
 		<!--
@@ -106,6 +131,7 @@
 							type="button"
 							class="btn btn--photo reel__heart"
 							onclick={() => like(dream)}
+							disabled={!connection.online}
 							aria-label="Palivo"
 						>
 							<Icon name="heart" size={18} stroke={2} />

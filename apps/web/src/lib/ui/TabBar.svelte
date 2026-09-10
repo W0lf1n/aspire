@@ -18,6 +18,7 @@
 	import { page } from '$app/state';
 	import { resolve } from '$app/paths';
 	import Icon from './Icon.svelte';
+	import { connection } from '$lib/offline/status.svelte';
 	import { TABS, activeTab } from './nav';
 
 	const here = $derived(page.url.pathname);
@@ -45,7 +46,14 @@
 		</a>
 	{/each}
 
-	<a class="add" href={resolve('/pridat')} aria-label="Přidat sen">
+	<!-- Offline, nothing can be added, and the disc says so by resting. -->
+	<a
+		class="add"
+		class:add--off={!connection.online}
+		href={resolve('/pridat')}
+		aria-label="Přidat sen"
+		aria-disabled={!connection.online}
+	>
 		<span class="add__disc"><Icon name="plus" size={26} stroke={2.2} /></span>
 	</a>
 
@@ -213,5 +221,10 @@
 
 	.add:active .add__disc {
 		background: color-mix(in srgb, var(--signal) 85%, var(--ink));
+	}
+
+	.add--off {
+		opacity: 0.4;
+		pointer-events: none;
 	}
 </style>

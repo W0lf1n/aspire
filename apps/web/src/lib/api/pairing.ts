@@ -12,6 +12,7 @@
  */
 
 import type { PairRequest } from '@aspire/contracts';
+import { forgetBoard } from '$lib/offline/cache';
 import { ApiError, pair } from './client';
 import { clearToken, writeToken } from './token';
 
@@ -57,7 +58,11 @@ export async function pairDevice(code: string, deviceName: string): Promise<void
 	writeToken(token);
 }
 
-/** Forget the token. The device row stays on the server until it is deleted there. */
+/**
+ * Forget the token, and the board kept for offline with it. The device row
+ * stays on the server until it is deleted there.
+ */
 export function unpairDevice(): void {
 	clearToken();
+	void forgetBoard();
 }

@@ -15,7 +15,9 @@
 	import DreamForm from '$lib/ui/DreamForm.svelte';
 	import PhotoPicker from '$lib/ui/PhotoPicker.svelte';
 	import { toast } from '$lib/ui/toast.svelte';
+	import { connection } from '$lib/offline/status.svelte';
 
+	const locked = $derived(connection.online ? '' : 'Bez připojení se sen nedá přidat.');
 	let photo = $state<Blob | null>(null);
 	let busy = $state(false);
 	let error = $state('');
@@ -46,6 +48,11 @@
 
 <main class="page">
 	<AppBar title="Přidat sen" />
-	<PhotoPicker wide {busy} onpick={(picked) => (photo = picked)} onproblem={(s) => (error = s)} />
-	<DreamForm submitLabel="Přidat sen" accent {busy} {error} onsubmit={add} />
+	<PhotoPicker
+		wide
+		busy={busy || !!locked}
+		onpick={(picked) => (photo = picked)}
+		onproblem={(s) => (error = s)}
+	/>
+	<DreamForm submitLabel="Přidat sen" accent {busy} {error} {locked} onsubmit={add} />
 </main>

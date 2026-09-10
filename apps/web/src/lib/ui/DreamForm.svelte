@@ -20,10 +20,20 @@
 		busy: boolean;
 		/** The server's sentence, or nothing. */
 		error: string;
+		/** Why saving is not possible right now — offline — or nothing. */
+		locked?: string;
 		onsubmit: (input: DreamInput) => void;
 	}
 
-	let { initial, submitLabel, accent = false, busy, error, onsubmit }: Props = $props();
+	let {
+		initial,
+		submitLabel,
+		accent = false,
+		busy,
+		error,
+		locked = '',
+		onsubmit
+	}: Props = $props();
 
 	// Read once, on purpose: the form seeds from what was saved and then owns
 	// its fields; a dream changing under it is a screen's business, not this.
@@ -104,13 +114,15 @@
 
 	{#if error || problem}
 		<p class="error-text" role="alert">{error || problem}</p>
+	{:else if locked}
+		<p class="hint">{locked}</p>
 	{/if}
 
 	<div class="actions actions--fill">
 		<button
 			type="submit"
 			class="btn {accent ? 'btn--accent' : 'btn--primary'}"
-			disabled={busy || !title.trim()}
+			disabled={busy || !!locked || !title.trim()}
 		>
 			{busy ? 'Ukládám…' : submitLabel}
 		</button>

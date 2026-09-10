@@ -10,7 +10,14 @@
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
 	import type { Dream } from '@aspire/contracts';
-	import { deleteDream, deleteImage, getDream, likeDream, uploadImage } from '$lib/api/client';
+	import {
+		deleteDream,
+		deleteImage,
+		getDream,
+		likeDream,
+		listBoard,
+		uploadImage
+	} from '$lib/api/client';
 	import { describeError } from '$lib/api/errors';
 	import { formatDate } from '$lib/dreams/format';
 	import { STATUS_BADGE, STATUS_CLASS } from '$lib/dreams/rules';
@@ -19,6 +26,7 @@
 	import PhotoPicker from '$lib/ui/PhotoPicker.svelte';
 	import TabBar from '$lib/ui/TabBar.svelte';
 	import { toast } from '$lib/ui/toast.svelte';
+	import { connection } from '$lib/offline/status.svelte';
 
 	let dream = $state<Dream | null>(null);
 	let error = $state('');
@@ -34,13 +42,27 @@
 			.then((found) => {
 				if (live) dream = found;
 			})
-			.catch((e: unknown) => {
-				if (live) error = describeError(e);
+			.catch(async (e: unknown) => {
+				// Without a signal the board's cache still knows this dream, even
+				// one never opened on its own: the list carries the same words.
+				const remembered = await fromBoard(id);
+				if (!live) return;
+				if (remembered) dream = remembered;
+				else error = describeError(e);
 			});
 		return () => {
 			live = false;
 		};
 	});
+
+	async function fromBoard(id: string): Promise<Dream | null> {
+		try {
+			const { dreams } = await listBoard();
+			return dreams.find((d) => d.id === id) ?? null;
+		} catch {
+			return null;
+		}
+	}
 
 	async function like() {
 		if (!dream || liking) return;
@@ -104,7 +126,7 @@
 			current={photo?.screenUrl ?? null}
 			title={dream.title}
 			why={dream.why}
-			busy={uploading}
+			busy={uploading || !connection.online}
 			onpick={replacePhoto}
 			onproblem={(sentence) => toast.show(sentence)}
 		/>
@@ -127,23 +149,27 @@
 				</div>
 			</dl>
 
-			<div class="actions actions--fill">
-				<button
-					type="button"
-					class="btn btn--accent"
-					onclick={like}
-					disabled={liking}
-					aria-label="Palivo"
-				>
-					<Icon name="heart" size={18} stroke={2} />
-					{dream.likes}
-				</button>
-				<a class="btn" href={resolve('/sen/[id]/upravit', { id: dream.id })}>
-					<Icon name="pencil" size={18} stroke={1.8} />
-					Upravit
-				</a>
-				<button type="button" class="btn btn--danger" onclick={remove}>Smazat</button>
-			</div>
+			{#if connection.online}
+				<div class="actions actions--fill">
+					<button
+						type="button"
+						class="btn btn--accent"
+						onclick={like}
+						disabled={liking}
+						aria-label="Palivo"
+					>
+						<Icon name="heart" size={18} stroke={2} />
+						{dream.likes}
+					</button>
+					<a class="btn" href={resolve('/sen/[id]/upravit', { id: dream.id })}>
+						<Icon name="pencil" size={18} stroke={1.8} />
+						Upravit
+					</a>
+					<button type="button" class="btn btn--danger" onclick={remove}>Smazat</button>
+				</div>
+			{:else}
+				<p class="hint">Bez připojení. Srdíčko, úpravy i mazání počkají, až bude signál.</p>
+			{/if}
 		</section>
 	{:else if error}
 		<p class="error-text" role="alert">{error}</p>
