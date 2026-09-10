@@ -164,7 +164,17 @@ as if nothing had happened. Restart the preview after every build.
 
 ---
 
+**An unanchored `.gitignore` rule swallowed a source directory.**
+`apps/api/.gitignore` said `media/`, meaning the laptop's media root. This
+checkout is case-insensitive, so it also matched
+`src/Aspire.Infrastructure/Media/`: `MediaStore.cs` and `ImageProcessor.cs`
+were never in git, every local build passed, and the VPS was the first thing
+to notice — by failing to compile a tree that had no `Media` namespace in it.
+Anchor a rule to the one path it means, and when a change adds a directory of
+source, `git status --ignored` before believing the tree is complete.
+
 ## Where the answers are
+
 
 | Document              | What it is                                                     |
 | --------------------- | -------------------------------------------------------------- |

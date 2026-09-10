@@ -4,4 +4,9 @@ obj/
 *.db
 *.db-shm
 *.db-wal
-media/
+
+# The media root when the server runs on a laptop, anchored to the one path it
+# is ever at. Unanchored, `media/` also matched `src/Aspire.Infrastructure/Media/`
+# on a case-insensitive checkout, and that source directory silently never
+# reached git — the VPS found out by failing to compile.
+/src/Aspire.Api/media/

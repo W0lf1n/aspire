@@ -8,10 +8,13 @@
 
 # SQLite and the media folder live here when the server is run on a laptop.
 # They are a laptop's data and must never be baked into a production image.
+# The media root is anchored to its one real path: a bare `media` would not
+# have matched it anyway, and it invites the collision with
+# `src/Aspire.Infrastructure/Media/` that the .gitignore already fell into.
 *.db
 *.db-shm
 *.db-wal
-media
+src/Aspire.Api/media
 
 # Secrets are the host's, not the image's. The compose file that runs this
 # lives in `deploy/` and is not in this context at all.
