@@ -36,6 +36,7 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
             entity.Property(d => d.BoardId).HasMaxLength(64);
             entity.Property(d => d.Title).HasMaxLength(Dream.TitleMaxLength);
             entity.Property(d => d.Why).HasMaxLength(Dream.WhyMaxLength);
+            entity.Property(d => d.Affirmation).HasMaxLength(Dream.AffirmationMaxLength);
             entity.Property(d => d.Status)
                 .HasConversion(s => DreamStatusNames.ToWire(s), s => DreamStatusNames.Parse(s))
                 .HasMaxLength(16);

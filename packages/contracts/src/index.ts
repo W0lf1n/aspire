@@ -41,6 +41,12 @@ export interface Dream {
 	id: string;
 	title: string;
 	why: string;
+	/**
+	 * The dream said as though it were already true, in the person's own
+	 * words, or empty. The reel shows it in the why's place when there is
+	 * one: the why explains the dream, this one states it (D27).
+	 */
+	affirmation: string;
 	status: DreamStatus;
 	sortOrder: number;
 	targetYear: number | null;
@@ -81,6 +87,7 @@ export interface DreamImage {
 export interface DreamInput {
 	title: string;
 	why: string;
+	affirmation: string;
 	status: DreamStatus;
 	targetYear: number | null;
 }

@@ -38,7 +38,8 @@ public sealed class DreamServiceTests : IDisposable
     }
 
     private static DreamInput Input(string title = "Dům u lesa", string? why = "Ticho a les za oknem.",
-        DreamStatus? status = DreamStatus.Dreaming, int? year = 2030) => new(title, why, status, year);
+        DreamStatus? status = DreamStatus.Dreaming, int? year = 2030, string? affirmation = null) =>
+        new(title, why, status, year, affirmation);
 
     [Fact]
     public async Task A_new_dream_joins_the_end_of_its_own_board()
@@ -55,10 +56,11 @@ public sealed class DreamServiceTests : IDisposable
     [Fact]
     public async Task Creating_trims_and_defaults()
     {
-        var dream = await _dreams.CreateAsync(BoardA, new DreamInput("  Loď  ", null, null, null));
+        var dream = await _dreams.CreateAsync(BoardA, new DreamInput("  Loď  ", null, null, null, null));
 
         Assert.Equal("Loď", dream.Title);
         Assert.Equal(string.Empty, dream.Why);
+        Assert.Equal(string.Empty, dream.Affirmation);
         Assert.Equal(DreamStatus.Dreaming, dream.Status);
         Assert.Null(dream.TargetYear);
         Assert.Equal(0, dream.Likes);
@@ -72,7 +74,7 @@ public sealed class DreamServiceTests : IDisposable
     [InlineData("x", "Ticho.", 2101, "Rok napiš mezi 2000 a 2100.")]
     public void A_bad_input_earns_a_sentence(string title, string why, int? year, string expected)
     {
-        Assert.Equal(expected, DreamService.Problem(new DreamInput(title, why, DreamStatus.Dreaming, year)));
+        Assert.Equal(expected, DreamService.Problem(new DreamInput(title, why, DreamStatus.Dreaming, year, null)));
     }
 
     [Fact]
@@ -81,7 +83,22 @@ public sealed class DreamServiceTests : IDisposable
         Assert.Null(DreamService.Problem(Input(new string('a', Dream.TitleMaxLength), new string('b', Dream.WhyMaxLength))));
         Assert.Equal("Název má nejvýš 120 znaků.", DreamService.Problem(Input(new string('a', Dream.TitleMaxLength + 1))));
         Assert.Equal("Proč má nejvýš 500 znaků.", DreamService.Problem(Input("x", new string('b', Dream.WhyMaxLength + 1))));
+        Assert.Null(DreamService.Problem(Input("x", affirmation: new string('c', Dream.AffirmationMaxLength))));
+        Assert.Equal(
+            "Afirmace má nejvýš 120 znaků.",
+            DreamService.Problem(Input("x", affirmation: new string('c', Dream.AffirmationMaxLength + 1))));
         Assert.Null(DreamService.Problem(Input("x", null, null, null)));
+    }
+
+    [Fact]
+    public async Task The_affirmation_is_trimmed_and_kept()
+    {
+        var dream = await _dreams.CreateAsync(BoardA, Input(affirmation: "  Bydlím u lesa.  "));
+        Assert.Equal("Bydlím u lesa.", dream.Affirmation);
+
+        // Cleared the way any other field is: by being sent empty.
+        var cleared = await _dreams.UpdateAsync(BoardA, dream.Id, Input(affirmation: "   "));
+        Assert.Equal(string.Empty, cleared!.Affirmation);
     }
 
     [Fact]

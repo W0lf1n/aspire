@@ -253,11 +253,12 @@
 		<span class="badge dream__tag">na cestě · 2028</span>
 		<div class="dream__body">
 			<h3 class="dream__title">Rok v Japonsku</h3>
-			<p class="dream__why">Text vždy bílý, přes stmívání odspoda. Fotka nahoře zůstává fotkou.</p>
+			<p class="dream__why dream__say">Rok žiju v Japonsku.</p>
 		</div>
 	</div>
 	<p class="hint">
-		Dlaždice 4:5, rohy 20, jediný objekt na ploše se stínem. Skutečná fotka přijde s M1.
+		Dlaždice 4:5, rohy 20, jediný objekt na ploše se stínem. Pod názvem stojí jedna řádka: afirmace,
+		když ji sen má — o stupeň silnější a v plné bílé, jako druhá dlaždice — jinak proč.
 	</p>
 
 	<!-- ── space and radius ───────────────────────────────────────────── -->

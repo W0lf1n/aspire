@@ -41,6 +41,12 @@ public sealed class DreamService(AppDbContext db, MediaStore media)
         var why = input.Why?.Trim() ?? string.Empty;
         if (why.Length > Dream.WhyMaxLength) return $"Proč má nejvýš {Dream.WhyMaxLength} znaků.";
 
+        var affirmation = input.Affirmation?.Trim() ?? string.Empty;
+        if (affirmation.Length > Dream.AffirmationMaxLength)
+        {
+            return $"Afirmace má nejvýš {Dream.AffirmationMaxLength} znaků.";
+        }
+
         if (input.TargetYear is { } year && (year < TargetYearMin || year > TargetYearMax))
         {
             return $"Rok napiš mezi {TargetYearMin} a {TargetYearMax}.";
@@ -130,6 +136,7 @@ public sealed class DreamService(AppDbContext db, MediaStore media)
     {
         dream.Title = input.Title!.Trim();
         dream.Why = input.Why?.Trim() ?? string.Empty;
+        dream.Affirmation = input.Affirmation?.Trim() ?? string.Empty;
         dream.TargetYear = input.TargetYear;
         dream.Status = input.Status ?? DreamStatus.Dreaming;
         dream.AchievedAt = dream.Status == DreamStatus.Achieved ? dream.AchievedAt ?? now : null;

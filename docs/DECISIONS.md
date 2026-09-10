@@ -430,3 +430,38 @@ nothing left to show.
   fix for the case that is the deployment's fault belongs at the start, where
   it now is.
 
+
+---
+
+## M3 · 2026-09-10 — the affirmation
+
+### D27 — The affirmation takes the why's place on a tile, and stands beside it on the dream's own screen
+
+PLAN.md §3.4 asks for "an optional affirmation line shown on card". A dream
+already has a why, and a tile already carries a title over it; a third block
+of type on a photograph is one more thing between the person and the picture
+(rule 4). So the two share one slot rather than stacking.
+
+- **The affirmation wins that slot when there is one.** The why explains the
+  dream to you — it is written to be read once and remembered. The
+  affirmation says the dream as though it were already true, in the person's
+  own words, and Yager's whole point is that it is said daily. On a board
+  you swipe every morning, the line that is meant to be said out loud beats
+  the line that explains. With no affirmation the why keeps the slot, so a
+  dream written before this change looks exactly as it did.
+- **It is the same line in the same place, a shade louder.** `.dream__say`
+  is 500 in full `--photo-ink` where the why is 400 in `--photo-ink-2`; the
+  size, the position and the 32ch measure do not move. Nothing labels it. A
+  caption saying "afirmace" would be the interface introducing the sentence
+  instead of letting it be said.
+- **The dream's own screen shows both**, because that is the screen you go to
+  in order to read: the why stays on the photograph where it always was, and
+  the affirmation opens the card above the facts at 17 px 500 in ink — the
+  only line on that screen written in the person's own voice.
+- **The choice is `tileLine` in `dreams/board.ts`, with its test.** It is a
+  rule about what the board shows, which is that module's job, and a rule
+  gets a test before it gets a screen (apps/web/CLAUDE.md). The component
+  asks it and styles the answer; it does not decide.
+- **120 characters, like the title.** A line, not a paragraph — the why has
+  500 characters for the explaining. The column, the server's sentence and
+  `rules.ts` all read `AffirmationMaxLength`, so they cannot drift.

@@ -17,7 +17,7 @@
 	import { ApiError, likeDream, listBoard, markShown } from '$lib/api/client';
 	import { describeError } from '$lib/api/errors';
 	import { readToken } from '$lib/api/token';
-	import { pickDaily, reelOrder, shownToday } from '$lib/dreams/board';
+	import { pickDaily, reelOrder, shownToday, tileLine } from '$lib/dreams/board';
 	import { STATUS_BADGE } from '$lib/dreams/rules';
 	import { rememberBoard } from '$lib/offline/cache';
 	import { connection } from '$lib/offline/status.svelte';
@@ -142,6 +142,7 @@
 		<section class="reel">
 			{#each reel as dream, index (dream.id)}
 				{@const photo = photoOf(dream)}
+				{@const line = tileLine(dream)}
 				<article class="dream reel__tile" class:dream--sky={!photo}>
 					{#if photo}
 						<img
@@ -160,8 +161,8 @@
 					></a>
 					<div class="dream__body reel__body">
 						<h2 class="dream__title">{dream.title}</h2>
-						{#if dream.why}
-							<p class="dream__why">{dream.why}</p>
+						{#if line.text}
+							<p class="dream__why" class:dream__say={line.said}>{line.text}</p>
 						{/if}
 						<button
 							type="button"

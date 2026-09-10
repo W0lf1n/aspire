@@ -336,6 +336,14 @@ a {
 	max-width: 32ch;
 }
 
+/* The affirmation takes the why's place on a tile when a dream has one
+   (`tileLine`, D27): the same line in the same spot, a shade louder,
+   because it is the sentence you are meant to say rather than read past. */
+.dream__say {
+	color: var(--photo-ink);
+	font-weight: 500;
+}
+
 /**
  * The circle: an identity — a category, a status — 40 px, its colour behind
  * a white glyph. The colour arrives as `--c`.

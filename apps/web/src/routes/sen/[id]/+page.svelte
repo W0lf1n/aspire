@@ -1,8 +1,10 @@
 <script lang="ts">
 	/**
 	 * Sen — one dream, on its own. The tile as the board shows it, with the
-	 * photo pill that changes its photograph, then the facts and the three
-	 * things you can do: tap the heart, change the words, or let it go.
+	 * photo pill that changes its photograph, then the affirmation, the facts
+	 * and the three things you can do: tap the heart, change the words, or
+	 * let it go. The board shows the affirmation in the why's place; here
+	 * there is room for both, so both are here (D27).
 	 * Deleting asks nothing and says so in a toast, as Prosper does; a dream
 	 * is a few words and one photograph, both quick to give back.
 	 */
@@ -132,6 +134,10 @@
 		/>
 
 		<section class="card">
+			{#if dream.affirmation}
+				<p class="say">{dream.affirmation}</p>
+			{/if}
+
 			<dl class="facts">
 				<div>
 					<dt>Stav</dt>
@@ -177,3 +183,17 @@
 </main>
 
 <TabBar />
+
+<style>
+	/* The affirmation, first in the card and before any fact, because it is
+	   the only line on this screen written in the person's own voice. Bigger
+	   than the facts and a weight above them, and still ink on a card: the
+	   photograph above it is the loud half of the screen. */
+	.say {
+		font-size: var(--text-lg);
+		font-weight: 500;
+		line-height: var(--leading-base);
+		color: var(--ink);
+		text-wrap: pretty;
+	}
+</style>

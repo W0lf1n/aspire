@@ -392,8 +392,8 @@ grow, from −0.4 px at 22 to −1.3 px at 44. Everything is sentence case.
 - **Body** (400, 15 px, line 1.35, +0.1 px): body copy, row titles (600),
   inputs, the primary pill's label.
 - **Body-sm** (400, 14 px, line 1.5): the why on a tile (in `photo-ink-2`,
-  max 32ch), segment labels (600), the default pill's label (600), facts,
-  the toast.
+  max 32ch) and the affirmation in its place (500, full white), segment
+  labels (600), the default pill's label (600), facts, the toast.
 - **Label** (400, 13 px, +0.24 px): card labels, field labels, row subs,
   hints, chips (600), links (600). Never uppercase.
 - **Badge** (600, 12 px): a status pill. **Tab** (600, 11 px): the bar's
@@ -574,8 +574,10 @@ luminance step.
 A photograph, portrait 4:5, 20 px corners, the one shadow on the ground.
 Its image covers; a bottom scrim sits between image and words; the body
 gathers at the foot with 24/16/16 px padding and 8 px gaps: title at 34 px
-600 balanced, the why at 14 px in 78 % white with `max-width: 32ch`, then a
-photo pill. Status, if any, is a glass tag in the top-left corner. With no
+600 balanced, one line under it at 14 px with `max-width: 32ch`, then a
+photo pill. That line is the affirmation when the dream has one —
+`.dream__say`, 500 in full white, because it is meant to be said — and the
+why otherwise, 400 in 78 % white (D27). Status, if any, is a glass tag in the top-left corner. With no
 photograph, `.dream--sky` paints the sky in its place, and on the board the
 sky drifts: two radial lights over the gradient, 16 s alternate on
 `--ease-in-out`, felt not seen, off under reduced motion. Above 35 rem the

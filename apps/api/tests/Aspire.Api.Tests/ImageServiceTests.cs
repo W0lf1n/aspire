@@ -61,7 +61,7 @@ public sealed class ImageServiceTests : IDisposable
         return stream;
     }
 
-    private Task<Dream> ADream() => _dreams.CreateAsync(Board, new DreamInput("Loď", null, null, null));
+    private Task<Dream> ADream() => _dreams.CreateAsync(Board, new DreamInput("Loď", null, null, null, null));
 
     [Fact]
     public async Task An_upload_makes_a_row_and_the_worker_makes_the_files()

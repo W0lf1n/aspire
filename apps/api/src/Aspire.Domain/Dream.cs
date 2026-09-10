@@ -1,16 +1,17 @@
 namespace Aspire.Domain;
 
 /// <summary>
-/// One dream on the board: a title, the one-line why, and where it stands.
+/// One dream on the board: a title, the one-line why, the line you say to
+/// yourself, and where it stands.
 ///
-/// The images, the affirmation and the voice memo arrive with their own
-/// milestones (PLAN.md §3). What is here is the shape M0 commits to, so the
-/// first migration is not immediately followed by a second one.
+/// The voice memo arrives with its own milestone (PLAN.md §3.4). What is
+/// here is the shape M0 committed to, plus what M3 added to it.
 /// </summary>
 public sealed class Dream
 {
     public const int TitleMaxLength = 120;
     public const int WhyMaxLength = 500;
+    public const int AffirmationMaxLength = 120;
 
     public Guid Id { get; set; }
 
@@ -18,6 +19,15 @@ public sealed class Dream
     public required string BoardId { get; set; }
     public required string Title { get; set; }
     public string Why { get; set; } = string.Empty;
+
+    /// <summary>
+    /// The dream said as though it were already true, in the person's own
+    /// words — „Bydlím u lesa“. Optional, and empty when there is none. The why
+    /// explains the dream to you; this one states it, which is why the reel
+    /// shows it in the why's place when a dream has one (D27).
+    /// </summary>
+    public string Affirmation { get; set; } = string.Empty;
+
     public DreamStatus Status { get; set; } = DreamStatus.Dreaming;
 
     /// <summary>Board order — the person's own priority, set by dragging.</summary>

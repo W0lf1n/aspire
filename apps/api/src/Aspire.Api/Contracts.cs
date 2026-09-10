@@ -20,7 +20,12 @@ public sealed record PairResponse(string DeviceId, string Token);
 /// What the client sends to make or change a dream. Everything is optional
 /// on the wire so a missing field earns a sentence, not a 400 from the binder.
 /// </summary>
-public sealed record DreamInput(string? Title, string? Why, DreamStatus? Status, int? TargetYear);
+public sealed record DreamInput(
+    string? Title,
+    string? Why,
+    DreamStatus? Status,
+    int? TargetYear,
+    string? Affirmation);
 
 /// <summary>
 /// One photograph, as URLs. <c>Ready</c> is false for the moment between the
@@ -51,6 +56,7 @@ public sealed record DreamDto(
     Guid Id,
     string Title,
     string Why,
+    string Affirmation,
     DreamStatus Status,
     int SortOrder,
     int? TargetYear,
@@ -64,6 +70,7 @@ public sealed record DreamDto(
         dream.Id,
         dream.Title,
         dream.Why,
+        dream.Affirmation,
         dream.Status,
         dream.SortOrder,
         dream.TargetYear,

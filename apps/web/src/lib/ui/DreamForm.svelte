@@ -1,6 +1,7 @@
 <script lang="ts">
 	/**
-	 * The dream's form: a title, the why, a status and a year, and one pill.
+	 * The dream's form: a title, the why, the affirmation, a status and a
+	 * year, and one pill.
 	 * Přidat and Upravit are this card with a different pill; the photograph
 	 * is the screen's own business, above or below it. The form checks the
 	 * fields on the way out (`rules.ts`) and shows the server's sentence when
@@ -8,7 +9,14 @@
 	 */
 	import type { DreamInput, DreamStatus } from '@aspire/contracts';
 	import { DREAM_STATUSES } from '@aspire/contracts';
-	import { STATUS_LABEL, TITLE_MAX, WHY_MAX, toFields, toInput } from '$lib/dreams/rules';
+	import {
+		AFFIRMATION_MAX,
+		STATUS_LABEL,
+		TITLE_MAX,
+		WHY_MAX,
+		toFields,
+		toInput
+	} from '$lib/dreams/rules';
 
 	interface Props {
 		/** The saved values, when editing. */
@@ -41,13 +49,14 @@
 	const start = initial ? toFields(initial) : null;
 	let title = $state(start?.title ?? '');
 	let why = $state(start?.why ?? '');
+	let affirmation = $state(start?.affirmation ?? '');
 	let status = $state<DreamStatus>(start?.status ?? 'dreaming');
 	let year = $state(start?.year ?? '');
 	let problem = $state('');
 
 	function submit(event: SubmitEvent) {
 		event.preventDefault();
-		const read = toInput({ title, why, status, year });
+		const read = toInput({ title, why, affirmation, status, year });
 		if ('problem' in read) {
 			problem = read.problem;
 			return;
@@ -80,6 +89,22 @@
 			placeholder="Jedna věta, kterou uvidíš každý den."
 			disabled={busy}></textarea>
 		<span class="field__hint">Krátce. Je to připomínka, ne esej.</span>
+	</label>
+
+	<label class="field">
+		<span class="field__label">Afirmace <span>nepovinné</span></span>
+		<input
+			class="field__input"
+			type="text"
+			bind:value={affirmation}
+			maxlength={AFFIRMATION_MAX}
+			placeholder="Bydlím u lesa."
+			autocomplete="off"
+			disabled={busy}
+		/>
+		<span class="field__hint"
+			>Řekni to, jako by to už platilo. Na nástěnce ji uvidíš místo proč.</span
+		>
 	</label>
 
 	<div class="field">

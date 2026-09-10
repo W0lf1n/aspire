@@ -185,3 +185,18 @@ M3 keeps the rest of §3.3 and §3.4: the achieved photograph beside the
 dreamt one, the affirmation line, the voice memo (§8.4), the anniversary.
 Still not built from M1: categories (§8.3), the desktop grid, drag to
 reorder.
+
+---
+
+## 12. M3 — in progress · 2026-09-10
+
+**The affirmation** (§3.4, done): a dream can be said as though it were
+already true — one optional line, 120 characters, in the person's own words.
+On a tile it takes the why's place rather than standing under it, because a
+third block of type on a photograph is one thing too many and the line meant
+to be said beats the line that explains (D27); on the dream's own screen
+both are there, the why on the photograph and the affirmation opening the
+card. The choice is `tileLine` in `dreams/board.ts`, with its test.
+
+Still ahead in M3: the achieved photograph beside the dreamt one (§3.3),
+the anniversary, and the voice memo if §8.4 says yes.

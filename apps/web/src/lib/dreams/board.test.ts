@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { Dream } from '@aspire/contracts';
-import { achievedDreams, pickDaily, reelDreams, reelOrder, shownToday } from './board';
+import { achievedDreams, pickDaily, reelDreams, reelOrder, shownToday, tileLine } from './board';
 
 /** Every stamp is a whole number of days from this, so no timezone changes it. */
 const NOW = new Date('2026-09-10T09:00:00Z');
@@ -13,6 +13,7 @@ function dream(id: string, over: Partial<Dream> = {}): Dream {
 		id,
 		title: id,
 		why: '',
+		affirmation: '',
 		status: 'dreaming',
 		sortOrder: 0,
 		targetYear: null,
@@ -24,6 +25,28 @@ function dream(id: string, over: Partial<Dream> = {}): Dream {
 		...over
 	};
 }
+
+describe('tileLine', () => {
+	it('says the affirmation when there is one', () => {
+		const line = tileLine(dream('a', { why: 'Ticho a les.', affirmation: 'Bydlím u lesa.' }));
+
+		expect(line).toEqual({ text: 'Bydlím u lesa.', said: true });
+	});
+
+	it('falls back to the why, and to nothing at all', () => {
+		expect(tileLine(dream('a', { why: 'Ticho a les.' }))).toEqual({
+			text: 'Ticho a les.',
+			said: false
+		});
+		expect(tileLine(dream('b'))).toEqual({ text: '', said: false });
+	});
+
+	it('does not count an affirmation that is only spaces', () => {
+		const line = tileLine(dream('a', { why: 'Ticho a les.', affirmation: '   ' }));
+
+		expect(line).toEqual({ text: 'Ticho a les.', said: false });
+	});
+});
 
 describe('reelDreams', () => {
 	it('keeps what is still ahead, in board order', () => {

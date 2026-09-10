@@ -44,6 +44,7 @@ Two accents, `--signal` (ember, acts) and `--dusk` (marks), one gradient
 | `.page`, `.title`                                        | The one scroll region of a tab screen; its name at 28 px in the flow                                      |
 | `.card`, `.card--press`, `--list`                        | White on the ground, 20 px corners; pressable; a card of rows                                             |
 | `.dream`, `.dream--sky`, `--wide`                        | A photograph, 4:5, with `.dream__body` at its foot over the scrim                                         |
+| `.dream__say`                                            | The affirmation in the why's place on a tile: 500, full white                                             |
 | `.row`, `.row__body`, `.row__end`                        | The list row: circle · title over sub · end slot                                                          |
 | `.circle`                                                | 40 px identity circle; `--accent`, `--dusk`, `--sky`; `--sm` `--xs` `--lg`                                |
 | `.badge`                                                 | 12 px pill: `--dreaming`, `--progress`, `--achieved`, `--photo`, `--tiny`                                 |
@@ -73,6 +74,7 @@ decides which one a path lights and has the test.
 
 Vitest, node environment, `requireAssertions: true`. `nav.test.ts`,
 `settings.test.ts`, `api/pairing.test.ts`, `dreams/rules.test.ts`,
-`dreams/board.test.ts`, `images/downscale.test.ts` and
+`dreams/board.test.ts` (the reel, the daily pick, the tile's line),
+`images/downscale.test.ts` and
 `offline/cache.test.ts`; a new rule gets a test before it gets a screen, and
 it lives in a `.ts` module the component imports, never in the component.

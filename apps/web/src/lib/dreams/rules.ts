@@ -8,6 +8,7 @@ import type { DreamInput, DreamStatus } from '@aspire/contracts';
 
 export const TITLE_MAX = 120;
 export const WHY_MAX = 500;
+export const AFFIRMATION_MAX = 120;
 export const YEAR_MIN = 2000;
 export const YEAR_MAX = 2100;
 
@@ -35,6 +36,7 @@ export const STATUS_CLASS: Record<DreamStatus, string> = {
 export interface DreamFields {
 	title: string;
 	why: string;
+	affirmation: string;
 	status: DreamStatus;
 	year: string;
 }
@@ -48,6 +50,11 @@ export function toInput(fields: DreamFields): { input: DreamInput } | { problem:
 	const why = fields.why.trim();
 	if (why.length > WHY_MAX) return { problem: `Proč má nejvýš ${WHY_MAX} znaků.` };
 
+	const affirmation = fields.affirmation.trim();
+	if (affirmation.length > AFFIRMATION_MAX) {
+		return { problem: `Afirmace má nejvýš ${AFFIRMATION_MAX} znaků.` };
+	}
+
 	const yearText = fields.year.trim();
 	let targetYear: number | null = null;
 	if (yearText.length > 0) {
@@ -58,16 +65,17 @@ export function toInput(fields: DreamFields): { input: DreamInput } | { problem:
 		}
 	}
 
-	return { input: { title, why, status: fields.status, targetYear } };
+	return { input: { title, why, affirmation, status: fields.status, targetYear } };
 }
 
 /** A dream's saved values back into the form. */
 export function toFields(
-	input: Pick<DreamInput, 'title' | 'why' | 'status' | 'targetYear'>
+	input: Pick<DreamInput, 'title' | 'why' | 'affirmation' | 'status' | 'targetYear'>
 ): DreamFields {
 	return {
 		title: input.title,
 		why: input.why,
+		affirmation: input.affirmation,
 		status: input.status,
 		year: input.targetYear === null ? '' : String(input.targetYear)
 	};

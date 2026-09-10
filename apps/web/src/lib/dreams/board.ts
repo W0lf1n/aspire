@@ -1,7 +1,8 @@
 /**
- * Which dreams the board shows, and which one it opens with.
+ * Which dreams the board shows, which one it opens with, and what a tile
+ * says under the title.
  *
- * Two rules live here. The reel is what is not yet achieved (PLAN §3.2): a
+ * Three rules live here. The reel is what is not yet achieved (PLAN §3.2): a
  * dream marked splněno leaves the swipe and turns up in the Síň slávy, so
  * the board stays what is still ahead. And the daily pick is the tile the
  * reel opens on — the dream shown least recently — so the board is a
@@ -13,6 +14,24 @@
  */
 
 import type { Dream } from '@aspire/contracts';
+
+/**
+ * The line under a dream's title on a tile: the affirmation when there is
+ * one, the why otherwise, and nothing when there is neither.
+ *
+ * Two blocks of type on a photograph is the limit, so the two do not both
+ * fit: the why explains the dream to you, the affirmation states it, and on
+ * a board you swipe every morning the one that states it wins (D27). Both
+ * are on the dream's own screen, where there is room to read.
+ */
+export function tileLine(dream: Pick<Dream, 'affirmation' | 'why'>): {
+	text: string;
+	/** True when it is the affirmation, which the tile sets a shade louder. */
+	said: boolean;
+} {
+	const said = dream.affirmation.trim();
+	return said.length > 0 ? { text: said, said: true } : { text: dream.why, said: false };
+}
 
 /** The reel: everything still ahead of you, in board order. */
 export function reelDreams(dreams: Dream[]): Dream[] {
