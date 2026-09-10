@@ -1,4 +1,4 @@
-namespace Aspire.Infrastructure.Media;
+﻿namespace Aspire.Infrastructure.Media;
 
 /// <summary>
 /// Where the photographs are. One directory per dream, one per image inside
@@ -24,6 +24,36 @@ public sealed class MediaStore(string root)
     /// <summary>The URL nginx answers in production, and the API on a laptop.</summary>
     public static string UrlOf(Guid dreamId, Guid imageId, string size) =>
         $"/media/{dreamId:D}/{imageId:D}/{size}.webp";
+
+    /// <summary>
+    /// The root is there and this process can write into it — checked once,
+    /// at start, rather than the first time somebody uploads a photograph.
+    ///
+    /// <c>Directory.CreateDirectory</c> is not that check. On a root that
+    /// already exists it succeeds without touching the disk, so a volume that
+    /// belongs to somebody else passes it and then throws in the worker, where
+    /// the failure costs the row: the upload answers 202, the photograph never
+    /// resizes, and the board shows the sky as if nothing had been sent (D26).
+    /// A file written and deleted is the check that cannot pass by accident.
+    /// </summary>
+    public void EnsureWritable()
+    {
+        var probe = Path.Combine(Root, $".writable-{Guid.NewGuid():N}");
+        try
+        {
+            Directory.CreateDirectory(Root);
+            File.WriteAllBytes(probe, []);
+            File.Delete(probe);
+        }
+        catch (Exception e) when (e is UnauthorizedAccessException or IOException)
+        {
+            throw new InvalidOperationException(
+                $"The media root '{Root}' is not writable by '{Environment.UserName}'. " +
+                "Every photograph would upload and then disappear, so the server stops here " +
+                "instead. See docs/DEPLOYMENT.md, \"A photograph uploads and then disappears\".",
+                e);
+        }
+    }
 
     public void DeleteImage(Guid dreamId, Guid imageId) => DeleteTree(DirectoryOf(dreamId, imageId));
 

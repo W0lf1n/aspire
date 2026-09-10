@@ -43,6 +43,28 @@ services:
       timeout: 5s
       retries: 5
 
+  # The media volume's owner, settled before anything tries to write into it.
+  #
+  # The API image chowns `/data/media` to the app user and Docker copies that
+  # ownership onto a *new* named volume — but only from the first container to
+  # mount it, and `web` mounts the same volume at a path its own image has no
+  # directory for. Lose that race once and the volume belongs to root for good:
+  # the non-root API cannot make a dream's directory, every photograph fails to
+  # resize, and the row goes with it — so an upload answers 202 and the picture
+  # is simply never there (D26).
+  #
+  # So the ownership is not inherited here, it is set. This runs to completion
+  # before the API starts, on every `up`, and does nothing once it is right.
+  media-init:
+    image: busybox:1.36
+    user: root
+    logging: *logging
+    # 1654 is the app user in Microsoft's .NET images — the same `$APP_UID` the
+    # API's Dockerfile chowns to and then switches to.
+    command: ['sh', '-c', 'mkdir -p /data/media && chown -R ${APP_UID:-1654}:${APP_UID:-1654} /data/media']
+    volumes:
+      - media:/data/media
+
   api:
     build:
       context: ../apps/api
@@ -51,14 +73,16 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      media-init:
+        condition: service_completed_successfully
     environment:
       ConnectionStrings__Postgres: Host=db;Port=5432;Database=aspire;Username=aspire;Password=${POSTGRES_PASSWORD}
       # The code a device types once, when pairing. No default — an unset code
       # makes the server refuse to pair rather than accept anything.
       Pairing__Code: ${PAIRING_CODE:?set PAIRING_CODE in .env}
-      # Where the resized images go (PLAN.md §4). The image creates the
-      # directory owned by the app user, so the volume inherits that on its
-      # first mount and the non-root API can write into it.
+      # Where the resized images go (PLAN.md §4). `media-init` above owns it
+      # by the time this starts; the API refuses to start if it cannot write
+      # there, rather than losing a photograph at a time.
       Media__Root: /data/media
     volumes:
       - media:/data/media

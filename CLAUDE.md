@@ -2,7 +2,7 @@
 
 Guidance for Claude Code working in this repository.
 
-**Last revised:** 2026-09-10 · M1 · 42 web tests · 84 API tests
+**Last revised:** 2026-09-10 · M1 · 42 web tests · 86 API tests
 
 ---
 
@@ -172,6 +172,18 @@ were never in git, every local build passed, and the VPS was the first thing
 to notice — by failing to compile a tree that had no `Media` namespace in it.
 Anchor a rule to the one path it means, and when a change adds a directory of
 source, `git status --ignored` before believing the tree is complete.
+
+**A named volume inherits ownership from the first container to mount it**,
+and only when that container's image has a directory at the mount path. Both
+`api` and `web` mount the media volume; the API's image chowns `/data/media`
+to the app user and nginx's has no `/usr/share/nginx/media` at all, so which
+one lands first decided whether the non-root API could write a photograph.
+On the VPS it lost, and every upload saved a row that the worker then deleted
+because it could not make the directory — the dream showed the sky and nothing
+said why (D26). `media-init` in the compose file sets the owner rather than
+hoping for it, and `MediaStore.EnsureWritable` makes the API prove it can
+write before it serves. A check that a directory *exists* is not a check that
+you can write into it.
 
 ## Where the answers are
 

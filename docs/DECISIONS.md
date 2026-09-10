@@ -388,3 +388,45 @@ chosen for the day rather than always the same one. Both are here.
   reordering is meant to be felt as *this is what the board opened on*, not
   read as a label, and a second pill on a photograph is one more thing
   between the person and the picture (rule 4).
+
+---
+
+## On the VPS · 2026-09-10 — the first photographs
+
+### D26 — The media volume's owner is set, not inherited, and the API proves it can write before it serves
+
+The first photographs uploaded to `aspire.petrbohac.eu` saved and then
+vanished: the form said the dream was on the board, the tile showed the sky,
+and nothing said why. `/data/media` in the volume was `root:root` while the
+API runs as uid 1654, so `Directory.CreateDirectory` threw `Permission denied`
+in the worker, `ImageService.ProcessAsync` deleted the row it could not
+finish, and the board — which only shows an image once `ready` is true — had
+nothing left to show.
+
+- **The assumption that was wrong.** `apps/api/Dockerfile` chowns `/data/media`
+  to `$APP_UID` before switching to that user, on the understanding that a
+  named volume inherits the ownership of the directory it is mounted over.
+  It does, but only from the **first** container to mount it, and only when
+  that container's image actually has a directory there. `web` mounts the same
+  volume at `/usr/share/nginx/media`, which the nginx image has no directory
+  for; whichever way that lands first decides the volume's owner for the rest
+  of its life. `depends_on` orders starts, not volume creation, and it is not
+  a thing to leave to an ordering.
+- **So the owner is set.** A one-shot `media-init` in the compose file
+  `chown`s the volume and exits, and the API waits on
+  `service_completed_successfully`. It runs on every `up`, does nothing once
+  the ownership is right, and does not care which container got there first.
+- **And the API refuses to start without it.** The guard in `Program.cs` was
+  `Directory.CreateDirectory(media.Root)`, which succeeds on a root that
+  already exists without ever testing whether anything can be written into
+  it — so it passed every start while every photograph failed.
+  `MediaStore.EnsureWritable` writes a file and deletes it, and throws a
+  sentence naming the root and the user when it cannot. A deployment that
+  cannot keep a photograph now fails loudly at boot instead of quietly, one
+  upload at a time.
+- **`ProcessAsync` still drops the row on a failure, and that stays.** It is
+  right for a file that is not a photograph, and the staged upload is deleted
+  either way, so there is nothing a surviving row could be retried from. The
+  fix for the case that is the deployment's fault belongs at the start, where
+  it now is.
+

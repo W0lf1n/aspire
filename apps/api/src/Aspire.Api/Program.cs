@@ -1,4 +1,4 @@
-using System.Text.Json;
+﻿using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.RateLimiting;
 using Aspire.Api;
@@ -144,12 +144,13 @@ if (BoardCommand.IsBoardCommand(args))
     return await BoardCommand.RunAsync(args, scope.ServiceProvider.GetRequiredService<AppDbContext>(), Console.Out);
 }
 
-// The directory exists from the first start, so the deployment is checked
-// for it before there is anything to lose. nginx serves it as `/media/` in
-// production and the API never sees a byte of it; on a laptop there is no
-// nginx, so the API serves the same tree with the same year of cache.
+// The directory exists and can be written to from the first start, so a
+// deployment that cannot keep a photograph says so here rather than one
+// upload at a time. nginx serves it as `/media/` in production and the API
+// never sees a byte of it; on a laptop there is no nginx, so the API serves
+// the same tree with the same year of cache.
 var media = app.Services.GetRequiredService<MediaStore>();
-Directory.CreateDirectory(media.Root);
+media.EnsureWritable();
 app.UseStaticFiles(new StaticFileOptions
 {
     FileProvider = new PhysicalFileProvider(media.Root),

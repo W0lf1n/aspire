@@ -322,6 +322,30 @@ public addresses, not `172.`.
 **No install prompt on the phone.** The service worker only registers over
 `https://`. Check the certificate first.
 
+**A photograph uploads and then disappears.** The dream saves, the tile shows
+the sky, and nothing on the screen says why. The media volume belongs to
+somebody other than the app user, so the resize fails and the row goes with it
+(D26). The API refuses to start on this now, naming the root; older
+deployments fail one photograph at a time instead. What it looks like:
+
+```bash
+cd /srv/aspire/deploy && docker compose logs api --tail=400 | grep -A4 "could not be processed"
+```
+
+```bash
+cd /srv/aspire/deploy && docker compose exec api sh -c 'id; ls -ld /data/media'
+```
+
+`drwxr-xr-x root root` against `uid=1654(app)` is the fault. Repair the volume
+once, and `media-init` keeps it that way from then on:
+
+```bash
+cd /srv/aspire/deploy && docker compose exec -u root api chown -R 1654:1654 /data/media && docker compose restart api
+```
+
+The photographs already lost are lost: their rows were deleted, so those
+dreams need the picture picked again.
+
 ---
 
 ## What this deliberately does not do
