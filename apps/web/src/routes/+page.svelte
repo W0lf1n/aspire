@@ -11,6 +11,7 @@
 	import { resolve } from '$app/paths';
 	import type { Dream } from '@aspire/contracts';
 	import { listDreams } from '$lib/api/client';
+	import { STATUS_BADGE } from '$lib/dreams/rules';
 	import Icon from '$lib/ui/Icon.svelte';
 	import TabBar from '$lib/ui/TabBar.svelte';
 
@@ -44,13 +45,14 @@
 		<!-- The swipe arrives with M1; until then the rows are a list. -->
 		<section class="card card--list">
 			{#each dreams as dream (dream.id)}
-				<div class="row">
+				<a class="row row--press" href={resolve('/sen/[id]', { id: dream.id })}>
 					<span class="circle circle--sky"><Icon name="image" size={20} stroke={1.8} /></span>
 					<span class="row__body">
 						<span class="row__title">{dream.title}</span>
-						<span class="row__sub">{dream.why}</span>
+						<span class="row__sub">{dream.why || STATUS_BADGE[dream.status]}</span>
 					</span>
-				</div>
+					<span class="card__go"><Icon name="chevron-right" size={18} /></span>
+				</a>
 			{/each}
 		</section>
 	{:else}

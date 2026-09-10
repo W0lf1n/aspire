@@ -44,8 +44,20 @@ export interface Dream {
 	status: DreamStatus;
 	sortOrder: number;
 	targetYear: number | null;
+	/** Taps on the heart, counted. Within the board, never across. */
+	likes: number;
 	/** ISO datetime, or null while the dream is still a dream. */
 	achievedAt: string | null;
 	/** ISO datetime. */
 	createdAt: string;
+}
+
+// ── POST /api/v1/dreams · PUT /api/v1/dreams/{id} ──────────────────────────
+
+/** What the client sends to make or change a dream. */
+export interface DreamInput {
+	title: string;
+	why: string;
+	status: DreamStatus;
+	targetYear: number | null;
 }

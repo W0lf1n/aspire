@@ -13,8 +13,12 @@
 
 	interface Props {
 		title: string;
-		/** Where the chevron goes: the board, or the Nastavení hub. */
-		back?: '/' | '/nastaveni';
+		/**
+		 * Where the chevron goes: the board, the Nastavení hub, or one dream
+		 * (from its edit screen). Two branches below rather than one resolved
+		 * string, because the lint rule wants to see `resolve()` at the href.
+		 */
+		back?: '/' | '/nastaveni' | { dream: string };
 		/** A control for the trailing edge — a 40 px round button. */
 		trail?: Snippet;
 	}
@@ -22,10 +26,18 @@
 	let { title, back = '/', trail }: Props = $props();
 </script>
 
+{#snippet chevron()}
+	<Icon name="chevron-left" size={18} stroke={1.8} />
+{/snippet}
+
 <header class="bar">
-	<a class="round" href={resolve(back)} aria-label="Zpět">
-		<Icon name="chevron-left" size={18} stroke={1.8} />
-	</a>
+	{#if typeof back === 'string'}
+		<a class="round" href={resolve(back)} aria-label="Zpět">{@render chevron()}</a>
+	{:else}
+		<a class="round" href={resolve('/sen/[id]', { id: back.dream })} aria-label="Zpět">
+			{@render chevron()}
+		</a>
+	{/if}
 	<h1 class="bar__title">{title}</h1>
 	{#if trail}
 		<div class="bar__trail">{@render trail()}</div>

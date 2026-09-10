@@ -252,3 +252,27 @@ The migration creates the table, adds `board_id` to devices and dreams,
 and points any existing rows at a board it makes for them, so a server
 upgraded with paired devices does not need re-pairing. The media path of
 D7 keeps no board segment; a dream id is already unique on its own.
+
+### D22 — Dreams are words first, a like is a counter, and deleting asks nothing
+
+The first M1 slice is the dream without its photograph: POST, GET, PUT,
+DELETE and one more verb, `POST /dreams/{id}/likes`, all scoped by the
+device's board. Three choices worth writing down:
+
+- **A like is a counter on the dream, not a row per device.** Petr chose
+  likes within a board over likes across boards, and within a board a like
+  is fuel rather than a social signal: the heart says how often the dream
+  was felt, and the count is what the board wants to see. It is counted in
+  the database (`likes = likes + 1`), so two devices tapping at once both
+  land.
+- **A dream on another board is a 404, not a 403.** That board's existence
+  is not this device's business.
+- **Deleting asks nothing and says so in a toast**, as Prosper's goals do.
+  There is no undo yet: it would need a soft delete, and a dream is a few
+  words and one photograph, both quick to give back.
+
+Validation lives twice on purpose. `DreamService.Problem` on the server and
+`rules.ts` on the client say the same Czech sentences in the same order, so
+the sentence appears on the keystroke and the server stays a backstop. A
+server sentence travels as a problem's `detail`, which the client's
+`ApiError` now carries.

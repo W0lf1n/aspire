@@ -13,11 +13,17 @@ more than store rows.
 | ------ | ------------------ | ----------------------------------------------- |
 | `GET`  | `/api/v1/health`   | `{ ok, version }`. No auth                      |
 | `POST` | `/api/v1/pair`     | Code in, `{ deviceId, token }` out. Rate-limited |
-| `GET`  | `/api/v1/dreams`   | The board, in board order. Empty in M0          |
+| `GET`    | `/api/v1/dreams`            | The device's board, in board order            |
+| `POST`   | `/api/v1/dreams`            | `DreamInput` in, the dream out, 201           |
+| `GET`    | `/api/v1/dreams/{id}`       | One dream; 404 when it is not on this board   |
+| `PUT`    | `/api/v1/dreams/{id}`       | `DreamInput` in, the dream out                |
+| `DELETE` | `/api/v1/dreams/{id}`       | 204                                           |
+| `POST`   | `/api/v1/dreams/{id}/likes` | One more on the heart; the dream out          |
 
 Everything but `health` and `pair` needs `Authorization: Bearer <token>`.
 The wire types live in `packages/contracts` and are mirrored in
-`Contracts.cs`; enums travel kebab-case (`in-progress`).
+`Contracts.cs`; enums travel kebab-case (`in-progress`). A bad input is a
+400 problem whose `detail` is the Czech sentence the screen shows.
 
 ---
 
@@ -109,7 +115,7 @@ at least, twelve in production.
 dotnet test
 ```
 
-36 tests. The ones that reach the database use SQLite in memory rather than
+73 tests. The ones that reach the database use SQLite in memory rather than
 the EF in-memory provider: this code relies on a unique index, and the
 in-memory provider does not honour one. They cover pairing, token hashing,
 name trimming, and which address the pairing limiter counts a request

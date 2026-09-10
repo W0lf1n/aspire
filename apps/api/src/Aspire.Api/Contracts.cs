@@ -15,6 +15,12 @@ public sealed record PairRequest(string Code, string DeviceName);
 
 public sealed record PairResponse(string DeviceId, string Token);
 
+/// <summary>
+/// What the client sends to make or change a dream. Everything is optional
+/// on the wire so a missing field earns a sentence, not a 400 from the binder.
+/// </summary>
+public sealed record DreamInput(string? Title, string? Why, DreamStatus? Status, int? TargetYear);
+
 public sealed record DreamDto(
     Guid Id,
     string Title,
@@ -22,6 +28,7 @@ public sealed record DreamDto(
     DreamStatus Status,
     int SortOrder,
     int? TargetYear,
+    int Likes,
     DateTimeOffset? AchievedAt,
     DateTimeOffset CreatedAt)
 {
@@ -32,6 +39,7 @@ public sealed record DreamDto(
         dream.Status,
         dream.SortOrder,
         dream.TargetYear,
+        dream.Likes,
         dream.AchievedAt,
         dream.CreatedAt);
 }

@@ -13,6 +13,11 @@ describe('activeTab', () => {
 		expect(activeTab('/nastaveni/')).toBe('settings');
 	});
 
+	it('keeps the board lit on a dream', () => {
+		expect(activeTab('/sen/abc')).toBe('board');
+		expect(activeTab('/sen/abc/upravit')).toBe('board');
+	});
+
 	it('lights the hall of fame', () => {
 		expect(activeTab('/sin-slavy')).toBe('hall');
 	});

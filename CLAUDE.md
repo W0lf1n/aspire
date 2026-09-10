@@ -2,7 +2,7 @@
 
 Guidance for Claude Code working in this repository.
 
-**Last revised:** 2026-09-09 · M0 · 16 web tests · 62 API tests
+**Last revised:** 2026-09-10 · M1 in progress · 23 web tests · 73 API tests
 
 ---
 
@@ -82,9 +82,12 @@ apps/web/src/
 │                  which owns the primitives: page, card, row, circle, badge,
 │                  seg, chip, toggle, facts, well, field, btn, dream.
 ├─ lib/ui/         Hand-rolled components. No component library.
-├─ lib/api/        client.ts (fetch + bearer) and token.ts (localStorage).
-├─ routes/         / · /pridat · /sin-slavy · /nastaveni · /nastaveni/vzhled
-│                  · /nastaveni/parovani · /styleguide (unlinked, for review)
+├─ lib/api/        client.ts (fetch + bearer), token.ts (localStorage),
+│                  pairing.ts (the flow) and errors.ts (the sentences).
+├─ lib/dreams/     rules.ts — what a dream may be, tested — and format.ts.
+├─ routes/         / · /pridat · /sen/[id] · /sen/[id]/upravit · /sin-slavy
+│                  · /nastaveni · /nastaveni/vzhled · /nastaveni/parovani
+│                  · /styleguide (unlinked, for review)
 └─ service-worker.ts
 
 apps/api/src/

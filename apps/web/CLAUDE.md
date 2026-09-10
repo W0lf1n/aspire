@@ -48,12 +48,14 @@ Two accents, `--signal` (ember, acts) and `--dusk` (marks), one gradient
 
 | Route                 | Screen                                                           |
 | --------------------- | ---------------------------------------------------------------- |
-| `/`                   | Nástěnka. The board; in M0 the first dream's tile as empty state |
-| `/pridat`             | Přidat sen. A stub with a back chevron; the form arrives in M1   |
+| `/`                   | Nástěnka. The board: the dreams as rows, or the first tile       |
+| `/pridat`             | Přidat sen. The dream's form (`DreamForm`) with an ember pill    |
+| `/sen/[id]`           | One dream: the tile, the facts, the heart, Upravit and Smazat    |
+| `/sen/[id]/upravit`   | The same form with the saved values; back is the dream           |
 | `/sin-slavy`          | Síň slávy. Empty until M3                                        |
 | `/nastaveni`          | The hub: Vzhled, Párování, the version                           |
 | `/nastaveni/vzhled`   | systém / světlý / tmavý                                          |
-| `/nastaveni/parovani` | A stub with the code field; the flow arrives in M1               |
+| `/nastaveni/parovani` | The code and a device name; paired, Odpojit                      |
 | `/styleguide`         | Tokens and components, both themes. Unlinked                     |
 
 The bar is four slots: Nástěnka · ⊕ · Síň slávy · Nastavení. `lib/ui/nav.ts`
@@ -61,6 +63,7 @@ decides which one a path lights and has the test.
 
 ## Testing
 
-Vitest, node environment, `requireAssertions: true`. `nav.test.ts` and
-`settings.test.ts`; a new rule gets a test before it gets a screen, and it
-lives in a `.ts` module the component imports, never in the component.
+Vitest, node environment, `requireAssertions: true`. `nav.test.ts`,
+`settings.test.ts`, `api/pairing.test.ts` and `dreams/rules.test.ts`; a new
+rule gets a test before it gets a screen, and it lives in a `.ts` module the
+component imports, never in the component.

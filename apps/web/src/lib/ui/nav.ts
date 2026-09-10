@@ -24,6 +24,8 @@ export const TABS: readonly Tab[] = [
 /** The tab a pathname belongs to, or null for a screen outside the bar. */
 export function activeTab(pathname: string): TabId | null {
 	const here = pathname.replace(/\/+$/, '') || '/';
+	// A dream's own screens are the board, one level down.
+	if (here.startsWith('/sen/')) return 'board';
 	for (const tab of TABS) {
 		if (here === tab.path) return tab.id;
 		if (tab.path !== '/' && here.startsWith(`${tab.path}/`)) return tab.id;

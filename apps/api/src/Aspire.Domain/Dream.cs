@@ -24,6 +24,12 @@ public sealed class Dream
     public int SortOrder { get; set; }
 
     public int? TargetYear { get; set; }
+
+    /// <summary>
+    /// Taps on the heart, counted, never per device: the board's own fuel
+    /// gauge, not a social signal. Likes stay within the board (D22).
+    /// </summary>
+    public int Likes { get; set; }
     public DateTimeOffset? AchievedAt { get; set; }
 
     /// <summary>The daily pick reads this: least recently seen first (PLAN.md §5).</summary>

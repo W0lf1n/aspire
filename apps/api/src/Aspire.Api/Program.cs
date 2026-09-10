@@ -4,6 +4,7 @@ using System.Threading.RateLimiting;
 using Aspire.Api;
 using Aspire.Api.Auth;
 using Aspire.Api.Boards;
+using Aspire.Api.Dreams;
 using Aspire.Infrastructure;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
@@ -40,6 +41,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 });
 
 builder.Services.AddScoped<DeviceAuth>();
+builder.Services.AddScoped<DreamService>();
 
 // The pairing code is the only thing between the internet and the board.
 // `DEPLOYMENT.md` generates twelve digits, because the code's own length is the
@@ -162,27 +164,98 @@ app.MapPost("/api/v1/pair", async (
     return Results.Ok(await auth.PairAsync(board, request.DeviceName ?? "Zařízení", ct));
 }).RequireRateLimiting(PairPolicy);
 
-// The placeholder for M1: the board, in board order. Empty until there is a
-// way to add a dream.
+// ── dreams: one board's, in board order ─────────────────────────────────────
+//
+// Every handler resolves the device first and hands its board to the
+// service, which never sees a board it was not handed. A dream on another
+// board is a 404, not a 403: that board's existence is not this device's
+// business either.
+
 app.MapGet("/api/v1/dreams", async (
     HttpContext http,
     DeviceAuth auth,
-    AppDbContext db,
+    DreamService dreams,
     CancellationToken ct) =>
 {
     var device = await auth.ResolveAsync(http.Request.Headers.Authorization, ct);
     if (device is null) return Results.Unauthorized();
 
-    // The tie-break is the id, not `CreatedAt`: SQLite cannot order by a
-    // DateTimeOffset, and the laptop mode has to run the same query.
-    var dreams = await db.Dreams
-        .Where(d => d.BoardId == device.BoardId)
-        .OrderBy(d => d.SortOrder)
-        .ThenBy(d => d.Id)
-        .Select(d => DreamDto.From(d))
-        .ToListAsync(ct);
+    var rows = await dreams.ListAsync(device.BoardId, ct);
+    return Results.Ok(rows.Select(DreamDto.From).ToList());
+});
 
-    return Results.Ok(dreams);
+app.MapGet("/api/v1/dreams/{id:guid}", async (
+    Guid id,
+    HttpContext http,
+    DeviceAuth auth,
+    DreamService dreams,
+    CancellationToken ct) =>
+{
+    var device = await auth.ResolveAsync(http.Request.Headers.Authorization, ct);
+    if (device is null) return Results.Unauthorized();
+
+    var dream = await dreams.FindAsync(device.BoardId, id, ct);
+    return dream is null ? Results.NotFound() : Results.Ok(DreamDto.From(dream));
+});
+
+app.MapPost("/api/v1/dreams", async (
+    DreamInput input,
+    HttpContext http,
+    DeviceAuth auth,
+    DreamService dreams,
+    CancellationToken ct) =>
+{
+    var device = await auth.ResolveAsync(http.Request.Headers.Authorization, ct);
+    if (device is null) return Results.Unauthorized();
+
+    if (DreamService.Problem(input) is { } problem) return Results.Problem(problem, statusCode: 400);
+
+    var dream = await dreams.CreateAsync(device.BoardId, input, ct);
+    return Results.Created($"/api/v1/dreams/{dream.Id}", DreamDto.From(dream));
+});
+
+app.MapPut("/api/v1/dreams/{id:guid}", async (
+    Guid id,
+    DreamInput input,
+    HttpContext http,
+    DeviceAuth auth,
+    DreamService dreams,
+    CancellationToken ct) =>
+{
+    var device = await auth.ResolveAsync(http.Request.Headers.Authorization, ct);
+    if (device is null) return Results.Unauthorized();
+
+    if (DreamService.Problem(input) is { } problem) return Results.Problem(problem, statusCode: 400);
+
+    var dream = await dreams.UpdateAsync(device.BoardId, id, input, ct);
+    return dream is null ? Results.NotFound() : Results.Ok(DreamDto.From(dream));
+});
+
+app.MapDelete("/api/v1/dreams/{id:guid}", async (
+    Guid id,
+    HttpContext http,
+    DeviceAuth auth,
+    DreamService dreams,
+    CancellationToken ct) =>
+{
+    var device = await auth.ResolveAsync(http.Request.Headers.Authorization, ct);
+    if (device is null) return Results.Unauthorized();
+
+    return await dreams.DeleteAsync(device.BoardId, id, ct) ? Results.NoContent() : Results.NotFound();
+});
+
+app.MapPost("/api/v1/dreams/{id:guid}/likes", async (
+    Guid id,
+    HttpContext http,
+    DeviceAuth auth,
+    DreamService dreams,
+    CancellationToken ct) =>
+{
+    var device = await auth.ResolveAsync(http.Request.Headers.Authorization, ct);
+    if (device is null) return Results.Unauthorized();
+
+    var dream = await dreams.LikeAsync(device.BoardId, id, ct);
+    return dream is null ? Results.NotFound() : Results.Ok(DreamDto.From(dream));
 });
 
 app.Run();
