@@ -8,7 +8,7 @@ namespace Aspire.Api.Auth;
 
 /// <summary>
 /// Pairing, and the check on every request afterwards. Prosper's mechanism,
-/// unchanged.
+/// with one addition: the code opens a board, and the device belongs to it.
 ///
 /// Tokens are stored as SHA-256 hashes: the plaintext exists in transit and in
 /// the client's storage, and nowhere on the server. A dump of the database
@@ -36,25 +36,36 @@ public sealed class DeviceAuth(AppDbContext db)
     }
 
     /// <summary>
-    /// Constant-time compare on the *code*, so a wrong guess cannot be narrowed
-    /// down by timing it. The code is short and human-typed, which is exactly
-    /// the shape a timing attack likes.
+    /// Whether any board has a code at all. A server with none refuses to
+    /// pair, rather than treating "no code" as "any code".
     /// </summary>
-    public static bool CodeMatches(string expected, string given)
+    public Task<bool> AnyBoardPairsAsync(CancellationToken ct = default) =>
+        db.Boards.AnyAsync(b => b.CodeHash != string.Empty, ct);
+
+    /// <summary>
+    /// The board a code opens, or null. Every board is tried whether or not
+    /// an earlier one matched, so how long an attempt takes says nothing
+    /// about which board it was close to. Boards are few; the cost is one
+    /// PBKDF2 each.
+    /// </summary>
+    public async Task<Board?> FindBoardAsync(string code, CancellationToken ct = default)
     {
-        var a = Encoding.UTF8.GetBytes(expected);
-        var b = Encoding.UTF8.GetBytes(given);
-        return CryptographicOperations.FixedTimeEquals(
-            SHA256.HashData(a),
-            SHA256.HashData(b));
+        Board? found = null;
+        foreach (var board in await db.Boards.OrderBy(b => b.Id).ToListAsync(ct))
+        {
+            if (PairingCode.Matches(board.CodeHash, code)) found ??= board;
+        }
+
+        return found;
     }
 
-    public async Task<PairResponse> PairAsync(string deviceName, CancellationToken ct = default)
+    public async Task<PairResponse> PairAsync(Board board, string deviceName, CancellationToken ct = default)
     {
         var token = NewToken();
         var device = new Device
         {
             Id = Guid.NewGuid().ToString("N"),
+            BoardId = board.Id,
             Name = Fit(deviceName),
             TokenHash = Hash(token),
             PairedAt = DateTimeOffset.UtcNow

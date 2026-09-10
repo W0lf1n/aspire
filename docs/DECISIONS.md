@@ -221,3 +221,34 @@ which is tested; a browser's own message never reaches the screen.
 The card is a form, so the keyboard's return key pairs. *Odpojit* forgets
 the token on the device only; the row on the server stays until it is
 deleted there, which is what revocation is (D6). Same as Prosper.
+
+### D21 — A tenant is a board, and a board is a pairing code
+
+Petr asked for the app to be multitenant. Accounts would have answered it
+and broken rule 7, so the tenant is the thing Prosper's auth already has a
+shape for: a board. `boards` holds a name and a pairing code; every device
+and every dream carries a `board_id`; every query is scoped by the device's
+board; nothing crosses. Nobody logs in, and the pairing screen did not
+change. PLAN.md §8.6 closes with it: Zuzana is her own board, or a device
+on Petr's, decided by which code she types.
+
+Three consequences:
+
+- **The code lives in the database, hashed with PBKDF2**, not SHA-256. A
+  twelve-digit code is 10^12 guesses, and a plain hash of it falls to a
+  graphics card in an afternoon; a hundred thousand rounds turn a dump of
+  the table into years. Prosper never needed this because its one code
+  lives in configuration, out of the database's reach.
+- **`Pairing:Code` seeds the first board** and is otherwise ignored. The
+  laptop mode and the runbook keep working unchanged, and a board that has
+  no code, which is what the Boards migration leaves for rows that predate
+  boards, takes the configured one on the next start.
+- **Boards are made by the operator**, with `board add | code | list` in
+  the API's own image, because there is no signup form and there is not
+  going to be one. The command speaks English: it is part of the runbook,
+  not of the screen.
+
+The migration creates the table, adds `board_id` to devices and dreams,
+and points any existing rows at a board it makes for them, so a server
+upgraded with paired devices does not need re-pairing. The media path of
+D7 keeps no board segment; a dream id is already unique on its own.

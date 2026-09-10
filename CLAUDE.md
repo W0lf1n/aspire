@@ -2,7 +2,7 @@
 
 Guidance for Claude Code working in this repository.
 
-**Last revised:** 2026-09-09 · M0 · 16 web tests · 36 API tests
+**Last revised:** 2026-09-09 · M0 · 16 web tests · 62 API tests
 
 ---
 
@@ -88,8 +88,8 @@ apps/web/src/
 └─ service-worker.ts
 
 apps/api/src/
-├─ Aspire.Api/             Program.cs (minimal APIs), Auth/, Contracts.cs
-├─ Aspire.Domain/          Dream, Device. No EF.
+├─ Aspire.Api/             Program.cs (minimal APIs), Auth/, Boards/, Contracts.cs
+├─ Aspire.Domain/          Board, Dream, Device. No EF.
 └─ Aspire.Infrastructure/  AppDbContext, Migrations/
 apps/api/tests/Aspire.Api.Tests/   xUnit, SQLite in memory
 
@@ -116,7 +116,8 @@ deploy/              compose, nginx, the host vhost, backup.sh
 6. **The `Contracts.cs` mirror moves with `packages/contracts`** in the same
    change, same names, camelCase on the wire, kebab-case enums.
 7. **Auth is Prosper's.** Pairing code, device-bound token stored as a hash,
-   no expiry, no accounts. Do not design a login.
+   no expiry, no accounts. Do not design a login. A tenant is a board with
+   its own code (D21), never an account.
 8. **The UI is Czech. Code, identifiers, comments, commits and docs are
    English.** No exceptions in either direction.
 9. **Update `docs/DECISIONS.md`** whenever a question gets answered or an
@@ -132,6 +133,10 @@ deploy/              compose, nginx, the host vhost, backup.sh
 **SQLite cannot order by `DateTimeOffset`.** `ThenBy(d => d.CreatedAt)`
 threw a 500 on the laptop and would have passed on Postgres. Order by the
 id instead, and run the laptop mode before calling an endpoint done.
+
+**The laptop's `aspire.db` never migrates.** SQLite mode creates the schema
+as the model stands and then leaves it alone, so after a model change the
+old file answers "no such column". Delete it and start the API again.
 
 **A Bash heredoc over about 8 kB is cut short on this machine** and fails
 with an unmatched quote. Write large files with the Write tool.

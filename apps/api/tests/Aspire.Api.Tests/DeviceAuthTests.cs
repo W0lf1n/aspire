@@ -12,6 +12,7 @@ public sealed class DeviceAuthTests : IDisposable
     private readonly SqliteConnection _connection;
     private readonly AppDbContext _db;
     private readonly DeviceAuth _auth;
+    private readonly Board _board;
 
     public DeviceAuthTests()
     {
@@ -22,6 +23,10 @@ public sealed class DeviceAuthTests : IDisposable
             .Options);
         _db.Database.EnsureCreated();
         _auth = new DeviceAuth(_db);
+
+        _board = new Board { Id = "board-a", Name = "A", CodeHash = PairingCode.Hash("123456") };
+        _db.Boards.Add(_board);
+        _db.SaveChanges();
     }
 
     public void Dispose()
@@ -33,7 +38,7 @@ public sealed class DeviceAuthTests : IDisposable
     [Fact]
     public async Task Pairing_returns_a_token_and_never_stores_it()
     {
-        var result = await _auth.PairAsync("Telefon");
+        var result = await _auth.PairAsync(_board, "Telefon");
 
         Assert.NotEmpty(result.Token);
         var stored = await _db.Devices.SingleAsync();
@@ -45,7 +50,7 @@ public sealed class DeviceAuthTests : IDisposable
     [Fact]
     public async Task Pairing_cuts_a_name_to_the_column()
     {
-        var result = await _auth.PairAsync(new string('n', 300));
+        var result = await _auth.PairAsync(_board, new string('n', 300));
 
         var stored = await _db.Devices.SingleAsync(d => d.Id == result.DeviceId);
         Assert.Equal(Device.NameMaxLength, stored.Name.Length);
@@ -76,7 +81,7 @@ public sealed class DeviceAuthTests : IDisposable
     [Fact]
     public async Task A_token_resolves_to_its_device()
     {
-        var paired = await _auth.PairAsync("Telefon");
+        var paired = await _auth.PairAsync(_board, "Telefon");
 
         var device = await _auth.ResolveAsync($"Bearer {paired.Token}");
 
@@ -104,13 +109,36 @@ public sealed class DeviceAuthTests : IDisposable
         Assert.Equal(200, tokens.Count);
     }
 
-    [Theory]
-    [InlineData("123456", "123456", true)]
-    [InlineData("123456", "123457", false)]
-    [InlineData("123456", "", false)]
-    [InlineData("123456", "1234567", false)]
-    public void The_pairing_code_compares_exactly(string expected, string given, bool matches)
+    [Fact]
+    public async Task A_paired_device_belongs_to_the_board_its_code_opened()
     {
-        Assert.Equal(matches, DeviceAuth.CodeMatches(expected, given));
+        var paired = await _auth.PairAsync(_board, "Telefon");
+
+        var stored = await _db.Devices.SingleAsync(d => d.Id == paired.DeviceId);
+        Assert.Equal(_board.Id, stored.BoardId);
+    }
+
+    [Fact]
+    public async Task The_code_opens_its_own_board_and_no_other()
+    {
+        _db.Boards.Add(new Board { Id = "board-b", Name = "B", CodeHash = PairingCode.Hash("654321") });
+        await _db.SaveChangesAsync();
+
+        Assert.Equal("board-a", (await _auth.FindBoardAsync("123456"))!.Id);
+        Assert.Equal("board-b", (await _auth.FindBoardAsync("654321"))!.Id);
+        Assert.Null(await _auth.FindBoardAsync("111111"));
+        Assert.Null(await _auth.FindBoardAsync(""));
+    }
+
+    [Fact]
+    public async Task A_server_whose_boards_have_no_code_refuses_to_pair()
+    {
+        Assert.True(await _auth.AnyBoardPairsAsync());
+
+        _board.CodeHash = string.Empty;
+        await _db.SaveChangesAsync();
+
+        Assert.False(await _auth.AnyBoardPairsAsync());
+        Assert.Null(await _auth.FindBoardAsync("123456"));
     }
 }

@@ -94,15 +94,18 @@ Infra
 
 ## 5. Data model
 
+No `users`: a board is the tenant and a device belongs to one (D6, D21).
+Columns are snake_case as built (D9).
+
 ```
-users              id, email, pwd_hash, timezone, nudge_time?, created_at
-categories         id, user_id, name, icon, sort_order
-dreams             id, user_id, category_id?, title, why, affirmation?, target_year?,
-                   status, sort_order, achieved_at?, last_shown_at?, created_at
-dream_images       id, dream_id, sort_order, original_path, thumb_path, screen_path, full_path,
-                   width, height, is_achieved_photo, processed_at
+boards             id, name, code_hash, created_at
+devices            id, board_id, name, token_hash, paired_at, last_seen_at?
+categories         id, board_id, name, icon, sort_order            (§8.3 still open)
+dreams             id, board_id, category_id?, title, why, affirmation?, target_year?,
+                   status, sort_order, likes, achieved_at?, last_shown_at?, created_at, updated_at
+dream_images       id, dream_id, sort_order, width, height, is_achieved_photo, processed_at?
 dream_audio        id, dream_id, path, duration_s
-push_subscriptions id, user_id, endpoint, p256dh, auth
+push_subscriptions id, board_id, endpoint, p256dh, auth
 ```
 
 Daily pick rule: `ORDER BY last_shown_at NULLS FIRST, random() LIMIT 1` among status ∈ (dreaming, in progress); update `last_shown_at` on view.
@@ -137,7 +140,7 @@ Answered ones are struck through; the reasoning is in `docs/DECISIONS.md`.
 3. Categories: fixed Yager set above, or fully free-form?
 4. Voice memo: worth it in v1.1, or drop?
 5. ~~Czech / English UI?~~ — answered 2026-09-09: Czech UI, English code, like Prosper (D2).
-6. Will Zuzana use it too (shared board vs. separate accounts)? — narrowed 2026-09-09: with Prosper's auth it is one board, many devices; a *second* board would be a real design question, not a column (D6).
+6. ~~Will Zuzana use it too (shared board vs. separate accounts)?~~ — answered 2026-09-10: boards are tenants, each with its own pairing code and still no accounts; she gets her own board, or a device on Petr's, by which code she types (D21).
 7. ~~Build order~~ — decided: Aspire first.
 
 ## 9. M0 — what was built · 2026-09-09

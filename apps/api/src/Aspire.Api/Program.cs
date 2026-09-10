@@ -3,6 +3,7 @@ using System.Text.Json.Serialization;
 using System.Threading.RateLimiting;
 using Aspire.Api;
 using Aspire.Api.Auth;
+using Aspire.Api.Boards;
 using Aspire.Infrastructure;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
@@ -42,7 +43,7 @@ builder.Services.AddScoped<DeviceAuth>();
 
 // The pairing code is the only thing between the internet and the board.
 // `DEPLOYMENT.md` generates twelve digits, because the code's own length is the
-// only defence here that does not depend on a fence holding. `CodeMatches`
+// only defence here that does not depend on a fence holding. `PairingCode.Matches`
 // being constant-time defends against timing, not against volume.
 //
 // Five attempts a minute per address turns twelve digits into a number of years
@@ -116,6 +117,19 @@ if (app.Configuration.GetValue("Database:MigrateOnStart", true))
     // schema as the model stands, which is all a laptop needs.
     if (usesSqlite) await db.Database.EnsureCreatedAsync();
     else await db.Database.MigrateAsync();
+
+    // The configured code goes to the first board, or to one that has none.
+    await BoardSeed.ApplyAsync(db, app.Configuration["Pairing:Code"]);
+}
+
+// The operator's commands run in this same image, with the database and the
+// hashing the server uses, and then leave without ever listening.
+if (BoardCommand.IsBoardCommand(args))
+{
+    // A board's name may carry a háček, and a Windows console would rather not.
+    Console.OutputEncoding = System.Text.Encoding.UTF8;
+    using var scope = app.Services.CreateScope();
+    return await BoardCommand.RunAsync(args, scope.ServiceProvider.GetRequiredService<AppDbContext>(), Console.Out);
 }
 
 // The media root (PLAN.md §4): a volume in production, a folder beside the
@@ -131,24 +145,21 @@ app.MapGet("/api/v1/health", () => Results.Ok(new HealthResponse(true, version))
 
 app.MapPost("/api/v1/pair", async (
     PairRequest request,
-    IConfiguration config,
     DeviceAuth auth,
     CancellationToken ct) =>
 {
-    var expected = config["Pairing:Code"];
-    if (string.IsNullOrWhiteSpace(expected))
+    if (!await auth.AnyBoardPairsAsync(ct))
     {
-        // Refusing is the safe default: an unset code must never mean "any code
-        // will do", which is how a private board becomes a public one.
+        // Refusing is the safe default: a server with no code must never mean
+        // "any code will do", which is how a private board becomes a public one.
         return Results.Problem("Párování není na serveru nastavené.", statusCode: 503);
     }
 
-    if (!DeviceAuth.CodeMatches(expected, request.Code ?? string.Empty))
-    {
-        return Results.Unauthorized();
-    }
+    // The code says which board; a code that opens none is a wrong code.
+    var board = await auth.FindBoardAsync(request.Code ?? string.Empty, ct);
+    if (board is null) return Results.Unauthorized();
 
-    return Results.Ok(await auth.PairAsync(request.DeviceName ?? "Zařízení", ct));
+    return Results.Ok(await auth.PairAsync(board, request.DeviceName ?? "Zařízení", ct));
 }).RequireRateLimiting(PairPolicy);
 
 // The placeholder for M1: the board, in board order. Empty until there is a
@@ -165,6 +176,7 @@ app.MapGet("/api/v1/dreams", async (
     // The tie-break is the id, not `CreatedAt`: SQLite cannot order by a
     // DateTimeOffset, and the laptop mode has to run the same query.
     var dreams = await db.Dreams
+        .Where(d => d.BoardId == device.BoardId)
         .OrderBy(d => d.SortOrder)
         .ThenBy(d => d.Id)
         .Select(d => DreamDto.From(d))
@@ -174,6 +186,7 @@ app.MapGet("/api/v1/dreams", async (
 });
 
 app.Run();
+return 0;
 
 /// <summary>Named so the test host can reach it.</summary>
 public partial class Program;

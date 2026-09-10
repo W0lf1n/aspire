@@ -49,7 +49,8 @@ Postgres in production, SQLite on a laptop, the same EF model either way.
 when the provider is Postgres and `EnsureCreatedAsync()` when it is SQLite,
 both gated behind `Database:MigrateOnStart` (default `true`). The SQLite side
 therefore never runs a migration; it creates the schema as the model stands,
-which is all a laptop needs.
+which is all a laptop needs. It also never updates it: after a model change,
+delete `aspire.db` and start the API again.
 
 `dotnet-ef` is pinned per repository:
 
@@ -77,6 +78,31 @@ every column), so `psql` reads the way the plan is written.
 
 ---
 
+## Boards
+
+A board is the tenant (D21): a name, a pairing code stored as a PBKDF2
+hash, and every device and dream that belongs to it. `Pairing:Code` seeds
+the first one, *Nástěnka*, on the first start and is ignored afterwards.
+The rest is the operator's, through the API's own binary:
+
+```bash
+dotnet run --project src/Aspire.Api -- board list
+```
+
+```bash
+dotnet run --project src/Aspire.Api -- board add Zuzana 483920174635
+```
+
+```bash
+dotnet run --project src/Aspire.Api -- board code Nástěnka 209384756123
+```
+
+On the VPS the same three run as `docker compose exec api dotnet
+Aspire.Api.dll board …` (`docs/DEPLOYMENT.md`). A code is digits only, six
+at least, twelve in production.
+
+---
+
 ## Tests
 
 ```bash
@@ -98,7 +124,8 @@ Prosper's, unchanged:
 - **Tokens are stored as SHA-256 hashes.** A database dump does not hand
   anybody a working device.
 - **Tokens do not expire.** Revocation is deleting the row.
-- **The pairing code is compared in constant time.**
+- **The pairing code is compared in constant time**, and stored as a PBKDF2
+  hash, one per board. A dump of the table is not a list of codes.
 - **`/api/v1/pair` is rate-limited per client address and as a whole.**
   `ClientAddress` decides what "client address" means: `X-Real-IP` from a
   private-range peer, never `X-Forwarded-For`, which the caller can prepend

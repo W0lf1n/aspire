@@ -95,7 +95,9 @@ it later does not change the password the database already has.
 `PAIRING_CODE` is what a device types once, in Nastavení → Párování, to be
 handed a token. Digits, twelve of them, leading digit never zero. It is the
 only thing between somebody and the board, so treat it as a password even
-though it does not look like one.
+though it does not look like one. It seeds the first board on the first
+start and is ignored after that; "Boards" below has the commands that
+change a code or add a board.
 
 ### 3. Start the three containers
 
@@ -172,7 +174,7 @@ cd /srv/aspire/deploy && docker compose exec db psql -U aspire -d aspire -c '\dt
 ```
 
 ```bash
-cd /srv/aspire/deploy && docker compose exec db psql -U aspire -d aspire -c 'select id, name, paired_at, last_seen_at from devices;'
+cd /srv/aspire/deploy && docker compose exec db psql -U aspire -d aspire -c 'select id, board_id, name, paired_at, last_seen_at from devices;'
 ```
 
 **Adding a migration** is a developer step, on a laptop, before the code
@@ -212,11 +214,41 @@ cd /srv/aspire/deploy && docker compose exec api ls -la /data/media
 ## Pairing a device
 
 The shape is Prosper's, without the address: open the site, add it to the
-home screen, Nastavení → Párování, type `PAIRING_CODE`, name the device,
+home screen, Nastavení → Párování, type the board's code, name the device,
 *Spárovat*. The phone keeps its token in `localStorage`; the server stores
 only the token's hash, so a database dump does not hand anybody a working
 phone. *Odpojit* on the same screen forgets the token on the phone and
 nothing else; to revoke a device, delete its row (see above).
+
+---
+
+## Boards
+
+A board is a tenant: its own dreams, its own devices, nothing shared with
+another board, and still no account and no login (D21). A device belongs
+to the board whose code it typed, for as long as it keeps the token.
+
+The first board, *Nástěnka*, takes `PAIRING_CODE` on the first start. From
+then on every code lives in the database, hashed, and the variable is
+ignored. The API's own image carries the commands; each one runs against
+the database and exits:
+
+```bash
+cd /srv/aspire/deploy && docker compose exec api dotnet Aspire.Api.dll board list
+```
+
+```bash
+cd /srv/aspire/deploy && docker compose exec api dotnet Aspire.Api.dll board add Zuzana 483920174635
+```
+
+```bash
+cd /srv/aspire/deploy && docker compose exec api dotnet Aspire.Api.dll board code Nástěnka 209384756123
+```
+
+A code is digits, twelve of them as in step 2. Changing a board's code does
+not touch the devices already paired into it. Deleting a board's row in
+`psql` deletes its dreams and its devices with it; there is no command for
+that, on purpose.
 
 ---
 

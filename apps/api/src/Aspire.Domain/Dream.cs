@@ -13,6 +13,9 @@ public sealed class Dream
     public const int WhyMaxLength = 500;
 
     public Guid Id { get; set; }
+
+    /// <summary>The board this dream belongs to. Nothing crosses between boards.</summary>
+    public required string BoardId { get; set; }
     public required string Title { get; set; }
     public string Why { get; set; } = string.Empty;
     public DreamStatus Status { get; set; } = DreamStatus.Dreaming;

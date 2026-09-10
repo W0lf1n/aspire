@@ -22,6 +22,9 @@ public sealed class Device
     public required string Id { get; set; }
     public required string Name { get; set; }
 
+    /// <summary>The board this device paired into, and the only one it can see.</summary>
+    public required string BoardId { get; set; }
+
     /// <summary>Stored as a SHA-256 hash. The plaintext exists only in transit.</summary>
     public required string TokenHash { get; set; }
 
