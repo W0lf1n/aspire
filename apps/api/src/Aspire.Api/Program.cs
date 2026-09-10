@@ -6,6 +6,7 @@ using Aspire.Api.Auth;
 using Aspire.Api.Boards;
 using Aspire.Api.Dreams;
 using Aspire.Api.Images;
+using Aspire.Api.Nudges;
 using Aspire.Api.Wallpaper;
 using Aspire.Infrastructure;
 using Aspire.Infrastructure.Media;
@@ -46,10 +47,18 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 
 builder.Services.AddScoped<DeviceAuth>();
 builder.Services.AddScoped<DreamService>();
+builder.Services.AddScoped<NudgeService>();
 
 // The media root (PLAN.md §4): a volume in production, a folder beside the
 // database on a laptop. One store, one line, one worker.
 builder.Services.AddSingleton(new MediaStore(builder.Configuration["Media:Root"] ?? "/data/media"));
+
+// The morning nudge's key pair (PLAN.md §3.6). Absent on a laptop, and the
+// server then says it does not do notifications rather than refusing to run.
+builder.Services.AddSingleton(new VapidKeys(
+    builder.Configuration["Push:PublicKey"],
+    builder.Configuration["Push:PrivateKey"],
+    builder.Configuration["Push:Subject"]));
 builder.Services.AddSingleton<ImageQueue>();
 builder.Services.AddHostedService<ImageWorker>();
 builder.Services.AddScoped<ImageService>();
@@ -186,6 +195,7 @@ app.MapPost("/api/v1/pair", async (
 // the lock-screen collage in Wallpaper/WallpaperEndpoints.cs.
 app.MapDreams();
 app.MapWallpaper();
+app.MapNudges();
 app.Run();
 return 0;
 

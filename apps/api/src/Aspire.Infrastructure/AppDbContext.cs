@@ -10,6 +10,7 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
     public DbSet<Dream> Dreams => Set<Dream>();
     public DbSet<DreamImage> DreamImages => Set<DreamImage>();
     public DbSet<Device> Devices => Set<Device>();
+    public DbSet<PushSubscription> PushSubscriptions => Set<PushSubscription>();
 
     protected override void OnModelCreating(ModelBuilder model)
     {
@@ -73,6 +74,31 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
             entity.HasOne<Dream>()
                 .WithMany()
                 .HasForeignKey(i => i.DreamId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        model.Entity<PushSubscription>(entity =>
+        {
+            entity.ToTable("push_subscriptions");
+            entity.HasKey(s => s.Id);
+
+            // The endpoint is the device: subscribing twice from one phone
+            // changes the row it already has rather than making a second.
+            entity.HasIndex(s => s.Endpoint).IsUnique();
+            entity.HasIndex(s => s.BoardId);
+
+            entity.Property(s => s.BoardId).HasMaxLength(64);
+            entity.Property(s => s.Endpoint).HasMaxLength(PushSubscription.EndpointMaxLength);
+            entity.Property(s => s.P256dh).HasMaxLength(PushSubscription.KeyMaxLength);
+            entity.Property(s => s.Auth).HasMaxLength(PushSubscription.KeyMaxLength);
+            entity.Property(s => s.Mode)
+                .HasConversion(m => NudgeModeNames.ToWire(m), m => NudgeModeNames.Parse(m))
+                .HasMaxLength(16);
+
+            // A board that goes takes its subscriptions with it.
+            entity.HasOne<Board>()
+                .WithMany()
+                .HasForeignKey(s => s.BoardId)
                 .OnDelete(DeleteBehavior.Cascade);
         });
 

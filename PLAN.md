@@ -282,4 +282,9 @@ download link otherwise, and keeps the finished picture on screen either
 way. It sits in Nastavení: the bar is four slots and a wallpaper is
 something you make now and then, not a place you go.
 
-Next: M5, the daily nudge (§3.6). Still unbuilt from M1: the desktop grid.
+M5 (§3.6) is started: the subscription, the schedule and the endpoints are
+built and tested (D34); what is left is the sending itself and the screen
+that turns it on. Still unbuilt from M1: the desktop grid, which §3.2 wants
+as a masonry layout — that needs the 34 rem column to widen, and
+`DESIGN.md` says desktop is deliberately the phone layout with room around
+it, so it is a design question before it is a screen.

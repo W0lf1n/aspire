@@ -32,6 +32,38 @@ public sealed record DreamInput(
 /// One photograph, as URLs. <c>Ready</c> is false for the moment between the
 /// upload and the resize; the client shows the sky and asks again.
 /// </summary>
+/// <summary>
+/// What a device sends to be nudged in the morning (PLAN.md §3.6): the
+/// browser's own subscription, and when it wants to hear from it.
+/// </summary>
+public sealed record NudgeInput(
+    string? Endpoint,
+    string? P256dh,
+    string? Auth,
+    NudgeMode? Mode,
+    int? AtMinutes,
+    int? UtcOffsetMinutes);
+
+/// <summary>
+/// A device's standing nudge, as it reads it back. No keys come out: the
+/// server was told them and has no reason to say them again.
+/// </summary>
+public sealed record NudgeDto(NudgeMode Mode, int AtMinutes)
+{
+    public static NudgeDto From(PushSubscription subscription) =>
+        new(subscription.Mode, subscription.AtMinutes);
+
+    /// <summary>What a device that has never subscribed reads.</summary>
+    public static NudgeDto None => new(NudgeMode.Off, PushSubscription.DefaultAtMinutes);
+}
+
+/// <summary>
+/// The VAPID public key, which a browser needs before it can subscribe at
+/// all. Empty when the server has not been given a key pair, and the client
+/// then says so rather than offering a switch that cannot work.
+/// </summary>
+public sealed record PushKeyResponse(string PublicKey);
+
 public sealed record DreamImageDto(
     Guid Id,
     int SortOrder,

@@ -686,3 +686,49 @@ dream is seen a hundred times a day without opening anything.
   you go. A dream that is already achieved can be on one — that is exactly
   the kind you want on a lock screen — so the choice reads the whole board
   rather than the reel.
+
+---
+
+## M5 · 2026-09-10 — the morning nudge
+
+### D34 — A subscription carries an offset, not a timezone, and the key pair is configuration
+
+PLAN.md §3.6 wants a notification at a time the person sets, default 07:00,
+off / daily / weekdays. The parts of that decided before anything was sent:
+
+- **A subscription is per device, not per board.** A phone and a tablet on
+  one board are two rows with two schedules, because it is the phone in a
+  pocket at seven that this is for. The push endpoint *is* the device, so it
+  is the unique key: subscribing again from the same phone moves the row it
+  already has, and a phone re-paired into another board moves rather than
+  colliding.
+- **Off is the absence of a row**, not a row that is off. A browser that
+  revokes a subscription leaves nothing behind either, so the two states the
+  server can be in are the two states that exist.
+- **The device sends its UTC offset in minutes, not an IANA zone name.** The
+  API runs with `InvariantGlobalization`, so it has no zone database to look
+  a name up in, and giving it one to serve one feature is the wrong trade.
+  An offset goes stale twice a year; the device sends it again every time
+  the app opens, so it is right again the first time anybody looks — and
+  being an hour out for one morning is a notification at six or at eight,
+  not a bug anybody files.
+- **A nudge that missed its morning is not sent at bedtime.** `NudgeSchedule`
+  fires within two hours of the time and then skips the day. A worker
+  stopped over breakfast still sends at ten past; one that starts at eleven
+  at night does not, because a dream at bedtime is not the morning habit
+  this is and would be the app's first unwelcome notification. The whole
+  rule is pure and tested — a weekend, a day already sent, a server that was
+  down all morning — rather than something you wait a day to find out.
+- **`LastSentOn` is a local date, not a timestamp**, because the question is
+  "has today had its nudge".
+- **`DueAsync` reads untracked.** `MarkSentAsync` writes with
+  `ExecuteUpdate`, which goes round the change tracker; a tracked read after
+  it handed back the row as it was before the stamp, and the test caught the
+  same phone being nudged twice.
+- **The VAPID pair is configuration, generated once by hand**, beside the
+  pairing code. Not the database and not generated at start: the public key
+  is baked into every browser subscription the server has ever handed out,
+  so a pair that regenerated itself would silently orphan all of them. A
+  server with no pair does not do notifications, says so with a 503 rather
+  than keeping a subscription it cannot honour, and runs perfectly well
+  otherwise — which is what a laptop wants.

@@ -22,6 +22,10 @@ more than store rows.
 | `POST`   | `/api/v1/dreams/{id}/shown` | The board opened on it today; 204             |
 | `POST`   | `/api/v1/dreams/{id}/images` | Multipart `file`, `?kind=dreamt\|achieved`; 202 with the image, `ready` once resized |
 | `DELETE` | `/api/v1/dreams/{id}/images/{imageId}` | 204                                |
+| `GET`    | `/api/v1/nudge/key` | The VAPID public key, or empty when the server has no pair. No auth |
+| `GET`    | `/api/v1/nudge` | `?endpoint=`; this device's `{ mode, atMinutes }` |
+| `PUT`    | `/api/v1/nudge` | `NudgeInput` in; `off` deletes the subscription. 503 with no key pair |
+| `DELETE` | `/api/v1/nudge` | `?endpoint=`; 204 |
 | `GET`    | `/api/v1/wallpaper` | `?dreams=<id,…>&width&height`; the lock-screen collage as JPEG, made on request and kept nowhere (D33) |
 
 Everything but `health` and `pair` needs `Authorization: Bearer <token>`.
