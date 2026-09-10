@@ -533,3 +533,60 @@ they look every morning is the board.
   needed to know would be wrong for half the boards. Czech wants `rokem` for
   one year and `lety` for every number above it; `formatAnniversary` in
   `dreams/format.ts` holds that, with its test.
+
+---
+
+## After M3 · 2026-09-10 — the reel at a hundred dreams
+
+### D30 — The reel is shuffled on every open, and only a window of it is in the document
+
+PLAN.md §3.1 wanted drag to reorder, board order being the person's own
+priority. At the size the board is actually meant to reach — around a
+hundred dreams — a fixed order is the wrong idea twice over, so it is
+replaced rather than built.
+
+- **A fixed order becomes a route you know by heart.** A dream you always
+  reach on the ninetieth swipe is a dream you never see, which is exactly
+  the habituation the daily pick exists to break (D25), one tile further
+  down. Shuffling on every open means no dream has a permanent place, and
+  the ninetieth swipe is a different dream every morning. Dragging a
+  hundred tiles into an order would also be an afternoon's work to build
+  and an afternoon's work to use.
+- **The head is still the day's pick.** The pick holds for the day and two
+  devices agree on it; only the tail is shuffled. So the board still opens
+  on the same dream all day, and what follows it is new every time.
+- **The order is a sequence of ids, worked out once per open.** A `$derived`
+  that reshuffled whenever the board changed would move the tiles under a
+  thumb every time a heart was tapped. `reelSequence` makes the order,
+  `reelOrder` reads the board through it: what has left the reel since falls
+  out, and what has arrived goes on the end rather than reshuffling the rest.
+- **`sortOrder` stays.** It is still the board's own stable order — what the
+  server lists in, what the wall breaks ties on, and what the reel falls
+  back to before a sequence exists. It simply stopped being what the reel
+  shows.
+- **Five tiles at a time, growing as the end is neared.** A tile is a whole
+  screen with a photograph on it; a hundred of them is a first paint you can
+  feel, on the one screen whose whole promise is that it is instant (§2).
+  An `IntersectionObserver` on a one-pixel mark at the end of what is
+  rendered adds `REEL_WINDOW` more, a screenful of slack ahead of the thumb.
+- **Nothing is ever removed from the top.** Real virtualisation would take
+  tiles out above the viewport, and removing a tile from a snapping scroll
+  region moves the one under the thumb. A reel that is long costs memory; a
+  reel that jumps costs the person their place.
+
+### D31 — The voice memo is dropped
+
+PLAN.md §8.4 asked whether the voice memo was worth it in v1.1. It is not.
+
+The app's promise is ten seconds of swiping somewhere you happen to be — a
+train, a queue, the end of a bad meeting — and audio is the one thing there
+that does not work: it needs quiet or headphones, it cannot be swiped, and
+it takes as long to hear as it took to say. Yager's argument for hearing
+your own voice is real, but it belongs to a room with a door, not to a
+phone in a pocket. §3.4's other half, the affirmation, carries the same
+idea in a form the board can actually show every morning (D27).
+
+Server-side it would have been a kind of media the store has never held,
+with its own mime checks, its own cap, its own cache and its own delete
+path — the whole of the photograph pipeline again, for something played
+once. §3.4 and §4's `MediaRecorder` line are struck through.

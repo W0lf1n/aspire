@@ -1,8 +1,9 @@
 /**
- * Which dreams the board shows, which one it opens with, what a tile says
- * under the title, and whose anniversary today is.
+ * Which dreams the board shows, which one it opens with, what order the
+ * rest are in, what a tile says under the title, and whose anniversary
+ * today is.
  *
- * Four rules live here. The reel is what is not yet achieved (PLAN §3.2): a
+ * Five rules live here. The reel is what is not yet achieved (PLAN §3.2): a
  * dream marked splněno leaves the swipe and turns up in the Síň slávy, so
  * the board stays what is still ahead. And the daily pick is the tile the
  * reel opens on — the dream shown least recently — so the board is a
@@ -14,6 +15,17 @@
  */
 
 import type { Dream } from '@aspire/contracts';
+
+/**
+ * How many tiles the board puts in the document at once, and how many more
+ * it adds when the end of them is neared.
+ *
+ * A tile is a whole screen with a photograph on it. A hundred of them is a
+ * first paint you can feel, on the one screen whose promise is that it is
+ * instant (PLAN.md §2). Five is the one being looked at and four swipes of
+ * slack, which is more than a thumb gets ahead of an observer (D30).
+ */
+export const REEL_WINDOW = 5;
 
 /**
  * The line under a dream's title on a tile: the affirmation when there is
@@ -82,11 +94,65 @@ export function pickDaily(
 	);
 }
 
-/** The reel, with the day's pick moved to the front. */
-export function reelOrder(dreams: Dream[], pickedId: string | null): Dream[] {
+/**
+ * The order one opening of the reel is in: the day's pick first, everything
+ * else shuffled (D30).
+ *
+ * A board of a hundred dreams in a fixed order becomes a route you know by
+ * heart, and a dream you always reach on the ninetieth swipe is a dream you
+ * never see — which is the same habituation the daily pick exists to break,
+ * one tile further down. So the tail is shuffled on every open, while the
+ * head stays the day's pick: the board still opens on the dream two devices
+ * agree about, and what follows is different every time.
+ *
+ * It is a sequence of ids rather than of dreams, because it has to survive
+ * the board being fetched again — a heart tapped must not reshuffle the reel
+ * under a thumb.
+ */
+export function reelSequence(
+	dreams: Dream[],
+	pickedId: string | null,
+	random: () => number = Math.random
+): string[] {
 	const rows = reelDreams(dreams);
 	const picked = rows.find((dream) => dream.id === pickedId);
-	return picked ? [picked, ...rows.filter((dream) => dream !== picked)] : rows;
+	const rest = shuffle(
+		rows.filter((dream) => dream !== picked).map((dream) => dream.id),
+		random
+	);
+	return picked ? [picked.id, ...rest] : rest;
+}
+
+/**
+ * The reel in a remembered sequence. What has left the reel since — a dream
+ * marked splněno on another device, or deleted — falls out, and what has
+ * arrived goes on the end rather than being dropped or reshuffling the rest.
+ */
+export function reelOrder(dreams: Dream[], sequence: string[]): Dream[] {
+	const rows = reelDreams(dreams);
+	const byId = new Map(rows.map((dream) => [dream.id, dream]));
+
+	const ordered: Dream[] = [];
+	for (const id of sequence) {
+		const dream = byId.get(id);
+		if (dream) {
+			ordered.push(dream);
+			byId.delete(id);
+		}
+	}
+
+	// Whatever the sequence never knew about, in board order.
+	return [...ordered, ...rows.filter((dream) => byId.has(dream.id))];
+}
+
+/** Fisher–Yates, on a copy. */
+function shuffle<T>(items: T[], random: () => number): T[] {
+	const out = [...items];
+	for (let i = out.length - 1; i > 0; i--) {
+		const j = Math.min(Math.floor(random() * (i + 1)), i);
+		[out[i], out[j]] = [out[j], out[i]];
+	}
+	return out;
 }
 
 /** A dream that came true on this day in an earlier year, and how long ago. */

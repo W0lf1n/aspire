@@ -584,6 +584,16 @@ sky drifts: two radial lights over the gradient, 16 s alternate on
 first tile on the board caps its height to what is left under the wordmark
 and above the bar, giving up its ratio before its foot.
 
+### The reel (Nástěnka)
+The scroll region is `.page` itself, `scroll-snap-type: y proximity`, and a
+tile is `100dvh` less the bar with `scroll-snap-stop: always`, so a swipe
+lands on one dream and stops there. The order is the day's pick and then a
+shuffle, new on every open (D30); five tiles are in the document at a time
+and five more arrive when a one-pixel mark at the end of them comes into
+view, with a screenful of `rootMargin` so they exist before they are
+reached. Nothing is removed from the top: taking a tile out of a snapping
+region moves the one under the thumb.
+
 ### The pair (Síň slávy)
 A dream with both photographs stands them side by side: two 4:5 halves in a
 `1fr 1fr` grid with a 2 px seam, the pair owning one 20 px radius and the

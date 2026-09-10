@@ -2,7 +2,7 @@
 
 Guidance for Claude Code working in this repository.
 
-**Last revised:** 2026-09-10 · M3 · 59 web tests · 95 API tests
+**Last revised:** 2026-09-10 · M3 · 65 web tests · 95 API tests
 
 ---
 
@@ -20,10 +20,12 @@ Prosper's conventions so the three feel like one family and share a VPS.
 `PLAN.md` at the root is the plan. M0 (the scaffold) and M1 (boards, dreams,
 photographs, the reel, offline) are done; §10 there says what M1 built and
 what it left out, and §11 what followed it: the daily pick, and the reel
-keeping only what is not yet done. §12 is M3 — the affirmation, the achieved
-photograph beside the dreamt one, and the anniversary, all done. What is
-left of it is the voice memo, which is still §8.4's open question. Still
-unbuilt from M1: categories (§8.3), the desktop grid, drag to reorder.
+keeping only what is not yet done. §12 is M3, done — the affirmation, the achieved
+photograph beside the dreamt one, the anniversary, and the voice memo
+dropped (§8.4). §13 is what followed: the reel shuffled on every open in
+place of drag to reorder, and windowed so a hundred dreams are not a
+hundred tiles. Next is categories (§8.3, still an open question), then M4.
+Still unbuilt from M1: the desktop grid.
 
 ---
 
@@ -90,9 +92,10 @@ apps/web/src/
 ├─ lib/api/        client.ts (fetch + bearer), token.ts (localStorage),
 │                  pairing.ts (the flow) and errors.ts (the sentences).
 ├─ lib/dreams/     rules.ts — what a dream may be — board.ts — what the reel
-│                  shows, which dream it opens on, what a tile says and
-│                  whose anniversary today is — photos.ts — which of a
-│                  dream's two photographs a screen shows — and format.ts.
+│                  shows, which dream it opens on, what order the rest are
+│                  in, what a tile says and whose anniversary today is —
+│                  photos.ts — which of a dream's two photographs a screen
+│                  shows — and format.ts.
 ├─ lib/images/     downscale.ts — the photograph to 2048 px on the device.
 ├─ lib/offline/    status.svelte.ts — the connection flag every screen reads —
 │                  and cache.ts, which fills and prunes the photo cache.

@@ -6,6 +6,7 @@ import {
 	pickDaily,
 	reelDreams,
 	reelOrder,
+	reelSequence,
 	shownToday,
 	tileLine
 } from './board';
@@ -191,23 +192,76 @@ describe('pickDaily', () => {
 	});
 });
 
-describe('reelOrder', () => {
-	it('puts the pick in front and leaves the rest in board order', () => {
-		const rows = [dream('a'), dream('b'), dream('c')];
+describe('reelSequence', () => {
+	/** Always draws index 0, which makes Fisher–Yates a checkable rotation. */
+	const first = () => 0;
 
-		expect(reelOrder(rows, 'c').map((d) => d.id)).toEqual(['c', 'a', 'b']);
+	it('puts the pick in front and shuffles the rest', () => {
+		const rows = [dream('a'), dream('b'), dream('c'), dream('d')];
+
+		expect(reelSequence(rows, 'a', first)).toEqual(['a', 'c', 'd', 'b']);
 	});
 
-	it('is the board order when there is no pick, or the pick has gone', () => {
-		const rows = [dream('a'), dream('b')];
+	it('shuffles the whole reel when there is no pick, or the pick has gone', () => {
+		const rows = [dream('a'), dream('b'), dream('c')];
 
-		expect(reelOrder(rows, null).map((d) => d.id)).toEqual(['a', 'b']);
-		expect(reelOrder(rows, 'deleted').map((d) => d.id)).toEqual(['a', 'b']);
+		expect(reelSequence(rows, null, first)).toEqual(['b', 'c', 'a']);
+		expect(reelSequence(rows, 'deleted', first)).toEqual(['b', 'c', 'a']);
 	});
 
 	it('does not bring an achieved dream back by picking it', () => {
 		const rows = [dream('a'), dream('done', { status: 'achieved', achievedAt: YESTERDAY })];
 
-		expect(reelOrder(rows, 'done').map((d) => d.id)).toEqual(['a']);
+		expect(reelSequence(rows, 'done', first)).toEqual(['a']);
+	});
+
+	it('keeps every dream exactly once, whatever the shuffle does', () => {
+		const rows = ['a', 'b', 'c', 'd', 'e', 'f'].map((id) => dream(id));
+
+		// A real random, many times: a shuffle that drops or repeats a dream
+		// is a dream that never comes round again.
+		for (let run = 0; run < 200; run++) {
+			const ids = reelSequence(rows, 'c');
+
+			expect(ids[0]).toBe('c');
+			expect([...ids].sort()).toEqual(['a', 'b', 'c', 'd', 'e', 'f']);
+		}
+	});
+
+	it('does not always give the same order', () => {
+		const rows = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'].map((id) => dream(id));
+		const seen = new Set<string>();
+
+		for (let run = 0; run < 50; run++) seen.add(reelSequence(rows, null).join());
+
+		expect(seen.size).toBeGreaterThan(1);
+	});
+});
+
+describe('reelOrder', () => {
+	it('is the reel in the sequence it was given', () => {
+		const rows = [dream('a'), dream('b'), dream('c')];
+
+		expect(reelOrder(rows, ['c', 'a', 'b']).map((d) => d.id)).toEqual(['c', 'a', 'b']);
+	});
+
+	it('drops what has left the reel since the sequence was made', () => {
+		const rows = [dream('a'), dream('done', { status: 'achieved', achievedAt: YESTERDAY })];
+
+		expect(reelOrder(rows, ['done', 'a', 'deleted']).map((d) => d.id)).toEqual(['a']);
+	});
+
+	it('puts a dream the sequence never knew about on the end', () => {
+		const rows = [dream('a'), dream('new'), dream('b')];
+
+		// Added while the reel was open: it appears without moving anything
+		// that is already under the thumb.
+		expect(reelOrder(rows, ['b', 'a']).map((d) => d.id)).toEqual(['b', 'a', 'new']);
+	});
+
+	it('is board order when there is no sequence yet', () => {
+		const rows = [dream('a'), dream('b')];
+
+		expect(reelOrder(rows, []).map((d) => d.id)).toEqual(['a', 'b']);
 	});
 });

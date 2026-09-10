@@ -5,7 +5,10 @@
 	 * The reel is what is still ahead: a dream marked splněno leaves it for
 	 * the Síň slávy, and the tile the reel opens on is the day's pick — the
 	 * dream shown least recently, so the board is a different one each
-	 * morning (`board.ts`, D25).
+	 * morning (`board.ts`, D25). Behind it the reel is shuffled, once per
+	 * open, and only a window of it is in the document at a time: a hundred
+	 * dreams in a fixed order is a route you know by heart, and a hundred
+	 * full-screen tiles is a first paint you can feel (D30).
 	 *
 	 * On the one morning a year a dream has an anniversary, the wall reaches
 	 * the board: one line above the reel, the way back to the dream itself
@@ -21,7 +24,15 @@
 	import { ApiError, likeDream, listBoard, markShown } from '$lib/api/client';
 	import { describeError } from '$lib/api/errors';
 	import { readToken } from '$lib/api/token';
-	import { anniversaryToday, pickDaily, reelOrder, shownToday, tileLine } from '$lib/dreams/board';
+	import {
+		REEL_WINDOW,
+		anniversaryToday,
+		pickDaily,
+		reelOrder,
+		reelSequence,
+		shownToday,
+		tileLine
+	} from '$lib/dreams/board';
 	import { formatAnniversary } from '$lib/dreams/format';
 	import { photoOf } from '$lib/dreams/photos';
 	import { STATUS_BADGE } from '$lib/dreams/rules';
@@ -39,8 +50,47 @@
 	/** The day's pick, chosen once when the board first arrives. */
 	let pickedId = $state<string | null>(null);
 
-	/** What the reel shows: the dreams still ahead, the pick in front. */
-	const reel = $derived(dreams === null ? [] : reelOrder(dreams, pickedId));
+	/**
+	 * The order this opening of the reel is in: the pick, then a shuffle.
+	 * Worked out once and kept, so a heart tapped or a board fetched again
+	 * does not reshuffle the tiles under a thumb.
+	 */
+	let sequence = $state<string[]>([]);
+
+	/** What the reel shows: the dreams still ahead, in that order. */
+	const reel = $derived(dreams === null ? [] : reelOrder(dreams, sequence));
+
+	/** How many of them are in the document; it grows as the reel is scrolled. */
+	let windowed = $state(REEL_WINDOW);
+
+	/** The tiles actually rendered. The rest arrive as the last one is neared. */
+	const shown = $derived(reel.slice(0, windowed));
+
+	/** The scroll region, and the mark at the end of what is rendered. */
+	let page = $state<HTMLElement | null>(null);
+	let sentinel = $state<HTMLElement | null>(null);
+
+	/**
+	 * The window grows when the end of it comes into view — one more screenful
+	 * of tiles, not the whole board. Nothing is ever removed from the top:
+	 * taking a tile out of a snapping scroll region moves the one under the
+	 * thumb, and a reel that jumps is worse than a reel that is long.
+	 */
+	$effect(() => {
+		if (!sentinel || !page || windowed >= reel.length) return;
+
+		const observer = new IntersectionObserver(
+			(entries) => {
+				if (entries.some((entry) => entry.isIntersecting)) {
+					windowed = Math.min(windowed + REEL_WINDOW, reel.length);
+				}
+			},
+			// A screenful of slack, so the next tiles exist before they are reached.
+			{ root: page, rootMargin: '100% 0px' }
+		);
+		observer.observe(sentinel);
+		return () => observer.disconnect();
+	});
 
 	/** Dreams on the board, none of them left to swipe: all of them are done. */
 	const allAchieved = $derived(dreams !== null && dreams.length > 0 && reel.length === 0);
@@ -100,6 +150,7 @@
 		if (!chosen) return;
 
 		pickedId = chosen.id;
+		sequence = reelSequence(rows, chosen.id);
 		if (connection.online && !shownToday(chosen.lastShownAt)) {
 			// Nobody is waiting for it, and a stamp that missed is a stamp
 			// the next open makes anyway.
@@ -122,7 +173,7 @@
 	<title>Aspire</title>
 </svelte:head>
 
-<main class="page" class:page--reel={reel.length > 0}>
+<main class="page" class:page--reel={reel.length > 0} bind:this={page}>
 	<h1 class="wordmark">Aspire</h1>
 
 	{#if !connection.online}
@@ -158,7 +209,7 @@
 			on it is a like and a tap anywhere else is the dream.
 		-->
 		<section class="reel">
-			{#each reel as dream, index (dream.id)}
+			{#each shown as dream, index (dream.id)}
 				{@const photo = photoOf(dream, 'dreamt')}
 				{@const line = tileLine(dream)}
 				<article class="dream reel__tile" class:dream--sky={!photo}>
@@ -195,6 +246,11 @@
 					</div>
 				</article>
 			{/each}
+
+			{#if windowed < reel.length}
+				<!-- The end of what is rendered; seeing it brings the next few. -->
+				<div class="reel__more" bind:this={sentinel} aria-hidden="true"></div>
+			{/if}
 		</section>
 	{:else}
 		<article class="dream dream--sky first" aria-labelledby="first-title">
@@ -335,6 +391,13 @@
 		height: calc(100dvh - var(--space-3) - env(safe-area-inset-top, 0px) - var(--page-end, 0px));
 		scroll-snap-align: start;
 		scroll-snap-stop: always;
+	}
+
+	/* Not a tile and not a gap: a mark the observer can watch, outside the
+	   snapping so it never becomes somewhere the reel can stop. */
+	.reel__more {
+		height: 1px;
+		scroll-snap-align: none;
 	}
 
 	.reel__open {

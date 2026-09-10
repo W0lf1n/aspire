@@ -28,7 +28,8 @@ Yager: "Dream building" is step one of everything. Dream must be visual, specifi
 - Dream = title · 1–5 images · "why" (1–3 sentences) · category · target year (optional) · status (dreaming / in progress / achieved) · created_at.
 - Categories (Yager-style, editable): Home · Car · Travel · Family · Freedom/Time · Giving · Business · Health · Fun.
 - Image upload: phone camera, library, paste URL. Server resizes to 3 sizes (thumb / screen / full), WebP.
-- Reorder dreams by drag (board order = priority).
+- ~~Reorder dreams by drag (board order = priority).~~ Dropped 2026-09-10: the
+  reel is shuffled on every open instead, so no order is a route you learn (D30).
 
 ### 3.2 Board view (MVP)
 - **Mobile:** full-screen vertical swipe, one dream per screen (Instagram-stories feel). Tap → detail with "why" and gallery.
@@ -43,7 +44,8 @@ Yager: "Dream building" is step one of everything. Dream must be visual, specifi
 
 ### 3.4 Affirmations & audio (v1.1)
 - Per dream: optional affirmation line shown on card ("I drive it in 2028").
-- Optional short voice memo per dream (record on phone, play on detail). Yager: hear your own voice state the dream.
+- ~~Optional short voice memo per dream (record on phone, play on detail).~~
+  Dropped 2026-09-10 (§8.4, D31).
 
 ### 3.5 Wallpaper / collage export (v1.2)
 - Generate lock-screen collage from N selected dreams (server-side rendering, phone aspect ratio presets).
@@ -85,7 +87,7 @@ Frontend
 - SvelteKit PWA. Service worker caches **all** screen-size images of active dreams (typ. < 20 dreams × ~200 KB = fine). Board fully usable offline.
 - Swipe: CSS scroll-snap, no heavy lib. `Motion One` or plain CSS for transitions.
 - Upload: `<input capture="environment">` for camera, drag-drop on desktop, client-side downscale before upload (max 2048 px) to save mobile data.
-- Voice memo: `MediaRecorder` API → webm/opus upload.
+- ~~Voice memo: `MediaRecorder` API → webm/opus upload.~~ Dropped (§8.4).
 - Screens: Board · Dream detail · Add/Edit · Hall of Fame · Settings.
 
 Infra
@@ -118,7 +120,7 @@ Daily pick rule: `ORDER BY last_shown_at NULLS FIRST, random() LIMIT 1` among st
 | M1 | Dreams + board | Done 2026-09-10 (§10), less the desktop grid and categories (§8.3) | 2 weekends |
 | M2 | PWA offline | Folded into M1 on 2026-09-10 (D24): the photographs and the board cached, read-only offline | done |
 | **→ MVP live. Load real dreams. Use 2 weeks.** | | | |
-| M3 | Hall of Fame + affirmations | Achieved flow, before/after, affirmation line, voice memo; the wall itself is done (§11) | 1–2 weekends |
+| M3 | Hall of Fame + affirmations | Done 2026-09-10 (§12): affirmation, before/after, anniversary. Voice memo dropped (§8.4) | done |
 | M4 | Wallpaper export | Collage renderer, presets, save flow | 1 weekend |
 | M5 | Daily nudge | Push subscription, morning notification with image | 1 weekend |
 
@@ -138,7 +140,9 @@ Answered ones are struck through; the reasoning is in `docs/DECISIONS.md`.
 1. ~~Same auth as Prosper — which?~~ — answered 2026-09-09: Prosper's pairing code + device-bound token, copied whole. No users table; §5 loses `users` and every `user_id` (D6).
 2. ~~Images stay on VPS disk, or MinIO/S3 from the start?~~ — answered 2026-09-09: disk, in a named `media` volume served by nginx as `/media/`; path `/data/media/{dreamId}/{size}.webp` (D7).
 3. Categories: fixed Yager set above, or fully free-form?
-4. Voice memo: worth it in v1.1, or drop?
+4. ~~Voice memo: worth it in v1.1, or drop?~~ — answered 2026-09-10: dropped.
+   The app's promise is ten seconds of swiping in a queue, and audio is the
+   one thing there you cannot use (D31).
 5. ~~Czech / English UI?~~ — answered 2026-09-09: Czech UI, English code, like Prosper (D2).
 6. ~~Will Zuzana use it too (shared board vs. separate accounts)?~~ — answered 2026-09-10: boards are tenants, each with its own pairing code and still no accounts; she gets her own board, or a device on Petr's, by which code she types (D21).
 7. ~~Build order~~ — decided: Aspire first.
@@ -214,5 +218,28 @@ this is where an anniversary can be seen for now. The sentence's verb agrees
 with *sen* rather than with the person, because a board is a pairing code
 and the server has never been told anybody's gender (D21).
 
-Still ahead in M3: the voice memo, if §8.4 says yes. §3.3 and §3.4 are
-otherwise done.
+**The voice memo is dropped** (§8.4, D31), which finishes M3: audio is the
+one thing that does not work in a queue or on a train, and the affirmation
+carries the same idea in a form the board can show every morning.
+
+---
+
+## 13. After M3 — the reel at a hundred dreams · 2026-09-10
+
+Drag to reorder (§3.1) is dropped and the reel is **shuffled on every open**
+instead (D30). At a hundred dreams a fixed order is a route you learn by
+heart, and a dream always reached on the ninetieth swipe is one you never
+see — the same habituation the daily pick exists to break, one tile further
+down. The head stays the day's pick, so the board still opens on the dream
+two devices agree about; the tail is new every time. The order is a
+sequence of ids worked out once per open, so a heart tapped does not move
+the tiles under a thumb, and `sortOrder` stays as the board's own stable
+order underneath.
+
+And the reel is **windowed**: five tiles in the document, five more each
+time the end of them is neared, watched by an `IntersectionObserver` on a
+one-pixel mark. Nothing is removed from the top — taking a tile out of a
+snapping scroll region moves the one under the thumb.
+
+Next: categories (§8.3, still an open question), then M4's wallpaper export.
+Still unbuilt from M1: the desktop grid.
