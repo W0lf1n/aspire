@@ -139,6 +139,7 @@ public sealed class DreamService(AppDbContext db, MediaStore media)
         dream.Affirmation = input.Affirmation?.Trim() ?? string.Empty;
         dream.TargetYear = input.TargetYear;
         dream.Status = input.Status ?? DreamStatus.Dreaming;
+        dream.Category = input.Category;
         dream.AchievedAt = dream.Status == DreamStatus.Achieved ? dream.AchievedAt ?? now : null;
         dream.UpdatedAt = now;
     }

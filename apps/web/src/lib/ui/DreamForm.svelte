@@ -1,16 +1,17 @@
 <script lang="ts">
 	/**
-	 * The dream's form: a title, the why, the affirmation, a status and a
-	 * year, and one pill.
+	 * The dream's form: a title, the why, the affirmation, a status, an area,
+	 * a year, and one pill.
 	 * Přidat and Upravit are this card with a different pill; the photograph
 	 * is the screen's own business, above or below it. The form checks the
 	 * fields on the way out (`rules.ts`) and shows the server's sentence when
 	 * the server disagrees.
 	 */
-	import type { DreamInput, DreamStatus } from '@aspire/contracts';
-	import { DREAM_STATUSES } from '@aspire/contracts';
+	import type { DreamCategory, DreamInput, DreamStatus } from '@aspire/contracts';
+	import { DREAM_CATEGORIES, DREAM_STATUSES } from '@aspire/contracts';
 	import {
 		AFFIRMATION_MAX,
+		CATEGORY_LABEL,
 		STATUS_LABEL,
 		TITLE_MAX,
 		WHY_MAX,
@@ -51,12 +52,13 @@
 	let why = $state(start?.why ?? '');
 	let affirmation = $state(start?.affirmation ?? '');
 	let status = $state<DreamStatus>(start?.status ?? 'dreaming');
+	let category = $state<DreamCategory | null>(start?.category ?? null);
 	let year = $state(start?.year ?? '');
 	let problem = $state('');
 
 	function submit(event: SubmitEvent) {
 		event.preventDefault();
-		const read = toInput({ title, why, affirmation, status, year });
+		const read = toInput({ title, why, affirmation, status, category, year });
 		if ('problem' in read) {
 			problem = read.problem;
 			return;
@@ -124,6 +126,30 @@
 		</div>
 	</div>
 
+	<div class="field">
+		<span class="field__label">Oblast <span>nepovinné</span></span>
+		<!--
+			Nine areas do not fit a segmented pill, so they are chips that wrap.
+			Pressing the one already chosen takes it off again, which is the
+			whole of „no area“ — an extra „žádná“ chip would be a tenth thing to
+			read for a state the other nine already say.
+		-->
+		<div class="areas" role="group" aria-label="Oblast">
+			{#each DREAM_CATEGORIES as value (value)}
+				<button
+					type="button"
+					class="chip chip--soft"
+					class:chip--on={category === value}
+					aria-pressed={category === value}
+					disabled={busy}
+					onclick={() => (category = category === value ? null : value)}
+				>
+					{CATEGORY_LABEL[value]}
+				</button>
+			{/each}
+		</div>
+	</div>
+
 	<label class="field">
 		<span class="field__label">Kdy <span>nepovinné</span></span>
 		<input
@@ -153,3 +179,13 @@
 		</button>
 	</div>
 </form>
+
+<style>
+	/* Nine chips wrap rather than scroll: in a form they are a set to read
+	   through once, not a rail to swipe along. */
+	.areas {
+		display: flex;
+		flex-wrap: wrap;
+		gap: var(--space-2);
+	}
+</style>

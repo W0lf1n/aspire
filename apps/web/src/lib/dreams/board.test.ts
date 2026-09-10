@@ -3,6 +3,8 @@ import type { Dream } from '@aspire/contracts';
 import {
 	achievedDreams,
 	anniversaryToday,
+	byCategory,
+	categoriesOnBoard,
 	pickDaily,
 	reelDreams,
 	reelOrder,
@@ -24,6 +26,7 @@ function dream(id: string, over: Partial<Dream> = {}): Dream {
 		why: '',
 		affirmation: '',
 		status: 'dreaming',
+		category: null,
 		sortOrder: 0,
 		targetYear: null,
 		likes: 0,
@@ -73,6 +76,53 @@ describe('anniversaryToday', () => {
 
 		expect(found?.dream.id).toBe('recent');
 		expect(found?.years).toBe(2);
+	});
+});
+
+describe('byCategory', () => {
+	const rows = [
+		dream('a', { category: 'travel' }),
+		dream('b', { category: 'home' }),
+		dream('c', { category: 'travel' }),
+		dream('none')
+	];
+
+	it('gives the reel back untouched when it is asking for everything', () => {
+		expect(byCategory(rows, 'all')).toBe(rows);
+	});
+
+	it('keeps one area, in the order it was given', () => {
+		expect(byCategory(rows, 'travel').map((d) => d.id)).toEqual(['a', 'c']);
+	});
+
+	it('leaves a dream with no category out of every area but everything', () => {
+		expect(byCategory(rows, 'home').map((d) => d.id)).toEqual(['b']);
+		expect(byCategory(rows, 'fun')).toEqual([]);
+		expect(byCategory(rows, 'all').map((d) => d.id)).toContain('none');
+	});
+});
+
+describe('categoriesOnBoard', () => {
+	const ALL = ['home', 'car', 'travel', 'family'] as const;
+
+	it('offers only the areas the board has something in, in the listed order', () => {
+		const rows = [dream('a', { category: 'family' }), dream('b', { category: 'home' })];
+
+		expect(categoriesOnBoard(rows, ALL)).toEqual(['home', 'family']);
+	});
+
+	it('does not count an achieved dream, which has left the reel', () => {
+		const rows = [
+			dream('a', { category: 'car' }),
+			dream('done', { category: 'travel', status: 'achieved', achievedAt: YESTERDAY })
+		];
+
+		expect(categoriesOnBoard(rows, ALL)).toEqual(['car']);
+	});
+
+	it('is nothing when no dream has a category', () => {
+		expect(categoriesOnBoard([dream('a')], ALL)).toEqual([]);
+		expect(categoriesOnBoard([], ALL)).toEqual([]);
 	});
 });
 

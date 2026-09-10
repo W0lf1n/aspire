@@ -30,6 +30,14 @@ public sealed class Dream
 
     public DreamStatus Status { get; set; } = DreamStatus.Dreaming;
 
+    /// <summary>
+    /// Which of the nine areas it belongs to, or none. A fixed set, not a
+    /// table of the board's own (D32); optional, because a question a dream
+    /// must answer before it can be written is a dream that does not get
+    /// written.
+    /// </summary>
+    public DreamCategory? Category { get; set; }
+
     /// <summary>Board order — the person's own priority, set by dragging.</summary>
     public int SortOrder { get; set; }
 

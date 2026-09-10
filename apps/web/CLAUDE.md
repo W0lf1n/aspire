@@ -49,7 +49,7 @@ Two accents, `--signal` (ember, acts) and `--dusk` (marks), one gradient
 | `.circle`                                                | 40 px identity circle; `--accent`, `--dusk`, `--sky`; `--sm` `--xs` `--lg`                                |
 | `.badge`                                                 | 12 px pill: `--dreaming`, `--progress`, `--achieved`, `--photo`, `--tiny`                                 |
 | `.seg`, `.seg__item`                                     | The segmented pill, `aria-pressed` selects; `--soft` inside a card                                        |
-| `.chip`, `.round`, `.glass`                              | Glass on the ground: a filter chip, a 40 px round button, the surface                                     |
+| `.chip`, `.chip--soft`, `.round`, `.glass`               | Glass on the ground: a filter chip (`--soft` inside a card), a 40 px round button, the surface            |
 | `.btn`                                                   | Soft pill; `--primary`, `--accent`, `--photo`, `--card`, `--quiet`, `--danger`, `--sm`, `--lg`, `--block` |
 | `.toggle`, `.field`, `.facts`, `.well`, `.hint`, `.link` | The rest of the primitives                                                                                |
 
@@ -74,8 +74,8 @@ decides which one a path lights and has the test.
 
 Vitest, node environment, `requireAssertions: true`. `nav.test.ts`,
 `settings.test.ts`, `api/pairing.test.ts`, `dreams/rules.test.ts`,
-`dreams/board.test.ts` (the reel and its shuffle, the daily pick, the
-tile's line, the anniversary), `dreams/format.test.ts`,
+`dreams/board.test.ts` (the reel and its shuffle, the daily pick, the area
+filter, the tile's line, the anniversary), `dreams/format.test.ts`,
 `dreams/photos.test.ts` (which of a dream's two photographs a screen shows),
 `images/downscale.test.ts` and
 `offline/cache.test.ts`; a new rule gets a test before it gets a screen, and

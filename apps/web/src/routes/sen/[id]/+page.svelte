@@ -28,7 +28,7 @@
 	import { describeError } from '$lib/api/errors';
 	import { formatDate } from '$lib/dreams/format';
 	import { photoOf, photosOf, photosToReplace } from '$lib/dreams/photos';
-	import { STATUS_BADGE, STATUS_CLASS } from '$lib/dreams/rules';
+	import { CATEGORY_LABEL, STATUS_BADGE, STATUS_CLASS } from '$lib/dreams/rules';
 	import AppBar from '$lib/ui/AppBar.svelte';
 	import Icon from '$lib/ui/Icon.svelte';
 	import PhotoPicker from '$lib/ui/PhotoPicker.svelte';
@@ -173,6 +173,10 @@
 					<dd>
 						<span class="badge {STATUS_CLASS[dream.status]}">{STATUS_BADGE[dream.status]}</span>
 					</dd>
+				</div>
+				<div>
+					<dt>Oblast</dt>
+					<dd>{dream.category ? CATEGORY_LABEL[dream.category] : '—'}</dd>
 				</div>
 				<div>
 					<dt>Kdy</dt>

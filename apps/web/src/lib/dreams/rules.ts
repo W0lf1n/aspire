@@ -4,7 +4,7 @@
  * these exist so the sentence appears on the keystroke, not on the round trip.
  */
 
-import type { DreamInput, DreamStatus } from '@aspire/contracts';
+import type { DreamCategory, DreamInput, DreamStatus } from '@aspire/contracts';
 
 export const TITLE_MAX = 120;
 export const WHY_MAX = 500;
@@ -26,6 +26,19 @@ export const STATUS_BADGE: Record<DreamStatus, string> = {
 	achieved: 'splněno'
 };
 
+/** The nine areas, in Czech. Yager's set, fixed (D32). */
+export const CATEGORY_LABEL: Record<DreamCategory, string> = {
+	home: 'Bydlení',
+	car: 'Auto',
+	travel: 'Cestování',
+	family: 'Rodina',
+	freedom: 'Svoboda',
+	giving: 'Dávání',
+	business: 'Byznys',
+	health: 'Zdraví',
+	fun: 'Zábava'
+};
+
 export const STATUS_CLASS: Record<DreamStatus, string> = {
 	dreaming: 'badge--dreaming',
 	'in-progress': 'badge--progress',
@@ -38,6 +51,8 @@ export interface DreamFields {
 	why: string;
 	affirmation: string;
 	status: DreamStatus;
+	/** One of the nine, or none. */
+	category: DreamCategory | null;
 	year: string;
 }
 
@@ -65,18 +80,21 @@ export function toInput(fields: DreamFields): { input: DreamInput } | { problem:
 		}
 	}
 
-	return { input: { title, why, affirmation, status: fields.status, targetYear } };
+	return {
+		input: { title, why, affirmation, status: fields.status, category: fields.category, targetYear }
+	};
 }
 
 /** A dream's saved values back into the form. */
 export function toFields(
-	input: Pick<DreamInput, 'title' | 'why' | 'affirmation' | 'status' | 'targetYear'>
+	input: Pick<DreamInput, 'title' | 'why' | 'affirmation' | 'status' | 'category' | 'targetYear'>
 ): DreamFields {
 	return {
 		title: input.title,
 		why: input.why,
 		affirmation: input.affirmation,
 		status: input.status,
+		category: input.category,
 		year: input.targetYear === null ? '' : String(input.targetYear)
 	};
 }

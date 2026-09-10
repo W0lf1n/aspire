@@ -41,6 +41,15 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
                 .HasConversion(s => DreamStatusNames.ToWire(s), s => DreamStatusNames.Parse(s))
                 .HasMaxLength(16);
 
+            entity.Property(d => d.Category)
+                .HasConversion(
+                    c => c == null ? null : DreamCategoryNames.ToWire(c.Value),
+                    c => c == null ? null : DreamCategoryNames.Parse(c))
+                .HasMaxLength(16);
+
+            // The board asks for one area at a time (§3.2), inside its own board.
+            entity.HasIndex(d => new { d.BoardId, d.Category });
+
             // A board that goes takes its dreams with it; there is nowhere
             // else for them to be.
             entity.HasOne<Board>()

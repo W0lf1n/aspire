@@ -21,21 +21,25 @@
 	 */
 	import { resolve } from '$app/paths';
 	import type { Dream } from '@aspire/contracts';
+	import { DREAM_CATEGORIES } from '@aspire/contracts';
 	import { ApiError, likeDream, listBoard, markShown } from '$lib/api/client';
 	import { describeError } from '$lib/api/errors';
 	import { readToken } from '$lib/api/token';
 	import {
 		REEL_WINDOW,
 		anniversaryToday,
+		byCategory,
+		categoriesOnBoard,
 		pickDaily,
 		reelOrder,
 		reelSequence,
 		shownToday,
-		tileLine
+		tileLine,
+		type BoardFilter
 	} from '$lib/dreams/board';
 	import { formatAnniversary } from '$lib/dreams/format';
 	import { photoOf } from '$lib/dreams/photos';
-	import { STATUS_BADGE } from '$lib/dreams/rules';
+	import { CATEGORY_LABEL, STATUS_BADGE } from '$lib/dreams/rules';
 	import { rememberBoard } from '$lib/offline/cache';
 	import { connection } from '$lib/offline/status.svelte';
 	import Icon from '$lib/ui/Icon.svelte';
@@ -57,14 +61,41 @@
 	 */
 	let sequence = $state<string[]>([]);
 
-	/** What the reel shows: the dreams still ahead, in that order. */
-	const reel = $derived(dreams === null ? [] : reelOrder(dreams, sequence));
+	/** Which area the board is asking for; everything, until it is told. */
+	let filter = $state<BoardFilter>('all');
+
+	/** The chips offered: only the areas this board has anything in. */
+	const areas = $derived(dreams === null ? [] : categoriesOnBoard(dreams, DREAM_CATEGORIES));
+
+	/**
+	 * The area actually asked for. An area the board has run out of — its
+	 * last dream marked splněno, here or on another device — falls back to
+	 * everything, rather than leaving an empty reel under a chip that is
+	 * no longer offered.
+	 */
+	const asking = $derived<BoardFilter>(
+		filter !== 'all' && !areas.includes(filter) ? 'all' : filter
+	);
+
+	/** What the reel shows: the dreams still ahead, in that order, in that area. */
+	const reel = $derived(dreams === null ? [] : byCategory(reelOrder(dreams, sequence), asking));
 
 	/** How many of them are in the document; it grows as the reel is scrolled. */
 	let windowed = $state(REEL_WINDOW);
 
 	/** The tiles actually rendered. The rest arrive as the last one is neared. */
 	const shown = $derived(reel.slice(0, windowed));
+
+	/**
+	 * A new area is a new reel, from its first tile: the window starts again
+	 * and so does the scroll, or the board opens somewhere in the middle of a
+	 * list the person has never seen.
+	 */
+	function ask(area: BoardFilter) {
+		filter = area;
+		windowed = REEL_WINDOW;
+		page?.scrollTo({ top: 0 });
+	}
 
 	/** The scroll region, and the mark at the end of what is rendered. */
 	let page = $state<HTMLElement | null>(null);
@@ -201,6 +232,32 @@
 		</a>
 	{/if}
 
+	{#if areas.length > 0}
+		<!--
+			The areas this board has something in, and „Vše“ in front of them.
+			A rail rather than a wrap: above a reel it has to cost one line,
+			and the nine are a set you swipe past, not a form you read (D32).
+		-->
+		<div class="areas" role="group" aria-label="Oblast">
+			<button
+				type="button"
+				class="chip"
+				class:chip--on={asking === 'all'}
+				aria-pressed={asking === 'all'}
+				onclick={() => ask('all')}>Vše</button
+			>
+			{#each areas as area (area)}
+				<button
+					type="button"
+					class="chip"
+					class:chip--on={asking === area}
+					aria-pressed={asking === area}
+					onclick={() => ask(area)}>{CATEGORY_LABEL[area]}</button
+				>
+			{/each}
+		</div>
+	{/if}
+
 	{#if reel.length > 0}
 		<!--
 			The reel: one tile the height of the screen per dream, snapping as
@@ -222,7 +279,11 @@
 							decoding="async"
 						/>
 					{/if}
-					<span class="badge dream__tag">{STATUS_BADGE[dream.status]}</span>
+					<span class="badge dream__tag">
+						{STATUS_BADGE[dream.status]}{dream.category
+							? ` · ${CATEGORY_LABEL[dream.category]}`
+							: ''}
+					</span>
 					<a
 						class="reel__open"
 						href={resolve('/sen/[id]', { id: dream.id })}
@@ -290,6 +351,22 @@
 <TabBar />
 
 <style>
+	/* The areas, as a rail: one line above the reel, running to both edges of
+	   the screen so a chip is never cut off mid-word by the page's padding.
+	   The bar it is scrolled with is not shown; the chips say there is more. */
+	.areas {
+		display: flex;
+		gap: var(--space-2);
+		margin-inline: calc(var(--space-4) * -1);
+		padding-inline: var(--space-4);
+		overflow-x: auto;
+		scrollbar-width: none;
+	}
+
+	.areas::-webkit-scrollbar {
+		display: none;
+	}
+
 	/* The one morning a year the wall has something to say to the board: a
 	   line, a dusk circle, and the way back to the dream. Dusk because this
 	   marks rather than acts (tokens.css), and a line rather than a card
@@ -314,8 +391,14 @@
 	}
 
 	/* The name, in the flow, at the hero size: it is the only title the board
-	   has, and it scrolls away with the tile. */
+	   has, and it scrolls away with the tile.
+
+	   It is also the reel's first snap point. Without one the snapping runs
+	   straight past everything above the first tile — the areas included —
+	   and a swipe up lands back on the tile it came from, which makes a
+	   filter you cannot reach. The top of the board is a place to stop. */
 	.wordmark {
+		scroll-snap-align: start;
 		margin: var(--space-3) 0 var(--space-2);
 		font-size: var(--text-hero);
 		font-weight: 600;

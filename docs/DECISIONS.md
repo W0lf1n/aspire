@@ -590,3 +590,49 @@ Server-side it would have been a kind of media the store has never held,
 with its own mime checks, its own cap, its own cache and its own delete
 path — the whole of the photograph pipeline again, for something played
 once. §3.4 and §4's `MediaRecorder` line are struck through.
+
+### D32 — Categories are Yager's nine, fixed, and the board asks for one at a time
+
+PLAN.md §8.3 asked whether categories were the fixed Yager set or free-form.
+They are the fixed set: `home`, `car`, `travel`, `family`, `freedom`,
+`giving`, `business`, `health`, `fun`, shown as Bydlení · Auto · Cestování ·
+Rodina · Svoboda · Dávání · Byznys · Zdraví · Zábava.
+
+- **Fixed, because the set is the method.** Yager's nine are not an
+  arbitrary taxonomy; seeing all nine is what reminds you which parts of a
+  life you have stopped dreaming about. A board that could rename them would
+  need a screen to rename them in, a decision about what happens to the
+  dreams in one that is deleted, and a table — for a list that has not
+  changed since the book. It is an enum beside `DreamStatus` and
+  `DreamImageKind`, one lower-case word on the wire and in the column,
+  and a `HasConversion` with no migration when a Czech label is reworded.
+- **Optional on a dream.** Adding a dream is meant to be three taps and a
+  photograph (§2). A question a dream has to answer before it can be written
+  is a dream that does not get written, so `category` is nullable, like
+  `targetYear`. A dream with none belongs to no area and turns up only under
+  „Vše" — which is where it already was.
+- **The form wraps, the board scrolls.** Nine is too many for a segmented
+  pill. In the form they are chips that wrap into three rows, a set to read
+  through once; above the reel they are a rail that runs to both edges of
+  the screen, because there they cost a line above a photograph. Pressing
+  the chosen chip in the form takes the area off again — a tenth „žádná"
+  chip would be one more thing to read for a state the nine already say.
+- **The board offers only the areas it has something in**
+  (`categoriesOnBoard`), so the rail is short on a small board and never
+  offers an area that would empty the reel. If the board runs out of the
+  area being asked for — its last dream marked splněno on another device —
+  the filter falls back to „Vše" rather than leaving an empty reel under a
+  chip that is no longer there.
+- **The filter runs after the shuffle** (`byCategory` on the ordered reel),
+  so choosing an area lifts dreams out of an order that is already fixed:
+  the tiles that stay do not move. Choosing one resets the window and the
+  scroll, because a new area is a new reel and it should start at its first
+  tile.
+- **The tile says the area in the tag it already has**: `sním · Cestování`,
+  the pattern the styleguide had for `na cestě · 2028`. A second badge on a
+  photograph is a second thing between the person and the picture (rule 4).
+- **The top of the board is now a snap point.** The reel's scroll snapping
+  ran straight past everything above the first tile, so a swipe up landed
+  back on the tile it came from — which would have made the new rail
+  unreachable. `.wordmark` carries `scroll-snap-align: start`: the top of
+  the board is a place to stop.

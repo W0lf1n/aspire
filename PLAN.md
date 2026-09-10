@@ -26,7 +26,7 @@ Yager: "Dream building" is step one of everything. Dream must be visual, specifi
 
 ### 3.1 Dreams (MVP)
 - Dream = title · 1–5 images · "why" (1–3 sentences) · category · target year (optional) · status (dreaming / in progress / achieved) · created_at.
-- Categories (Yager-style, editable): Home · Car · Travel · Family · Freedom/Time · Giving · Business · Health · Fun.
+- Categories (Yager-style, **fixed**, §8.3): Home · Car · Travel · Family · Freedom · Giving · Business · Health · Fun. Optional on a dream (D32).
 - Image upload: phone camera, library, paste URL. Server resizes to 3 sizes (thumb / screen / full), WebP.
 - ~~Reorder dreams by drag (board order = priority).~~ Dropped 2026-09-10: the
   reel is shuffled on every open instead, so no order is a route you learn (D30).
@@ -139,7 +139,10 @@ Answered ones are struck through; the reasoning is in `docs/DECISIONS.md`.
 
 1. ~~Same auth as Prosper — which?~~ — answered 2026-09-09: Prosper's pairing code + device-bound token, copied whole. No users table; §5 loses `users` and every `user_id` (D6).
 2. ~~Images stay on VPS disk, or MinIO/S3 from the start?~~ — answered 2026-09-09: disk, in a named `media` volume served by nginx as `/media/`; path `/data/media/{dreamId}/{size}.webp` (D7).
-3. Categories: fixed Yager set above, or fully free-form?
+3. ~~Categories: fixed Yager set above, or fully free-form?~~ — answered
+   2026-09-10: the fixed set, as an enum beside the status, and optional on
+   a dream. The set is the method; a board that could rename it would need a
+   screen to rename it in (D32).
 4. ~~Voice memo: worth it in v1.1, or drop?~~ — answered 2026-09-10: dropped.
    The app's promise is ten seconds of swiping in a queue, and audio is the
    one thing there you cannot use (D31).
@@ -241,5 +244,12 @@ time the end of them is neared, watched by an `IntersectionObserver` on a
 one-pixel mark. Nothing is removed from the top — taking a tile out of a
 snapping scroll region moves the one under the thumb.
 
-Next: categories (§8.3, still an open question), then M4's wallpaper export.
-Still unbuilt from M1: the desktop grid.
+**Categories** (§3.1 and §3.2, §8.3 answered): Yager's nine, fixed, as an
+enum beside the status — optional on a dream, because a question a dream
+must answer before it can be written is a dream that does not get written.
+The form offers them as chips that wrap; the board offers the ones it has
+something in as a rail above the reel, and asking for one narrows the reel
+after the shuffle so the tiles that stay do not move. The tile says the
+area in the tag it already had: `sním · Cestování` (D32).
+
+Next: M4's wallpaper export. Still unbuilt from M1: the desktop grid.

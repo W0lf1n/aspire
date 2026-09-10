@@ -24,6 +24,7 @@ public sealed record DreamInput(
     string? Title,
     string? Why,
     DreamStatus? Status,
+    DreamCategory? Category,
     int? TargetYear,
     string? Affirmation);
 
@@ -60,6 +61,7 @@ public sealed record DreamDto(
     string Why,
     string Affirmation,
     DreamStatus Status,
+    DreamCategory? Category,
     int SortOrder,
     int? TargetYear,
     int Likes,
@@ -74,6 +76,7 @@ public sealed record DreamDto(
         dream.Why,
         dream.Affirmation,
         dream.Status,
+        dream.Category,
         dream.SortOrder,
         dream.TargetYear,
         dream.Likes,

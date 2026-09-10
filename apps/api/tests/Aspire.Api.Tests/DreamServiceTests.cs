@@ -38,8 +38,9 @@ public sealed class DreamServiceTests : IDisposable
     }
 
     private static DreamInput Input(string title = "Dům u lesa", string? why = "Ticho a les za oknem.",
-        DreamStatus? status = DreamStatus.Dreaming, int? year = 2030, string? affirmation = null) =>
-        new(title, why, status, year, affirmation);
+        DreamStatus? status = DreamStatus.Dreaming, int? year = 2030, string? affirmation = null,
+        DreamCategory? category = null) =>
+        new(title, why, status, category, year, affirmation);
 
     [Fact]
     public async Task A_new_dream_joins_the_end_of_its_own_board()
@@ -56,13 +57,14 @@ public sealed class DreamServiceTests : IDisposable
     [Fact]
     public async Task Creating_trims_and_defaults()
     {
-        var dream = await _dreams.CreateAsync(BoardA, new DreamInput("  Loď  ", null, null, null, null));
+        var dream = await _dreams.CreateAsync(BoardA, new DreamInput("  Loď  ", null, null, null, null, null));
 
         Assert.Equal("Loď", dream.Title);
         Assert.Equal(string.Empty, dream.Why);
         Assert.Equal(string.Empty, dream.Affirmation);
         Assert.Equal(DreamStatus.Dreaming, dream.Status);
         Assert.Null(dream.TargetYear);
+        Assert.Null(dream.Category);
         Assert.Equal(0, dream.Likes);
         Assert.Null(dream.AchievedAt);
     }
@@ -74,7 +76,9 @@ public sealed class DreamServiceTests : IDisposable
     [InlineData("x", "Ticho.", 2101, "Rok napiš mezi 2000 a 2100.")]
     public void A_bad_input_earns_a_sentence(string title, string why, int? year, string expected)
     {
-        Assert.Equal(expected, DreamService.Problem(new DreamInput(title, why, DreamStatus.Dreaming, year, null)));
+        Assert.Equal(
+            expected,
+            DreamService.Problem(new DreamInput(title, why, DreamStatus.Dreaming, null, year, null)));
     }
 
     [Fact]
@@ -88,6 +92,31 @@ public sealed class DreamServiceTests : IDisposable
             "Afirmace má nejvýš 120 znaků.",
             DreamService.Problem(Input("x", affirmation: new string('c', Dream.AffirmationMaxLength + 1))));
         Assert.Null(DreamService.Problem(Input("x", null, null, null)));
+    }
+
+    [Fact]
+    public async Task A_category_is_kept_and_can_be_taken_back_off()
+    {
+        var dream = await _dreams.CreateAsync(BoardA, Input(category: DreamCategory.Travel));
+        Assert.Equal(DreamCategory.Travel, dream.Category);
+
+        var moved = await _dreams.UpdateAsync(BoardA, dream.Id, Input(category: DreamCategory.Home));
+        Assert.Equal(DreamCategory.Home, moved!.Category);
+
+        var none = await _dreams.UpdateAsync(BoardA, dream.Id, Input(category: null));
+        Assert.Null(none!.Category);
+    }
+
+    [Fact]
+    public void Every_category_survives_the_round_trip_through_its_column()
+    {
+        foreach (var category in Enum.GetValues<DreamCategory>())
+        {
+            Assert.Equal(category, DreamCategoryNames.Parse(DreamCategoryNames.ToWire(category)));
+        }
+
+        // The nine of PLAN.md §3.1, and no tenth without a decision.
+        Assert.Equal(9, Enum.GetValues<DreamCategory>().Length);
     }
 
     [Fact]

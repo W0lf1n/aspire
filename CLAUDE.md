@@ -2,7 +2,7 @@
 
 Guidance for Claude Code working in this repository.
 
-**Last revised:** 2026-09-10 · M3 · 65 web tests · 95 API tests
+**Last revised:** 2026-09-10 · M3 · 72 web tests · 97 API tests
 
 ---
 
@@ -24,8 +24,8 @@ keeping only what is not yet done. §12 is M3, done — the affirmation, the ach
 photograph beside the dreamt one, the anniversary, and the voice memo
 dropped (§8.4). §13 is what followed: the reel shuffled on every open in
 place of drag to reorder, and windowed so a hundred dreams are not a
-hundred tiles. Next is categories (§8.3, still an open question), then M4.
-Still unbuilt from M1: the desktop grid.
+hundred tiles. Categories followed (§8.3 answered: Yager's nine,
+fixed — D32). Next is M4. Still unbuilt from M1: the desktop grid.
 
 ---
 

@@ -1,9 +1,9 @@
 /**
  * Which dreams the board shows, which one it opens with, what order the
- * rest are in, what a tile says under the title, and whose anniversary
- * today is.
+ * rest are in, which area it is asking for, what a tile says under the
+ * title, and whose anniversary today is.
  *
- * Five rules live here. The reel is what is not yet achieved (PLAN §3.2): a
+ * Six rules live here. The reel is what is not yet achieved (PLAN §3.2): a
  * dream marked splněno leaves the swipe and turns up in the Síň slávy, so
  * the board stays what is still ahead. And the daily pick is the tile the
  * reel opens on — the dream shown least recently — so the board is a
@@ -14,7 +14,7 @@
  * the stamp, and a board read from the cache still opens on a dream (D25).
  */
 
-import type { Dream } from '@aspire/contracts';
+import type { Dream, DreamCategory } from '@aspire/contracts';
 
 /**
  * How many tiles the board puts in the document at once, and how many more
@@ -43,6 +43,36 @@ export function tileLine(dream: Pick<Dream, 'affirmation' | 'why'>): {
 } {
 	const said = dream.affirmation.trim();
 	return said.length > 0 ? { text: said, said: true } : { text: dream.why, said: false };
+}
+
+/**
+ * What the board is asking for: one of the nine areas, or all of them
+ * (PLAN.md §3.2). Not a category itself, because „everything“ is a state of
+ * the filter and never a thing a dream can belong to.
+ */
+export type BoardFilter = DreamCategory | 'all';
+
+/**
+ * The reel, narrowed to one area. „Everything“ is the default and gives the
+ * reel back untouched; a dream with no category belongs to no area and so
+ * appears only under „everything“ — which is where it already was.
+ *
+ * It runs after the shuffle, on the ordered reel, so choosing an area lifts
+ * dreams out of an order that is already fixed rather than making a new one:
+ * the tiles that stay do not move.
+ */
+export function byCategory(dreams: Dream[], filter: BoardFilter): Dream[] {
+	return filter === 'all' ? dreams : dreams.filter((dream) => dream.category === filter);
+}
+
+/** The areas the board has anything in, in the order the nine are listed. */
+export function categoriesOnBoard(dreams: Dream[], all: readonly DreamCategory[]): DreamCategory[] {
+	const present = new Set(
+		reelDreams(dreams)
+			.map((dream) => dream.category)
+			.filter((category): category is DreamCategory => category !== null)
+	);
+	return all.filter((category) => present.has(category));
 }
 
 /** The reel: everything still ahead of you, in board order. */

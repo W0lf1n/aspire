@@ -584,10 +584,20 @@ sky drifts: two radial lights over the gradient, 16 s alternate on
 first tile on the board caps its height to what is left under the wordmark
 and above the bar, giving up its ratio before its foot.
 
+### Areas (chips)
+Nine fixed areas (D32). In a form they wrap into rows of `.chip .chip--soft`
+— glass has no ground to be glass over inside a card, so `--soft` is the
+card's own version, as `.seg--soft` is; the chosen one is `.chip--on` in the
+pill's colours. Above the reel they are a rail instead, one line, scrolled
+sideways with the bar hidden and bled to both screen edges with a negative
+inline margin so a chip is never cut mid-word by the page's padding.
+
 ### The reel (Nástěnka)
 The scroll region is `.page` itself, `scroll-snap-type: y proximity`, and a
 tile is `100dvh` less the bar with `scroll-snap-stop: always`, so a swipe
-lands on one dream and stops there. The order is the day's pick and then a
+lands on one dream and stops there. The wordmark is a snap point too, so
+the top of the board — the areas rail, the anniversary — is somewhere a
+swipe up can stop rather than something the snapping runs past. The order is the day's pick and then a
 shuffle, new on every open (D30); five tiles are in the document at a time
 and five more arrive when a one-pixel mark at the end of them comes into
 view, with a screenful of `rootMargin` so they exist before they are

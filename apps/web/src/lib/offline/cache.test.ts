@@ -23,6 +23,7 @@ function dream(id: string, images: DreamImage[]): Dream {
 		why: '',
 		affirmation: '',
 		status: 'dreaming',
+		category: null,
 		sortOrder: 0,
 		targetYear: null,
 		likes: 0,

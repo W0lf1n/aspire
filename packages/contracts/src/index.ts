@@ -32,9 +32,27 @@ export interface PairResponse {
 
 // ── GET /api/v1/dreams ──────────────────────────────────────────────────────
 
-export const DREAM_STATUSES = ["dreaming", "in-progress", "achieved"] as const;
+export const DREAM_STATUSES = ['dreaming', 'in-progress', 'achieved'] as const;
 
 export type DreamStatus = (typeof DREAM_STATUSES)[number];
+
+/**
+ * The nine areas of PLAN.md §3.1, Yager's own set and fixed (D32). A dream
+ * may belong to none of them.
+ */
+export const DREAM_CATEGORIES = [
+	'home',
+	'car',
+	'travel',
+	'family',
+	'freedom',
+	'giving',
+	'business',
+	'health',
+	'fun'
+] as const;
+
+export type DreamCategory = (typeof DREAM_CATEGORIES)[number];
 
 /** One dream as the board reads it. Images arrive with M1. */
 export interface Dream {
@@ -48,6 +66,8 @@ export interface Dream {
 	 */
 	affirmation: string;
 	status: DreamStatus;
+	/** One of the nine, or null. */
+	category: DreamCategory | null;
 	sortOrder: number;
 	targetYear: number | null;
 	/** Taps on the heart, counted. Within the board, never across. */
@@ -66,7 +86,7 @@ export interface Dream {
 	images: DreamImage[];
 }
 
-export const DREAM_IMAGE_KINDS = ["dreamt", "achieved"] as const;
+export const DREAM_IMAGE_KINDS = ['dreamt', 'achieved'] as const;
 
 /**
  * What a photograph is of: the dream, or the dream come true. The board and
@@ -99,5 +119,6 @@ export interface DreamInput {
 	why: string;
 	affirmation: string;
 	status: DreamStatus;
+	category: DreamCategory | null;
 	targetYear: number | null;
 }

@@ -608,6 +608,20 @@ a {
 	background: var(--surface-2);
 }
 
+/* Glass needs a ground to be glass over; inside a card it is white on white.
+   `--soft` is the card's own version, as `.seg--soft` is. It sits above
+   `--on` so the chosen chip still wins. */
+.chip--soft {
+	background: var(--surface-3);
+	border-color: transparent;
+	-webkit-backdrop-filter: none;
+	backdrop-filter: none;
+}
+
+.chip--soft:active {
+	background: var(--surface-2);
+}
+
 .chip--on,
 .chip--on:active {
 	background: var(--pill);

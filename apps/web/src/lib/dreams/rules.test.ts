@@ -9,6 +9,7 @@ describe('toInput', () => {
 				why: ' Ticho. ',
 				affirmation: ' Bydlím u lesa. ',
 				status: 'dreaming',
+				category: null,
 				year: ' 2030 '
 			})
 		).toEqual({
@@ -17,6 +18,7 @@ describe('toInput', () => {
 				why: 'Ticho.',
 				affirmation: 'Bydlím u lesa.',
 				status: 'dreaming',
+				category: null,
 				targetYear: 2030
 			}
 		});
@@ -28,16 +30,31 @@ describe('toInput', () => {
 			why: '',
 			affirmation: '',
 			status: 'in-progress',
+			category: null,
 			year: ''
 		});
 		expect(read).toEqual({
-			input: { title: 'Loď', why: '', affirmation: '', status: 'in-progress', targetYear: null }
+			input: {
+				title: 'Loď',
+				why: '',
+				affirmation: '',
+				status: 'in-progress',
+				category: null,
+				targetYear: null
+			}
 		});
 	});
 
 	it('asks for a title', () => {
 		expect(
-			toInput({ title: '   ', why: '', affirmation: '', status: 'dreaming', year: '' })
+			toInput({
+				title: '   ',
+				why: '',
+				affirmation: '',
+				status: 'dreaming',
+				category: null,
+				year: ''
+			})
 		).toEqual({
 			problem: 'Napiš název.'
 		});
@@ -50,6 +67,7 @@ describe('toInput', () => {
 				why: 'b'.repeat(WHY_MAX),
 				affirmation: 'c'.repeat(AFFIRMATION_MAX),
 				status: 'dreaming',
+				category: null,
 				year: ''
 			})
 		).toHaveProperty('input');
@@ -59,6 +77,7 @@ describe('toInput', () => {
 				why: '',
 				affirmation: '',
 				status: 'dreaming',
+				category: null,
 				year: ''
 			})
 		).toEqual({
@@ -70,6 +89,7 @@ describe('toInput', () => {
 				why: 'b'.repeat(WHY_MAX + 1),
 				affirmation: '',
 				status: 'dreaming',
+				category: null,
 				year: ''
 			})
 		).toEqual({
@@ -81,6 +101,7 @@ describe('toInput', () => {
 				why: '',
 				affirmation: 'c'.repeat(AFFIRMATION_MAX + 1),
 				status: 'dreaming',
+				category: null,
 				year: ''
 			})
 		).toEqual({
@@ -90,15 +111,53 @@ describe('toInput', () => {
 
 	it('wants a four-digit year in range', () => {
 		expect(
-			toInput({ title: 'x', why: '', affirmation: '', status: 'dreaming', year: '30' })
+			toInput({
+				title: 'x',
+				why: '',
+				affirmation: '',
+				status: 'dreaming',
+				category: null,
+				year: '30'
+			})
 		).toEqual({
 			problem: 'Rok napiš čtyřmi číslicemi.'
 		});
 		expect(
-			toInput({ title: 'x', why: '', affirmation: '', status: 'dreaming', year: '1999' })
+			toInput({
+				title: 'x',
+				why: '',
+				affirmation: '',
+				status: 'dreaming',
+				category: null,
+				year: '1999'
+			})
 		).toEqual({
 			problem: 'Rok napiš mezi 2000 a 2100.'
 		});
+	});
+});
+
+describe('toInput, the area', () => {
+	it('carries one of the nine, and none at all', () => {
+		const fields = {
+			title: 'Kjóto',
+			why: '',
+			affirmation: '',
+			status: 'dreaming',
+			year: ''
+		} as const;
+
+		expect(toInput({ ...fields, category: 'travel' })).toEqual({
+			input: {
+				title: 'Kjóto',
+				why: '',
+				affirmation: '',
+				status: 'dreaming',
+				category: 'travel',
+				targetYear: null
+			}
+		});
+		expect(toInput({ ...fields, category: null })).toHaveProperty('input.category', null);
 	});
 });
 
@@ -109,6 +168,7 @@ describe('toFields', () => {
 			why: 'Moře.',
 			affirmation: 'Vyplouvám.',
 			status: 'achieved',
+			category: null,
 			targetYear: null
 		});
 		expect(fields).toEqual({
@@ -116,6 +176,7 @@ describe('toFields', () => {
 			why: 'Moře.',
 			affirmation: 'Vyplouvám.',
 			status: 'achieved',
+			category: null,
 			year: ''
 		});
 		expect(toInput(fields)).toEqual({
@@ -124,6 +185,7 @@ describe('toFields', () => {
 				why: 'Moře.',
 				affirmation: 'Vyplouvám.',
 				status: 'achieved',
+				category: null,
 				targetYear: null
 			}
 		});
