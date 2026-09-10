@@ -8,8 +8,19 @@ describe('settingsRows', () => {
 	});
 
 	it('says whether the device is paired', () => {
-		expect(settingsRows({ theme: 'system', paired: false })[1].sub).toBe('zatím nespárováno');
-		expect(settingsRows({ theme: 'system', paired: true })[1].sub).toBe('spárováno');
+		const sub = (paired: boolean) =>
+			settingsRows({ theme: 'system', paired }).find((r) => r.id === 'parovani')?.sub;
+
+		expect(sub(false)).toBe('zatím nespárováno');
+		expect(sub(true)).toBe('spárováno');
+	});
+
+	it('offers the wallpaper, and says it needs a board first', () => {
+		const row = (paired: boolean) =>
+			settingsRows({ theme: 'system', paired }).find((r) => r.id === 'tapeta');
+
+		expect(row(true)?.sub).toBe('sny na zámek telefonu');
+		expect(row(false)?.sub).toBe('až bude spárováno');
 	});
 
 	it('links every row under /nastaveni', () => {

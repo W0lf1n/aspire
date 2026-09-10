@@ -121,7 +121,7 @@ Daily pick rule: `ORDER BY last_shown_at NULLS FIRST, random() LIMIT 1` among st
 | M2 | PWA offline | Folded into M1 on 2026-09-10 (D24): the photographs and the board cached, read-only offline | done |
 | **→ MVP live. Load real dreams. Use 2 weeks.** | | | |
 | M3 | Hall of Fame + affirmations | Done 2026-09-10 (§12): affirmation, before/after, anniversary. Voice memo dropped (§8.4) | done |
-| M4 | Wallpaper export | Collage renderer, presets, save flow | 1 weekend |
+| M4 | Wallpaper export | Done 2026-09-10 (§14): collage renderer, the phone's own canvas, share or save | done |
 | M5 | Daily nudge | Push subscription, morning notification with image | 1 weekend |
 
 Smallest of the three apps. Good candidate to build **first** if you want a quick win, or **second** right after Planner MVP — both are one-month projects at weekend pace.
@@ -252,4 +252,34 @@ something in as a rail above the reel, and asking for one narrows the reel
 after the shuffle so the tiles that stay do not move. The tile says the
 area in the tag it already had: `sním · Cestování` (D32).
 
-Next: M4's wallpaper export. Still unbuilt from M1: the desktop grid.
+Next: M4's wallpaper export (§14). Still unbuilt from M1: the desktop grid.
+
+---
+
+## 14. M4 — the wallpaper · 2026-09-10
+
+§3.5 built. A few chosen dreams onto one phone-shaped canvas, so the dream
+is seen a hundred times a day without opening anything.
+
+The collage is **made on request and kept nowhere** (D33): the full-size
+photographs are already on disk, ImageSharp draws them into a stream, and
+the stream is the answer. There is no second tree under the media root to
+own or to prune, which is the failure D26 was.
+
+The canvas is **the phone's own screen** in real pixels rather than one of
+§4's presets, so nothing is scaled up afterwards; the presets survive as the
+default for a request that names no size. Up to six dreams: up to three they
+stack in full-width bands, above three they pair up, and the cells sum
+exactly to the canvas — `CollageLayout` is pure geometry with its own test,
+so the arrangement is checked without rendering anything. No gutter, so no
+colour: the one place a colour exists is `tokens.css`, which a C# renderer
+cannot read.
+
+JPEG, because the file leaves the app for a photo library and then for the
+phone's own wallpaper settings. The screen offers it through the share
+sheet where there is one — that is where „Uložit obrázek" lives — and a
+download link otherwise, and keeps the finished picture on screen either
+way. It sits in Nastavení: the bar is four slots and a wallpaper is
+something you make now and then, not a place you go.
+
+Next: M5, the daily nudge (§3.6). Still unbuilt from M1: the desktop grid.

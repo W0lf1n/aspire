@@ -2,7 +2,7 @@
 
 Guidance for Claude Code working in this repository.
 
-**Last revised:** 2026-09-10 · M3 · 72 web tests · 97 API tests
+**Last revised:** 2026-09-10 · M4 · 82 web tests · 123 API tests
 
 ---
 
@@ -25,7 +25,8 @@ photograph beside the dreamt one, the anniversary, and the voice memo
 dropped (§8.4). §13 is what followed: the reel shuffled on every open in
 place of drag to reorder, and windowed so a hundred dreams are not a
 hundred tiles. Categories followed (§8.3 answered: Yager's nine,
-fixed — D32). Next is M4. Still unbuilt from M1: the desktop grid.
+fixed — D32), and §14 is M4, the wallpaper. Next is M5, the daily nudge.
+Still unbuilt from M1: the desktop grid.
 
 ---
 
@@ -95,19 +96,21 @@ apps/web/src/
 │                  shows, which dream it opens on, what order the rest are
 │                  in, what a tile says and whose anniversary today is —
 │                  photos.ts — which of a dream's two photographs a screen
-│                  shows — and format.ts.
+│                  shows — wallpaper.ts — who can be on a collage and how
+│                  big it is — and format.ts.
 ├─ lib/images/     downscale.ts — the photograph to 2048 px on the device.
 ├─ lib/offline/    status.svelte.ts — the connection flag every screen reads —
 │                  and cache.ts, which fills and prunes the photo cache.
 ├─ routes/         / · /pridat · /sen/[id] · /sen/[id]/upravit · /sin-slavy
-│                  · /nastaveni · /nastaveni/vzhled · /nastaveni/parovani
-│                  · /styleguide (unlinked, for review)
+│                  · /nastaveni · /nastaveni/vzhled · /nastaveni/tapeta
+│                  · /nastaveni/parovani · /styleguide (unlinked, for review)
 └─ service-worker.ts  three caches: the shell per build, the photographs
                       cache-first, the board network-first (D24).
 
 apps/api/src/
 ├─ Aspire.Api/             Program.cs (minimal APIs), Auth/, Boards/, Dreams/,
-│                          Images/ (the queue and the worker), Contracts.cs
+│                          Images/ (the queue and the worker), Wallpaper/
+│                          (the lock-screen collage), Contracts.cs
 ├─ Aspire.Domain/          Board, Dream, DreamImage, Device. No EF.
 └─ Aspire.Infrastructure/  AppDbContext, Media/ (the store, the resize), Migrations/
 apps/api/tests/Aspire.Api.Tests/   xUnit, SQLite in memory

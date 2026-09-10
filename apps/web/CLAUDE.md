@@ -63,6 +63,7 @@ Two accents, `--signal` (ember, acts) and `--dusk` (marks), one gradient
 | `/sen/[id]/upravit`   | The same form with the saved values; back is the dream                                              |
 | `/sin-slavy`          | Síň slávy. The achieved dreams, the most recent first; the pair                                     |
 | `/nastaveni`          | The hub: Vzhled, Párování, the version                                                              |
+| `/nastaveni/tapeta`   | Tapeta. Up to six dreams onto a lock-screen collage                                                 |
 | `/nastaveni/vzhled`   | systém / světlý / tmavý                                                                             |
 | `/nastaveni/parovani` | The code and a device name; paired, Odpojit                                                         |
 | `/styleguide`         | Tokens and components, both themes. Unlinked                                                        |
@@ -77,6 +78,7 @@ Vitest, node environment, `requireAssertions: true`. `nav.test.ts`,
 `dreams/board.test.ts` (the reel and its shuffle, the daily pick, the area
 filter, the tile's line, the anniversary), `dreams/format.test.ts`,
 `dreams/photos.test.ts` (which of a dream's two photographs a screen shows),
+`dreams/wallpaper.test.ts` (who can be on a collage, and how big it is),
 `images/downscale.test.ts` and
 `offline/cache.test.ts`; a new rule gets a test before it gets a screen, and
 it lives in a `.ts` module the component imports, never in the component.

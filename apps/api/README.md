@@ -20,8 +20,9 @@ more than store rows.
 | `DELETE` | `/api/v1/dreams/{id}`       | 204                                           |
 | `POST`   | `/api/v1/dreams/{id}/likes` | One more on the heart; the dream out          |
 | `POST`   | `/api/v1/dreams/{id}/shown` | The board opened on it today; 204             |
-| `POST`   | `/api/v1/dreams/{id}/images` | Multipart `file`; 202 with the image, `ready` once resized |
+| `POST`   | `/api/v1/dreams/{id}/images` | Multipart `file`, `?kind=dreamt\|achieved`; 202 with the image, `ready` once resized |
 | `DELETE` | `/api/v1/dreams/{id}/images/{imageId}` | 204                                |
+| `GET`    | `/api/v1/wallpaper` | `?dreams=<id,…>&width&height`; the lock-screen collage as JPEG, made on request and kept nowhere (D33) |
 
 Everything but `health` and `pair` needs `Authorization: Bearer <token>`.
 The wire types live in `packages/contracts` and are mirrored in

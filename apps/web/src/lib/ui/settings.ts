@@ -6,7 +6,7 @@
 import type { IconName } from './Icon.svelte';
 import { THEME_LABEL, type Theme } from './theme';
 
-export type SettingsPage = 'vzhled' | 'parovani';
+export type SettingsPage = 'vzhled' | 'tapeta' | 'parovani';
 
 export interface SettingsRow {
 	id: SettingsPage;
@@ -31,6 +31,13 @@ export function settingsRows(facts: SettingsFacts): SettingsRow[] {
 			title: 'Vzhled',
 			sub: THEME_LABEL[facts.theme],
 			icon: 'sun-moon'
+		},
+		{
+			id: 'tapeta',
+			href: '/nastaveni/tapeta',
+			title: 'Tapeta',
+			sub: facts.paired ? 'sny na zámek telefonu' : 'až bude spárováno',
+			icon: 'image'
 		},
 		{
 			id: 'parovani',

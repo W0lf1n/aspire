@@ -145,6 +145,25 @@ export function uploadImage(
 	return call<DreamImage>(`/dreams/${dreamId}/images?kind=${kind}`, { method: 'POST', body });
 }
 
+/**
+ * The lock-screen collage, as a JPEG (PLAN.md §3.5). The ids go in the order
+ * they were chosen, which is the order they appear on it. Nothing is stored
+ * on the server: the image is made from the files already there and handed
+ * straight back, and where it goes next is the phone's business.
+ */
+export async function wallpaper(
+	dreamIds: string[],
+	canvas: { width: number; height: number }
+): Promise<Blob> {
+	const query = new URLSearchParams({
+		dreams: dreamIds.join(','),
+		width: String(canvas.width),
+		height: String(canvas.height)
+	});
+	const response = await send(`/wallpaper?${query}`);
+	return response.blob();
+}
+
 export function deleteImage(dreamId: string, imageId: string): Promise<void> {
 	return call<void>(`/dreams/${dreamId}/images/${imageId}`, { method: 'DELETE' });
 }

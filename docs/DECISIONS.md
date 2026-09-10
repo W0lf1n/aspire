@@ -636,3 +636,53 @@ Rodina · Svoboda · Dávání · Byznys · Zdraví · Zábava.
   back on the tile it came from — which would have made the new rail
   unreachable. `.wordmark` carries `scroll-snap-align: start`: the top of
   the board is a place to stop.
+
+---
+
+## M4 · 2026-09-10 — the wallpaper
+
+### D33 — The collage is made on request and never stored, on a canvas the phone asks for
+
+PLAN.md §3.5 wants a lock-screen collage from a few chosen dreams, so the
+dream is seen a hundred times a day without opening anything.
+
+- **Made on request, kept nowhere.** The photographs are already on disk at
+  full size; the collage is drawn from them into a `MemoryStream` and
+  streamed back. A stored collage would be a second tree under the media
+  root to own, to prune when a dream changes, and to get the ownership of
+  wrong on a volume — which is exactly the failure D26 was. There is
+  nothing to invalidate, because there is nothing kept.
+- **The canvas is the phone's own screen, not a preset.** §4 named 1170×2532
+  and 1080×2400, but the device knows its own `screen` and
+  `devicePixelRatio`, so it asks for exactly that and the phone never scales
+  the result up. The presets survive as the server's default for a request
+  that names no size. Clamped to 200–4096 px an edge: below that it is a
+  thumbnail, above it a way to spend the VPS's memory.
+- **Six at most** (`CollageLayout.MaxPhotographs`), mirrored on the client.
+  Above six each dream is too small on a phone to be the one you recognise.
+- **The arrangement is pure geometry, and it is tested without an image.**
+  `CollageLayout` returns rectangles: up to three the photographs stack in
+  full-width bands, because a phone canvas is twice as tall as it is wide
+  and a band is the shape a photograph survives; above three they pair up.
+  Rounding is carried rather than repeated, so the cells sum exactly to the
+  canvas — a one-pixel seam of nothing down a wallpaper is a thing people
+  notice, and the test asserts the areas add up.
+- **No gutter, and so no colour.** A seam between the cells would need a
+  colour, and the one place a colour exists here is `tokens.css`, which a C#
+  renderer cannot read (rule 1). Edge to edge is also the better wallpaper.
+  Each photograph covers its cell and is centre-cropped to it, never
+  letterboxed and never squashed.
+- **JPEG, not WebP.** The file leaves the app: it is saved to a photo
+  library and then chosen as a wallpaper by the phone's own settings, and
+  JPEG is the format every one of those steps has always taken.
+- **The share sheet, then a download link.** On a phone „Uložit obrázek" is
+  in the share sheet, and a `download` link is not; `navigator.canShare({
+  files })` decides, and a browser without it gets the link. A share the
+  person backed out of (`AbortError`) is not a failure and says nothing.
+  The screen keeps the finished image on it either way, because the surest
+  way to save a picture on a phone is still to hold a finger on it.
+- **It lives in Nastavení, not in the bar.** The bar is four slots and full
+  (D3's shape); a wallpaper is something you make now and then, not a place
+  you go. A dream that is already achieved can be on one — that is exactly
+  the kind you want on a lock screen — so the choice reads the whole board
+  rather than the reel.

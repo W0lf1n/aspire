@@ -6,6 +6,7 @@ using Aspire.Api.Auth;
 using Aspire.Api.Boards;
 using Aspire.Api.Dreams;
 using Aspire.Api.Images;
+using Aspire.Api.Wallpaper;
 using Aspire.Infrastructure;
 using Aspire.Infrastructure.Media;
 using Microsoft.Extensions.FileProviders;
@@ -181,8 +182,10 @@ app.MapPost("/api/v1/pair", async (
     return Results.Ok(await auth.PairAsync(board, request.DeviceName ?? "Zařízení", ct));
 }).RequireRateLimiting(PairPolicy);
 
-// The dreams and their photographs live in Dreams/DreamEndpoints.cs.
+// The dreams and their photographs live in Dreams/DreamEndpoints.cs, and
+// the lock-screen collage in Wallpaper/WallpaperEndpoints.cs.
 app.MapDreams();
+app.MapWallpaper();
 app.Run();
 return 0;
 
