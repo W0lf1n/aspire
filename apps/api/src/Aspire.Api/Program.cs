@@ -5,7 +5,10 @@ using Aspire.Api;
 using Aspire.Api.Auth;
 using Aspire.Api.Boards;
 using Aspire.Api.Dreams;
+using Aspire.Api.Images;
 using Aspire.Infrastructure;
+using Aspire.Infrastructure.Media;
+using Microsoft.Extensions.FileProviders;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 
@@ -42,6 +45,13 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 
 builder.Services.AddScoped<DeviceAuth>();
 builder.Services.AddScoped<DreamService>();
+
+// The media root (PLAN.md §4): a volume in production, a folder beside the
+// database on a laptop. One store, one line, one worker.
+builder.Services.AddSingleton(new MediaStore(builder.Configuration["Media:Root"] ?? "/data/media"));
+builder.Services.AddSingleton<ImageQueue>();
+builder.Services.AddHostedService<ImageWorker>();
+builder.Services.AddScoped<ImageService>();
 
 // The pairing code is the only thing between the internet and the board.
 // `DEPLOYMENT.md` generates twelve digits, because the code's own length is the
@@ -134,12 +144,18 @@ if (BoardCommand.IsBoardCommand(args))
     return await BoardCommand.RunAsync(args, scope.ServiceProvider.GetRequiredService<AppDbContext>(), Console.Out);
 }
 
-// The media root (PLAN.md §4): a volume in production, a folder beside the
-// database on a laptop. Nothing writes into it yet — M1 brings the pipeline —
-// but the directory exists from the first start so the deployment is checked
-// for it before there is anything to lose.
-var mediaRoot = app.Configuration["Media:Root"] ?? "/data/media";
-Directory.CreateDirectory(mediaRoot);
+// The directory exists from the first start, so the deployment is checked
+// for it before there is anything to lose. nginx serves it as `/media/` in
+// production and the API never sees a byte of it; on a laptop there is no
+// nginx, so the API serves the same tree with the same year of cache.
+var media = app.Services.GetRequiredService<MediaStore>();
+Directory.CreateDirectory(media.Root);
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new PhysicalFileProvider(media.Root),
+    RequestPath = "/media",
+    OnPrepareResponse = ctx => ctx.Context.Response.Headers.CacheControl = "public, max-age=31536000, immutable"
+});
 
 var version = typeof(Program).Assembly.GetName().Version?.ToString() ?? "0.0.1";
 
@@ -164,100 +180,8 @@ app.MapPost("/api/v1/pair", async (
     return Results.Ok(await auth.PairAsync(board, request.DeviceName ?? "Zařízení", ct));
 }).RequireRateLimiting(PairPolicy);
 
-// ── dreams: one board's, in board order ─────────────────────────────────────
-//
-// Every handler resolves the device first and hands its board to the
-// service, which never sees a board it was not handed. A dream on another
-// board is a 404, not a 403: that board's existence is not this device's
-// business either.
-
-app.MapGet("/api/v1/dreams", async (
-    HttpContext http,
-    DeviceAuth auth,
-    DreamService dreams,
-    CancellationToken ct) =>
-{
-    var device = await auth.ResolveAsync(http.Request.Headers.Authorization, ct);
-    if (device is null) return Results.Unauthorized();
-
-    var rows = await dreams.ListAsync(device.BoardId, ct);
-    return Results.Ok(rows.Select(DreamDto.From).ToList());
-});
-
-app.MapGet("/api/v1/dreams/{id:guid}", async (
-    Guid id,
-    HttpContext http,
-    DeviceAuth auth,
-    DreamService dreams,
-    CancellationToken ct) =>
-{
-    var device = await auth.ResolveAsync(http.Request.Headers.Authorization, ct);
-    if (device is null) return Results.Unauthorized();
-
-    var dream = await dreams.FindAsync(device.BoardId, id, ct);
-    return dream is null ? Results.NotFound() : Results.Ok(DreamDto.From(dream));
-});
-
-app.MapPost("/api/v1/dreams", async (
-    DreamInput input,
-    HttpContext http,
-    DeviceAuth auth,
-    DreamService dreams,
-    CancellationToken ct) =>
-{
-    var device = await auth.ResolveAsync(http.Request.Headers.Authorization, ct);
-    if (device is null) return Results.Unauthorized();
-
-    if (DreamService.Problem(input) is { } problem) return Results.Problem(problem, statusCode: 400);
-
-    var dream = await dreams.CreateAsync(device.BoardId, input, ct);
-    return Results.Created($"/api/v1/dreams/{dream.Id}", DreamDto.From(dream));
-});
-
-app.MapPut("/api/v1/dreams/{id:guid}", async (
-    Guid id,
-    DreamInput input,
-    HttpContext http,
-    DeviceAuth auth,
-    DreamService dreams,
-    CancellationToken ct) =>
-{
-    var device = await auth.ResolveAsync(http.Request.Headers.Authorization, ct);
-    if (device is null) return Results.Unauthorized();
-
-    if (DreamService.Problem(input) is { } problem) return Results.Problem(problem, statusCode: 400);
-
-    var dream = await dreams.UpdateAsync(device.BoardId, id, input, ct);
-    return dream is null ? Results.NotFound() : Results.Ok(DreamDto.From(dream));
-});
-
-app.MapDelete("/api/v1/dreams/{id:guid}", async (
-    Guid id,
-    HttpContext http,
-    DeviceAuth auth,
-    DreamService dreams,
-    CancellationToken ct) =>
-{
-    var device = await auth.ResolveAsync(http.Request.Headers.Authorization, ct);
-    if (device is null) return Results.Unauthorized();
-
-    return await dreams.DeleteAsync(device.BoardId, id, ct) ? Results.NoContent() : Results.NotFound();
-});
-
-app.MapPost("/api/v1/dreams/{id:guid}/likes", async (
-    Guid id,
-    HttpContext http,
-    DeviceAuth auth,
-    DreamService dreams,
-    CancellationToken ct) =>
-{
-    var device = await auth.ResolveAsync(http.Request.Headers.Authorization, ct);
-    if (device is null) return Results.Unauthorized();
-
-    var dream = await dreams.LikeAsync(device.BoardId, id, ct);
-    return dream is null ? Results.NotFound() : Results.Ok(DreamDto.From(dream));
-});
-
+// The dreams and their photographs live in Dreams/DreamEndpoints.cs.
+app.MapDreams();
 app.Run();
 return 0;
 

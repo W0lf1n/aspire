@@ -1,27 +1,31 @@
 <script lang="ts">
 	/**
-	 * Sen — one dream, on its own. The tile as the board shows it, then the
-	 * facts and the three things you can do: tap the heart, change it, or
-	 * let it go. Deleting asks nothing and says so in a toast, as Prosper
-	 * does; a dream is a few words and one photograph, both quick to give
-	 * back.
+	 * Sen — one dream, on its own. The tile as the board shows it, with the
+	 * photo pill that changes its photograph, then the facts and the three
+	 * things you can do: tap the heart, change the words, or let it go.
+	 * Deleting asks nothing and says so in a toast, as Prosper does; a dream
+	 * is a few words and one photograph, both quick to give back.
 	 */
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
 	import type { Dream } from '@aspire/contracts';
-	import { deleteDream, getDream, likeDream } from '$lib/api/client';
+	import { deleteDream, deleteImage, getDream, likeDream, uploadImage } from '$lib/api/client';
 	import { describeError } from '$lib/api/errors';
 	import { formatDate } from '$lib/dreams/format';
 	import { STATUS_BADGE, STATUS_CLASS } from '$lib/dreams/rules';
 	import AppBar from '$lib/ui/AppBar.svelte';
 	import Icon from '$lib/ui/Icon.svelte';
+	import PhotoPicker from '$lib/ui/PhotoPicker.svelte';
 	import TabBar from '$lib/ui/TabBar.svelte';
 	import { toast } from '$lib/ui/toast.svelte';
 
 	let dream = $state<Dream | null>(null);
 	let error = $state('');
 	let liking = $state(false);
+	let uploading = $state(false);
+
+	const photo = $derived(dream?.images.find((image) => image.ready) ?? null);
 
 	$effect(() => {
 		const id = page.params.id ?? '';
@@ -51,6 +55,30 @@
 		}
 	}
 
+	/**
+	 * The new photograph replaces the old: the old one goes first, so a
+	 * failed upload leaves the sky rather than the wrong picture. Then the
+	 * dream is asked for again until the sizes are ready — a second or so.
+	 */
+	async function replacePhoto(picked: Blob) {
+		if (!dream || uploading) return;
+		uploading = true;
+		try {
+			for (const image of dream.images) await deleteImage(dream.id, image.id);
+			await uploadImage(dream.id, picked);
+			for (let attempt = 0; attempt < 10; attempt++) {
+				await new Promise((resolve) => setTimeout(resolve, 800));
+				dream = await getDream(dream.id);
+				if (dream.images.some((image) => image.ready)) break;
+			}
+			toast.show('Fotka je na nástěnce');
+		} catch (e) {
+			toast.show(describeError(e));
+		} finally {
+			uploading = false;
+		}
+	}
+
 	async function remove() {
 		if (!dream) return;
 		const doomed = dream;
@@ -72,15 +100,14 @@
 	<AppBar title="Sen" back="/" />
 
 	{#if dream}
-		<article class="dream dream--sky tile">
-			<span class="badge dream__tag">{STATUS_BADGE[dream.status]}</span>
-			<div class="dream__body">
-				<h2 class="dream__title">{dream.title}</h2>
-				{#if dream.why}
-					<p class="dream__why">{dream.why}</p>
-				{/if}
-			</div>
-		</article>
+		<PhotoPicker
+			current={photo?.screenUrl ?? null}
+			title={dream.title}
+			why={dream.why}
+			busy={uploading}
+			onpick={replacePhoto}
+			onproblem={(sentence) => toast.show(sentence)}
+		/>
 
 		<section class="card">
 			<dl class="facts">
@@ -124,17 +151,3 @@
 </main>
 
 <TabBar />
-
-<style>
-	.tile {
-		flex: none;
-	}
-
-	/* On a desktop a 4:5 tile would push the card under the bar; it gives
-	   up its ratio before the card gives up its place. */
-	@media (min-width: 35rem) {
-		.tile {
-			max-height: 24rem;
-		}
-	}
-</style>

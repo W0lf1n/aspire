@@ -1,5 +1,6 @@
 using Aspire.Domain;
 using Aspire.Infrastructure;
+using Aspire.Infrastructure.Media;
 using Microsoft.EntityFrameworkCore;
 
 namespace Aspire.Api.Dreams;
@@ -13,7 +14,7 @@ namespace Aspire.Api.Dreams;
 /// under the field the person was typing in. The client says the same
 /// things in the same order (<c>rules.ts</c>), so the server's are a backstop.
 /// </summary>
-public sealed class DreamService(AppDbContext db)
+public sealed class DreamService(AppDbContext db, MediaStore media)
 {
     public const int TargetYearMin = 2000;
     public const int TargetYearMax = 2100;
@@ -86,8 +87,10 @@ public sealed class DreamService(AppDbContext db)
         var dream = await FindAsync(boardId, id, ct);
         if (dream is null) return false;
 
+        // The rows go by cascade; the photographs on disk are ours to remove.
         db.Dreams.Remove(dream);
         await db.SaveChangesAsync(ct);
+        media.DeleteDream(dream.Id);
         return true;
     }
 

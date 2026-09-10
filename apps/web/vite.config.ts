@@ -22,7 +22,9 @@ export default defineConfig({
 		// apps/api/src/Aspire.Api/Properties/launchSettings.json) rather than
 		// opening a CORS door.
 		proxy: {
-			'/api': 'http://127.0.0.1:5300'
+			'/api': 'http://127.0.0.1:5300',
+			// The photographs: nginx's job in production, the API's on a laptop.
+			'/media': 'http://127.0.0.1:5300'
 		}
 	},
 	test: {

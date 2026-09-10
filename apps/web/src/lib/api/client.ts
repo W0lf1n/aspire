@@ -6,6 +6,7 @@
 
 import type {
 	Dream,
+	DreamImage,
 	DreamInput,
 	HealthResponse,
 	PairRequest,
@@ -29,7 +30,10 @@ async function call<T>(path: string, init: RequestInit = {}): Promise<T> {
 	const headers = new Headers(init.headers);
 	const token = readToken();
 	if (token) headers.set('Authorization', `Bearer ${token}`);
-	if (init.body) headers.set('Content-Type', 'application/json');
+	// A FormData body writes its own boundary header; everything else is JSON.
+	if (init.body && !(init.body instanceof FormData)) {
+		headers.set('Content-Type', 'application/json');
+	}
 
 	const response = await fetch(`/api/v1${path}`, { ...init, headers });
 	if (!response.ok)
@@ -82,4 +86,15 @@ export function deleteDream(id: string): Promise<void> {
 /** One more on the heart; the dream comes back with its new count. */
 export function likeDream(id: string): Promise<Dream> {
 	return call<Dream>(`/dreams/${id}/likes`, { method: 'POST' });
+}
+
+/** The photograph, already downscaled on the device. 202: the sizes follow. */
+export function uploadImage(dreamId: string, photo: Blob): Promise<DreamImage> {
+	const body = new FormData();
+	body.append('file', photo, 'photo.jpg');
+	return call<DreamImage>(`/dreams/${dreamId}/images`, { method: 'POST', body });
+}
+
+export function deleteImage(dreamId: string, imageId: string): Promise<void> {
+	return call<void>(`/dreams/${dreamId}/images/${imageId}`, { method: 'DELETE' });
 }

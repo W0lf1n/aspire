@@ -10,49 +10,109 @@
 	 */
 	import { resolve } from '$app/paths';
 	import type { Dream } from '@aspire/contracts';
-	import { listDreams } from '$lib/api/client';
+	import { likeDream, listDreams } from '$lib/api/client';
+	import { describeError } from '$lib/api/errors';
 	import { STATUS_BADGE } from '$lib/dreams/rules';
 	import Icon from '$lib/ui/Icon.svelte';
 	import TabBar from '$lib/ui/TabBar.svelte';
+	import { toast } from '$lib/ui/toast.svelte';
 
 	let dreams = $state<Dream[] | null>(null);
 
+	/** The photograph a tile shows: the first one whose sizes are ready. */
+	function photoOf(dream: Dream) {
+		return dream.images.find((image) => image.ready) ?? null;
+	}
+
 	$effect(() => {
 		let live = true;
-		listDreams()
-			.then((rows) => {
-				if (live) dreams = rows;
-			})
-			.catch(() => {
-				// Not paired, offline, or the server is away: the board is empty
-				// either way, and the empty state says what to do next.
-				if (live) dreams = [];
-			});
+		let again: ReturnType<typeof setTimeout> | undefined;
+		let asks = 0;
+
+		const load = () => {
+			listDreams()
+				.then((rows) => {
+					if (!live) return;
+					dreams = rows;
+					// A photograph still being resized shows as the sky; the
+					// sizes take a second, so the board asks again a few times.
+					const waiting = rows.some((d) => d.images.some((image) => !image.ready));
+					if (waiting && asks++ < 5) again = setTimeout(load, 1500);
+				})
+				.catch(() => {
+					// Not paired, offline, or the server is away: the board is empty
+					// either way, and the empty state says what to do next.
+					if (live) dreams = [];
+				});
+		};
+		load();
+
 		return () => {
 			live = false;
+			clearTimeout(again);
 		};
 	});
+
+	async function like(dream: Dream) {
+		try {
+			const liked = await likeDream(dream.id);
+			dreams = dreams?.map((d) => (d.id === liked.id ? liked : d)) ?? null;
+			navigator.vibrate?.(10);
+		} catch (e) {
+			toast.show(describeError(e));
+		}
+	}
 </script>
 
 <svelte:head>
 	<title>Aspire</title>
 </svelte:head>
 
-<main class="page">
+<main class="page" class:page--reel={dreams !== null && dreams.length > 0}>
 	<h1 class="wordmark">Aspire</h1>
 
 	{#if dreams && dreams.length > 0}
-		<!-- The swipe arrives with M1; until then the rows are a list. -->
-		<section class="card card--list">
-			{#each dreams as dream (dream.id)}
-				<a class="row row--press" href={resolve('/sen/[id]', { id: dream.id })}>
-					<span class="circle circle--sky"><Icon name="image" size={20} stroke={1.8} /></span>
-					<span class="row__body">
-						<span class="row__title">{dream.title}</span>
-						<span class="row__sub">{dream.why || STATUS_BADGE[dream.status]}</span>
-					</span>
-					<span class="card__go"><Icon name="chevron-right" size={18} /></span>
-				</a>
+		<!--
+			The reel: one tile the height of the screen per dream, snapping as
+			they scroll. The whole picture opens the dream; the heart on it is
+			the one control, above the link, so a tap on it is a like and a tap
+			anywhere else is the dream.
+		-->
+		<section class="reel">
+			{#each dreams as dream, index (dream.id)}
+				{@const photo = photoOf(dream)}
+				<article class="dream reel__tile" class:dream--sky={!photo}>
+					{#if photo}
+						<img
+							class="dream__img"
+							src={photo.screenUrl}
+							alt=""
+							loading={index === 0 ? 'eager' : 'lazy'}
+							decoding="async"
+						/>
+					{/if}
+					<span class="badge dream__tag">{STATUS_BADGE[dream.status]}</span>
+					<a
+						class="reel__open"
+						href={resolve('/sen/[id]', { id: dream.id })}
+						aria-label={dream.title}
+					></a>
+					<div class="dream__body reel__body">
+						<h2 class="dream__title">{dream.title}</h2>
+						{#if dream.why}
+							<p class="dream__why">{dream.why}</p>
+						{/if}
+						<button
+							type="button"
+							class="btn btn--photo reel__heart"
+							onclick={() => like(dream)}
+							aria-label="Palivo"
+						>
+							<Icon name="heart" size={18} stroke={2} />
+							{dream.likes}
+						</button>
+					</div>
+				</article>
 			{/each}
 		</section>
 	{:else}
@@ -133,5 +193,47 @@
 
 	.how {
 		padding-inline: var(--space-2);
+	}
+
+	/* ── the reel ──────────────────────────────────────────────────────── */
+
+	/* Snapping is the page's, because the page is the scroll region; a
+	   flick lands on a tile, a slow drag can stop between two. */
+	.page--reel {
+		scroll-snap-type: y proximity;
+	}
+
+	.reel {
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-3);
+	}
+
+	/* One screen each: what the page shows between its own padding and the
+	   bar. The ratio gives way to the height; the image covers whatever is
+	   left. */
+	.reel__tile {
+		flex: none;
+		aspect-ratio: auto;
+		height: calc(100dvh - var(--space-3) - env(safe-area-inset-top, 0px) - var(--page-end, 0px));
+		scroll-snap-align: start;
+		scroll-snap-stop: always;
+	}
+
+	.reel__open {
+		position: absolute;
+		inset: 0;
+		z-index: 1;
+	}
+
+	/* The words let the tap through to the link; only the heart takes it. */
+	.reel__body {
+		z-index: 2;
+		pointer-events: none;
+	}
+
+	.reel__heart {
+		margin-top: var(--space-2);
+		pointer-events: auto;
 	}
 </style>

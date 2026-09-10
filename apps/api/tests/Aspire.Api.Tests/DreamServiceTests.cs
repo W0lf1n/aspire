@@ -1,6 +1,7 @@
 using Aspire.Api.Dreams;
 using Aspire.Domain;
 using Aspire.Infrastructure;
+using Aspire.Infrastructure.Media;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Xunit;
@@ -27,7 +28,7 @@ public sealed class DreamServiceTests : IDisposable
         _db.Boards.Add(new Board { Id = BoardA, Name = "A" });
         _db.Boards.Add(new Board { Id = BoardB, Name = "B" });
         _db.SaveChanges();
-        _dreams = new DreamService(_db);
+        _dreams = new DreamService(_db, new MediaStore(Path.Combine(Path.GetTempPath(), $"aspire-media-{Guid.NewGuid():N}")));
     }
 
     public void Dispose()

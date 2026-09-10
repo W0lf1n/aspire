@@ -276,3 +276,33 @@ Validation lives twice on purpose. `DreamService.Problem` on the server and
 the sentence appears on the keystroke and the server stays a backstop. A
 server sentence travels as a problem's `detail`, which the client's
 `ApiError` now carries.
+
+### D23 — Photographs: three WebP sizes, an id in the path, nothing kept with its EXIF
+
+M1's pipeline is PLAN.md §4's, with the details it left open decided:
+
+- **ImageSharp 3.1**, under the Six Labors Split License, free for a
+  personal project and for anyone under a million dollars a year. 3.1
+  rather than 4, because the API this code was written against is 3.1's
+  and a resize does not need what 4 added.
+- **Three sizes, one format.** Thumb at 400 px on the longest edge, screen
+  at 1280, full at 2048, all WebP at quality 82, never scaled up. The
+  client sends at most 2048 px, a JPEG made on the device and oriented by
+  the browser, so full is the archive and nothing larger ever crosses the
+  wire. PLAN.md's `original_path` is gone: the upload waits in the system's
+  temp directory only until the worker has read it.
+- **The path carries the image id**, `/media/{dreamId}/{imageId}/{size}.webp`,
+  not D7's `/media/{dreamId}/{size}.webp`. nginx serves the tree with a
+  year of `immutable`, so a replaced photograph has to be a new URL or the
+  phone keeps the old one for a year. D7's path stands corrected.
+- **EXIF, XMP and IPTC are stripped**, after the orientation is applied.
+  The files are served to anyone with the URL, and where a photograph was
+  taken is not something a dream board should publish.
+- **The resize is a background worker** on a channel (PLAN.md §4). The
+  upload answers 202 as soon as the file has landed; `ready` on the wire
+  says when the sizes exist, and the board asks again for a few seconds
+  while it is false. The worker sweeps on start: a row whose staged upload
+  did not survive a restart is dropped, not left waiting.
+- **On a laptop the API serves `/media/`** with the same cache header, and
+  Vite proxies it beside `/api`; in production nginx answers first and the
+  API never sees a byte.

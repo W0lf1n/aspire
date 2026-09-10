@@ -8,6 +8,7 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
 {
     public DbSet<Board> Boards => Set<Board>();
     public DbSet<Dream> Dreams => Set<Dream>();
+    public DbSet<DreamImage> DreamImages => Set<DreamImage>();
     public DbSet<Device> Devices => Set<Device>();
 
     protected override void OnModelCreating(ModelBuilder model)
@@ -44,6 +45,20 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
             entity.HasOne<Board>()
                 .WithMany()
                 .HasForeignKey(d => d.BoardId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        model.Entity<DreamImage>(entity =>
+        {
+            entity.ToTable("dream_images");
+            entity.HasKey(i => i.Id);
+            entity.HasIndex(i => new { i.DreamId, i.SortOrder });
+
+            // A dream that goes takes its photographs' rows with it; the
+            // files are the MediaStore's to remove.
+            entity.HasOne<Dream>()
+                .WithMany()
+                .HasForeignKey(i => i.DreamId)
                 .OnDelete(DeleteBehavior.Cascade);
         });
 

@@ -50,6 +50,23 @@ export interface Dream {
 	achievedAt: string | null;
 	/** ISO datetime. */
 	createdAt: string;
+	/** In board order; the first is the one the tile shows. */
+	images: DreamImage[];
+}
+
+/**
+ * One photograph, as URLs under `/media/`. `ready` is false for the moment
+ * between the upload and the resize; the board shows the sky and asks again.
+ */
+export interface DreamImage {
+	id: string;
+	sortOrder: number;
+	width: number;
+	height: number;
+	ready: boolean;
+	thumbUrl: string;
+	screenUrl: string;
+	fullUrl: string;
 }
 
 // ── POST /api/v1/dreams · PUT /api/v1/dreams/{id} ──────────────────────────

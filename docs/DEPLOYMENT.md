@@ -200,10 +200,14 @@ first if that is not what you meant.
 
 `/data/media` in the API container is the `media` volume; the same volume is
 mounted read-only into the web container at `/usr/share/nginx/media`, where
-nginx serves it as `/media/` with a year of cache. Nothing is written there
-in M0; M1 brings the upload pipeline. The directory is created in the API
-image owned by the app user, which is what lets the non-root API write into
-a volume Docker would otherwise create as root.
+nginx serves it as `/media/` with a year of cache. The API writes into it
+one directory per dream, one per photograph inside, and three WebP sizes
+inside that, `{dreamId}/{imageId}/{thumb|screen|full}.webp` (D23); an
+upload waits in the container's own `/tmp` until the worker has resized
+it, so a restart mid-upload leaves nothing behind but a row the next start
+drops. The directory is created in the API image owned by the app user,
+which is what lets the non-root API write into a volume Docker would
+otherwise create as root.
 
 ```bash
 cd /srv/aspire/deploy && docker compose exec api ls -la /data/media

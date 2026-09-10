@@ -19,6 +19,8 @@ more than store rows.
 | `PUT`    | `/api/v1/dreams/{id}`       | `DreamInput` in, the dream out                |
 | `DELETE` | `/api/v1/dreams/{id}`       | 204                                           |
 | `POST`   | `/api/v1/dreams/{id}/likes` | One more on the heart; the dream out          |
+| `POST`   | `/api/v1/dreams/{id}/images` | Multipart `file`; 202 with the image, `ready` once resized |
+| `DELETE` | `/api/v1/dreams/{id}/images/{imageId}` | 204                                |
 
 Everything but `health` and `pair` needs `Authorization: Bearer <token>`.
 The wire types live in `packages/contracts` and are mirrored in
@@ -109,13 +111,26 @@ at least, twelve in production.
 
 ---
 
+## The photographs
+
+An upload lands in the system's temp directory, gets a `dream_images` row,
+and goes into a channel; one worker (`ImageWorker`) reads it, applies the
+orientation, strips EXIF, XMP and IPTC, and writes three WebP files under
+`Media:Root` as `{dreamId}/{imageId}/{thumb|screen|full}.webp` at 400,
+1280 and 2048 px on the longest edge (D23). The row's `processed_at` says
+when; until then the wire says `ready: false` and the board shows the sky.
+On a laptop the root is `media/` beside the project and the API serves it
+as `/media/`; on the VPS it is the volume and nginx serves it.
+
+---
+
 ## Tests
 
 ```bash
 dotnet test
 ```
 
-73 tests. The ones that reach the database use SQLite in memory rather than
+82 tests. The ones that reach the database use SQLite in memory rather than
 the EF in-memory provider: this code relies on a unique index, and the
 in-memory provider does not honour one. They cover pairing, token hashing,
 name trimming, and which address the pairing limiter counts a request

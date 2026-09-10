@@ -2,7 +2,7 @@
 
 Guidance for Claude Code working in this repository.
 
-**Last revised:** 2026-09-10 · M1 in progress · 23 web tests · 73 API tests
+**Last revised:** 2026-09-10 · M1 in progress · 26 web tests · 82 API tests
 
 ---
 
@@ -85,15 +85,17 @@ apps/web/src/
 ├─ lib/api/        client.ts (fetch + bearer), token.ts (localStorage),
 │                  pairing.ts (the flow) and errors.ts (the sentences).
 ├─ lib/dreams/     rules.ts — what a dream may be, tested — and format.ts.
+├─ lib/images/     downscale.ts — the photograph to 2048 px on the device.
 ├─ routes/         / · /pridat · /sen/[id] · /sen/[id]/upravit · /sin-slavy
 │                  · /nastaveni · /nastaveni/vzhled · /nastaveni/parovani
 │                  · /styleguide (unlinked, for review)
 └─ service-worker.ts
 
 apps/api/src/
-├─ Aspire.Api/             Program.cs (minimal APIs), Auth/, Boards/, Contracts.cs
-├─ Aspire.Domain/          Board, Dream, Device. No EF.
-└─ Aspire.Infrastructure/  AppDbContext, Migrations/
+├─ Aspire.Api/             Program.cs (minimal APIs), Auth/, Boards/, Dreams/,
+│                          Images/ (the queue and the worker), Contracts.cs
+├─ Aspire.Domain/          Board, Dream, DreamImage, Device. No EF.
+└─ Aspire.Infrastructure/  AppDbContext, Media/ (the store, the resize), Migrations/
 apps/api/tests/Aspire.Api.Tests/   xUnit, SQLite in memory
 
 packages/contracts/  the wire types; mirrored in Contracts.cs

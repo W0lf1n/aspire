@@ -1,4 +1,5 @@
 using Aspire.Domain;
+using Aspire.Infrastructure.Media;
 
 namespace Aspire.Api;
 
@@ -21,6 +22,31 @@ public sealed record PairResponse(string DeviceId, string Token);
 /// </summary>
 public sealed record DreamInput(string? Title, string? Why, DreamStatus? Status, int? TargetYear);
 
+/// <summary>
+/// One photograph, as URLs. <c>Ready</c> is false for the moment between the
+/// upload and the resize; the client shows the sky and asks again.
+/// </summary>
+public sealed record DreamImageDto(
+    Guid Id,
+    int SortOrder,
+    int Width,
+    int Height,
+    bool Ready,
+    string ThumbUrl,
+    string ScreenUrl,
+    string FullUrl)
+{
+    public static DreamImageDto From(DreamImage image) => new(
+        image.Id,
+        image.SortOrder,
+        image.Width,
+        image.Height,
+        image.ProcessedAt is not null,
+        MediaStore.UrlOf(image.DreamId, image.Id, "thumb"),
+        MediaStore.UrlOf(image.DreamId, image.Id, "screen"),
+        MediaStore.UrlOf(image.DreamId, image.Id, "full"));
+}
+
 public sealed record DreamDto(
     Guid Id,
     string Title,
@@ -30,9 +56,10 @@ public sealed record DreamDto(
     int? TargetYear,
     int Likes,
     DateTimeOffset? AchievedAt,
-    DateTimeOffset CreatedAt)
+    DateTimeOffset CreatedAt,
+    IReadOnlyList<DreamImageDto> Images)
 {
-    public static DreamDto From(Dream dream) => new(
+    public static DreamDto From(Dream dream, IEnumerable<DreamImage> images) => new(
         dream.Id,
         dream.Title,
         dream.Why,
@@ -41,5 +68,6 @@ public sealed record DreamDto(
         dream.TargetYear,
         dream.Likes,
         dream.AchievedAt,
-        dream.CreatedAt);
+        dream.CreatedAt,
+        images.Select(DreamImageDto.From).ToList());
 }
