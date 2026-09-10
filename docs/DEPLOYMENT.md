@@ -1,6 +1,6 @@
 # Deployment — running Aspire on the VPS
 
-**Revised:** 2026-09-09
+**Revised:** 2026-09-10
 **Audience:** whoever is holding the SSH key
 
 Prosper's runbook, applied to a second app on the same box. Where the two
@@ -68,9 +68,34 @@ df -h /var/lib/docker
 
 ### 1. Get the repository onto the box
 
+The repository is a laptop with no remote until somebody gives it one. A bare
+repository on the VPS itself is the smallest thing that works: nothing leaves
+hardware you own, and the `git pull` under **[Updating](#updating)** keeps
+working exactly as written. On the box:
+
 ```bash
-sudo git clone <the repository URL> /srv/aspire
+sudo git init --bare /srv/aspire.git
 ```
+
+On the laptop, once:
+
+```bash
+git remote add origin ssh://root@aspire.petrbohac.eu/srv/aspire.git
+```
+
+```bash
+git push -u origin master
+```
+
+Then, back on the box, the working copy the deployment runs from:
+
+```bash
+sudo git clone /srv/aspire.git /srv/aspire
+```
+
+A remote somewhere else — a private repository on a host you already use —
+works the same way from step 2 on, and is also what lets
+`.github/workflows/ci.yml` actually run; it has never had a remote to run on.
 
 ### 2. Write the two secrets
 
