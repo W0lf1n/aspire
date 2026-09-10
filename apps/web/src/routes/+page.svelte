@@ -18,6 +18,7 @@
 	import { describeError } from '$lib/api/errors';
 	import { readToken } from '$lib/api/token';
 	import { pickDaily, reelOrder, shownToday, tileLine } from '$lib/dreams/board';
+	import { photoOf } from '$lib/dreams/photos';
 	import { STATUS_BADGE } from '$lib/dreams/rules';
 	import { rememberBoard } from '$lib/offline/cache';
 	import { connection } from '$lib/offline/status.svelte';
@@ -38,11 +39,6 @@
 
 	/** Dreams on the board, none of them left to swipe: all of them are done. */
 	const allAchieved = $derived(dreams !== null && dreams.length > 0 && reel.length === 0);
-
-	/** The photograph a tile shows: the first one whose sizes are ready. */
-	function photoOf(dream: Dream) {
-		return dream.images.find((image) => image.ready) ?? null;
-	}
 
 	$effect(() => {
 		let live = true;
@@ -141,7 +137,7 @@
 		-->
 		<section class="reel">
 			{#each reel as dream, index (dream.id)}
-				{@const photo = photoOf(dream)}
+				{@const photo = photoOf(dream, 'dreamt')}
 				{@const line = tileLine(dream)}
 				<article class="dream reel__tile" class:dream--sky={!photo}>
 					{#if photo}

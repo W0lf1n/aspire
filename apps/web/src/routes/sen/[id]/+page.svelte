@@ -5,13 +5,18 @@
 	 * and the three things you can do: tap the heart, change the words, or
 	 * let it go. The board shows the affirmation in the why's place; here
 	 * there is room for both, so both are here (D27).
+	 *
+	 * A dream marked splněno gets a second picker under the first: the
+	 * photograph of it having happened, beside the one that was dreamt (D28).
+	 * It is offered only while the dream is achieved, and never taken away —
+	 * a status changed back leaves the picture where it is.
 	 * Deleting asks nothing and says so in a toast, as Prosper does; a dream
 	 * is a few words and one photograph, both quick to give back.
 	 */
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
-	import type { Dream } from '@aspire/contracts';
+	import type { Dream, DreamImageKind } from '@aspire/contracts';
 	import {
 		deleteDream,
 		deleteImage,
@@ -22,6 +27,7 @@
 	} from '$lib/api/client';
 	import { describeError } from '$lib/api/errors';
 	import { formatDate } from '$lib/dreams/format';
+	import { photoOf, photosOf, photosToReplace } from '$lib/dreams/photos';
 	import { STATUS_BADGE, STATUS_CLASS } from '$lib/dreams/rules';
 	import AppBar from '$lib/ui/AppBar.svelte';
 	import Icon from '$lib/ui/Icon.svelte';
@@ -33,9 +39,11 @@
 	let dream = $state<Dream | null>(null);
 	let error = $state('');
 	let liking = $state(false);
-	let uploading = $state(false);
 
-	const photo = $derived(dream?.images.find((image) => image.ready) ?? null);
+	/** Which picker is busy, so the other one is not disabled with it. */
+	let uploading = $state<DreamImageKind | null>(null);
+
+	const photos = $derived(dream ? photosOf(dream) : { dreamt: null, achieved: null });
 
 	$effect(() => {
 		const id = page.params.id ?? '';
@@ -80,26 +88,28 @@
 	}
 
 	/**
-	 * The new photograph replaces the old: the old one goes first, so a
-	 * failed upload leaves the sky rather than the wrong picture. Then the
-	 * dream is asked for again until the sizes are ready — a second or so.
+	 * The new photograph replaces the old of the same kind: the old one goes
+	 * first, so a failed upload leaves the sky rather than the wrong picture,
+	 * and only its own kind goes — changing the dreamt photograph must not
+	 * take the proof with it. Then the dream is asked for again until the
+	 * sizes are ready — a second or so.
 	 */
-	async function replacePhoto(picked: Blob) {
+	async function replacePhoto(picked: Blob, kind: DreamImageKind) {
 		if (!dream || uploading) return;
-		uploading = true;
+		uploading = kind;
 		try {
-			for (const image of dream.images) await deleteImage(dream.id, image.id);
-			await uploadImage(dream.id, picked);
+			for (const image of photosToReplace(dream, kind)) await deleteImage(dream.id, image.id);
+			await uploadImage(dream.id, picked, kind);
 			for (let attempt = 0; attempt < 10; attempt++) {
 				await new Promise((resolve) => setTimeout(resolve, 800));
 				dream = await getDream(dream.id);
-				if (dream.images.some((image) => image.ready)) break;
+				if (photoOf(dream, kind)) break;
 			}
-			toast.show('Fotka je na nástěnce');
+			toast.show(kind === 'dreamt' ? 'Fotka je na nástěnce' : 'Skutečná fotka je u snu');
 		} catch (e) {
 			toast.show(describeError(e));
 		} finally {
-			uploading = false;
+			uploading = null;
 		}
 	}
 
@@ -125,13 +135,32 @@
 
 	{#if dream}
 		<PhotoPicker
-			current={photo?.screenUrl ?? null}
+			current={photos.dreamt?.screenUrl ?? null}
 			title={dream.title}
 			why={dream.why}
-			busy={uploading || !connection.online}
-			onpick={replacePhoto}
+			busy={uploading !== null || !connection.online}
+			onpick={(picked) => replacePhoto(picked, 'dreamt')}
 			onproblem={(sentence) => toast.show(sentence)}
 		/>
+
+		{#if dream.status === 'achieved'}
+			<!--
+				The proof: the photograph of it having happened, wide under the
+				dreamt one so the dreamt one stays the hero. The Síň slávy
+				stands the two side by side; this is where the second one is put.
+			-->
+			<section class="proof">
+				<p class="label">Jak to dopadlo</p>
+				<PhotoPicker
+					current={photos.achieved?.screenUrl ?? null}
+					wide
+					busy={uploading !== null || !connection.online}
+					onpick={(picked) => replacePhoto(picked, 'achieved')}
+					onproblem={(sentence) => toast.show(sentence)}
+				/>
+				<p class="hint">Skutečná fotka toho dne. V Síni slávy pak stojí vedle té vysněné.</p>
+			</section>
+		{/if}
 
 		<section class="card">
 			{#if dream.affirmation}
@@ -185,6 +214,14 @@
 <TabBar />
 
 <style>
+	/* The second photograph and the two lines that say what it is for; the
+	   picker is a tile of its own, so this only stacks them. */
+	.proof {
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-2);
+	}
+
 	/* The affirmation, first in the card and before any fact, because it is
 	   the only line on this screen written in the person's own voice. Bigger
 	   than the facts and a weight above them, and still ink on a card: the

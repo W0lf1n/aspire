@@ -11,6 +11,7 @@
 import type {
 	Dream,
 	DreamImage,
+	DreamImageKind,
 	DreamInput,
 	HealthResponse,
 	PairRequest,
@@ -129,11 +130,19 @@ export function markShown(id: string): Promise<void> {
 	return call<void>(`/dreams/${id}/shown`, { method: 'POST' });
 }
 
-/** The photograph, already downscaled on the device. 202: the sizes follow. */
-export function uploadImage(dreamId: string, photo: Blob): Promise<DreamImage> {
+/**
+ * The photograph, already downscaled on the device. 202: the sizes follow.
+ * The kind says which of the two it is — the dreamt one by default, the
+ * achieved one when the dream came true (D28).
+ */
+export function uploadImage(
+	dreamId: string,
+	photo: Blob,
+	kind: DreamImageKind = 'dreamt'
+): Promise<DreamImage> {
 	const body = new FormData();
 	body.append('file', photo, 'photo.jpg');
-	return call<DreamImage>(`/dreams/${dreamId}/images`, { method: 'POST', body });
+	return call<DreamImage>(`/dreams/${dreamId}/images?kind=${kind}`, { method: 'POST', body });
 }
 
 export function deleteImage(dreamId: string, imageId: string): Promise<void> {

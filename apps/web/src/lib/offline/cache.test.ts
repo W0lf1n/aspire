@@ -1,11 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import type { Dream, DreamImage } from '@aspire/contracts';
+import type { Dream, DreamImage, DreamImageKind } from '@aspire/contracts';
 import { screenUrls, stale } from './cache';
 
-function image(id: string, ready: boolean): DreamImage {
+function image(id: string, ready: boolean, kind: DreamImageKind = 'dreamt'): DreamImage {
 	return {
 		id,
 		sortOrder: 0,
+		kind,
 		width: 1280,
 		height: 853,
 		ready,
@@ -41,6 +42,21 @@ describe('screenUrls', () => {
 			dream('d', [image('d1', false)])
 		];
 		expect(screenUrls(dreams)).toEqual(['/media/d/a2/screen.webp', '/media/d/b1/screen.webp']);
+	});
+
+	it('keeps both halves of a pair, so the wall is whole without a signal', () => {
+		const dreams = [
+			dream('a', [image('a1', true), image('a2', true, 'achieved')]),
+			// The achieved one alone is still worth keeping: it is what the
+			// wall shows when a dream never had a dreamt photograph.
+			dream('b', [image('b1', true, 'achieved')])
+		];
+
+		expect(screenUrls(dreams)).toEqual([
+			'/media/d/a1/screen.webp',
+			'/media/d/a2/screen.webp',
+			'/media/d/b1/screen.webp'
+		]);
 	});
 });
 

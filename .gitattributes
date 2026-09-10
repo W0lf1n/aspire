@@ -7,6 +7,13 @@
 # and it fails at 03:17 in a cron log nobody is reading. This is one line of
 # insurance against that.
 
+# And the working tree itself stays LF. `core.autocrlf` rewrites a file to
+# CRLF whenever git materialises it — a checkout, a `git stash pop` — and
+# prettier's `endOfLine` defaults to lf, so `pnpm lint` fails on files
+# nobody edited. This line makes the checkout match what the repository
+# already stores.
+* text=auto eol=lf
+
 *.sh          text eol=lf
 *.conf        text eol=lf
 *.conf.example text eol=lf

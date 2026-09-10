@@ -64,6 +64,46 @@ public sealed class ImageServiceTests : IDisposable
     private Task<Dream> ADream() => _dreams.CreateAsync(Board, new DreamInput("Loď", null, null, null, null));
 
     [Fact]
+    public async Task An_upload_is_a_dreamt_photograph_unless_it_says_otherwise()
+    {
+        var dream = await ADream();
+        using var dreamt = Png(400, 500);
+        using var achieved = Png(400, 500);
+
+        var (first, _) = await _images.AddAsync(dream, dreamt, dreamt.Length);
+        var (second, _) = await _images.AddAsync(dream, achieved, achieved.Length, DreamImageKind.Achieved);
+
+        Assert.Equal(DreamImageKind.Dreamt, first!.Kind);
+        Assert.Equal(DreamImageKind.Achieved, second!.Kind);
+
+        // Both kinds live under the one dream, and the kind survives the round
+        // trip through the column's string conversion.
+        var stored = await _images.OfDreamsAsync([dream.Id]);
+        Assert.Equal(
+            [DreamImageKind.Dreamt, DreamImageKind.Achieved],
+            stored.Select(i => i.Kind));
+    }
+
+    [Theory]
+    [InlineData(null, DreamImageKind.Dreamt)]
+    [InlineData("", DreamImageKind.Dreamt)]
+    [InlineData("dreamt", DreamImageKind.Dreamt)]
+    [InlineData("achieved", DreamImageKind.Achieved)]
+    public void A_request_naming_a_kind_is_read(string? asked, DreamImageKind expected)
+    {
+        Assert.Equal(expected, DreamImageKindNames.TryParse(asked));
+    }
+
+    [Theory]
+    [InlineData("Achieved")]
+    [InlineData("real")]
+    [InlineData("splneno")]
+    public void A_request_naming_anything_else_is_no_kind_at_all(string asked)
+    {
+        Assert.Null(DreamImageKindNames.TryParse(asked));
+    }
+
+    [Fact]
     public async Task An_upload_makes_a_row_and_the_worker_makes_the_files()
     {
         var dream = await ADream();

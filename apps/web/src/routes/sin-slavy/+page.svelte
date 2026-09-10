@@ -5,14 +5,17 @@
 	 * the dreams marked splněno, the most recent first, each still its own
 	 * photograph because the proof is the picture, not a line in a list.
 	 *
-	 * The before-and-after photograph and the anniversary are M3's; this is
-	 * the wall the achieved filter needs in order not to lose a dream.
+	 * A dream with both photographs stands them side by side — the dreamt one
+	 * and the one taken when it happened, the same size, no arrow between
+	 * them and nothing labelling which is which (D28). With only one it is
+	 * the wide tile it always was.
 	 */
 	import { resolve } from '$app/paths';
 	import type { Dream } from '@aspire/contracts';
 	import { listBoard } from '$lib/api/client';
 	import { achievedDreams } from '$lib/dreams/board';
 	import { formatDate } from '$lib/dreams/format';
+	import { photosOf } from '$lib/dreams/photos';
 	import { connection } from '$lib/offline/status.svelte';
 	import Icon from '$lib/ui/Icon.svelte';
 	import TabBar from '$lib/ui/TabBar.svelte';
@@ -20,11 +23,6 @@
 	let dreams = $state<Dream[]>([]);
 
 	const achieved = $derived(achievedDreams(dreams));
-
-	/** The photograph a tile shows: the first one whose sizes are ready. */
-	function photoOf(dream: Dream) {
-		return dream.images.find((image) => image.ready) ?? null;
-	}
 
 	$effect(() => {
 		let live = true;
@@ -62,22 +60,58 @@
 		-->
 		<section class="hall">
 			{#each achieved as dream (dream.id)}
-				{@const photo = photoOf(dream)}
-				<a
-					class="dream dream--wide hall__tile"
-					class:dream--sky={!photo}
-					href={resolve('/sen/[id]', { id: dream.id })}
-				>
-					{#if photo}
-						<img class="dream__img" src={photo.screenUrl} alt="" loading="lazy" decoding="async" />
-					{/if}
-					<div class="dream__body">
-						<h2 class="dream__title dream__title--sm">{dream.title}</h2>
-						{#if dream.achievedAt}
-							<p class="dream__why hall__when">Splněno {formatDate(dream.achievedAt)}</p>
+				{@const photos = photosOf(dream)}
+				{#if photos.dreamt && photos.achieved}
+					<a class="hall__pair" href={resolve('/sen/[id]', { id: dream.id })}>
+						<div class="dream hall__half">
+							<img
+								class="dream__img"
+								src={photos.dreamt.screenUrl}
+								alt=""
+								loading="lazy"
+								decoding="async"
+							/>
+						</div>
+						<div class="dream hall__half">
+							<img
+								class="dream__img"
+								src={photos.achieved.screenUrl}
+								alt=""
+								loading="lazy"
+								decoding="async"
+							/>
+							<div class="dream__body">
+								<h2 class="dream__title dream__title--sm">{dream.title}</h2>
+								{#if dream.achievedAt}
+									<p class="dream__why hall__when">Splněno {formatDate(dream.achievedAt)}</p>
+								{/if}
+							</div>
+						</div>
+					</a>
+				{:else}
+					{@const photo = photos.achieved ?? photos.dreamt}
+					<a
+						class="dream dream--wide hall__tile"
+						class:dream--sky={!photo}
+						href={resolve('/sen/[id]', { id: dream.id })}
+					>
+						{#if photo}
+							<img
+								class="dream__img"
+								src={photo.screenUrl}
+								alt=""
+								loading="lazy"
+								decoding="async"
+							/>
 						{/if}
-					</div>
-				</a>
+						<div class="dream__body">
+							<h2 class="dream__title dream__title--sm">{dream.title}</h2>
+							{#if dream.achievedAt}
+								<p class="dream__why hall__when">Splněno {formatDate(dream.achievedAt)}</p>
+							{/if}
+						</div>
+					</a>
+				{/if}
 			{/each}
 		</section>
 	{:else}
@@ -135,5 +169,34 @@
 	/* The date is the quiet half of the pair: the title carries the dream. */
 	.hall__when {
 		font-size: var(--text-sm);
+	}
+
+	/* ── the pair ──────────────────────────────────────────────────────── */
+
+	/* Two photographs of one dream, the dreamt one and the one taken when it
+	   happened, the same size and the same shape: the wall's whole argument
+	   is that the second looks like the first. A 2 px gap, not a gutter —
+	   they read as one object, and the words sit on the right-hand half. */
+	.hall__pair {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: 2px;
+		border-radius: var(--radius-lg);
+		overflow: hidden;
+		text-decoration: none;
+		box-shadow: var(--elev-photo);
+		transition: transform var(--dur-fast) var(--ease-out);
+	}
+
+	.hall__pair:active {
+		transform: scale(0.99);
+	}
+
+	/* Each half is a `.dream` without its own corners or shadow: the pair
+	   owns both, so the seam between them stays a seam. */
+	.hall__half {
+		aspect-ratio: 4 / 5;
+		border-radius: 0;
+		box-shadow: none;
 	}
 </style>

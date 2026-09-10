@@ -1,22 +1,28 @@
 /**
  * The photographs the board needs when there is no network: the screen size
- * of the picture every tile shows, fetched ahead while there is a signal and
+ * of every picture a tile shows, fetched ahead while there is a signal and
  * pruned to what is still on the board. The service worker owns the cache
  * and answers from it; this side only fills and trims it.
  */
 
 import type { Dream } from '@aspire/contracts';
+import { photosOf } from '$lib/dreams/photos';
 
 /** The service worker's names for them; deleting both is forgetting the board. */
 export const MEDIA_CACHE = 'aspire-media';
 export const DATA_CACHE = 'aspire-board';
 
-/** The URL every tile shows: its first photograph that is ready, at screen size. */
+/**
+ * Every URL a tile shows, at screen size: the dreamt photograph, which is
+ * the reel's, and the achieved one, because the Síň slávy stands the two
+ * side by side and half a pair is not proof of anything (D28).
+ */
 export function screenUrls(dreams: Dream[]): string[] {
 	const urls: string[] = [];
 	for (const dream of dreams) {
-		const photo = dream.images.find((image) => image.ready);
-		if (photo) urls.push(photo.screenUrl);
+		const { dreamt, achieved } = photosOf(dream);
+		if (dreamt) urls.push(dreamt.screenUrl);
+		if (achieved) urls.push(achieved.screenUrl);
 	}
 	return urls;
 }

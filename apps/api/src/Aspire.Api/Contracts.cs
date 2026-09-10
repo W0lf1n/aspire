@@ -34,6 +34,7 @@ public sealed record DreamInput(
 public sealed record DreamImageDto(
     Guid Id,
     int SortOrder,
+    DreamImageKind Kind,
     int Width,
     int Height,
     bool Ready,
@@ -44,6 +45,7 @@ public sealed record DreamImageDto(
     public static DreamImageDto From(DreamImage image) => new(
         image.Id,
         image.SortOrder,
+        image.Kind,
         image.Width,
         image.Height,
         image.ProcessedAt is not null,

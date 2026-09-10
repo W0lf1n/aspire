@@ -55,6 +55,10 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
             entity.HasKey(i => i.Id);
             entity.HasIndex(i => new { i.DreamId, i.SortOrder });
 
+            entity.Property(i => i.Kind)
+                .HasConversion(k => DreamImageKindNames.ToWire(k), k => DreamImageKindNames.Parse(k))
+                .HasMaxLength(16);
+
             // A dream that goes takes its photographs' rows with it; the
             // files are the MediaStore's to remove.
             entity.HasOne<Dream>()

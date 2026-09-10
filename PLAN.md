@@ -198,5 +198,13 @@ to be said beats the line that explains (D27); on the dream's own screen
 both are there, the why on the photograph and the affirmation opening the
 card. The choice is `tileLine` in `dreams/board.ts`, with its test.
 
-Still ahead in M3: the achieved photograph beside the dreamt one (§3.3),
-the anniversary, and the voice memo if §8.4 says yes.
+**The achieved photograph** (§3.3, done): a photograph knows which of the
+two it is — `dreamt` or `achieved`, a column and a word on the wire (D28).
+A dream marked splněno gets a second picker on its own screen, under the
+dreamt one and only while it is achieved; the Síň slávy stands the pair
+side by side, 4:5 each with a 2 px seam and one shadow around both, because
+the argument is that the right-hand picture looks like the left-hand one.
+Replacing one kind leaves the other where it is (`photos.ts`), and the
+media cache keeps both so the wall is whole without a signal.
+
+Still ahead in M3: the anniversary, and the voice memo if §8.4 says yes.

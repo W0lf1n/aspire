@@ -32,7 +32,8 @@ public sealed class ImageService(AppDbContext db, MediaStore media, ImageQueue q
     /// one, is the sentence for the screen.
     /// </summary>
     public async Task<(DreamImage? Image, string? Problem)> AddAsync(
-        Dream dream, Stream upload, long length, CancellationToken ct = default)
+        Dream dream, Stream upload, long length, DreamImageKind kind = DreamImageKind.Dreamt,
+        CancellationToken ct = default)
     {
         if (length <= 0) return (null, "Vyber fotku.");
         if (length > MaxUploadBytes) return (null, "Fotka je moc velká, nejvýš 10 MB.");
@@ -42,6 +43,7 @@ public sealed class ImageService(AppDbContext db, MediaStore media, ImageQueue q
             Id = Guid.NewGuid(),
             DreamId = dream.Id,
             SortOrder = await db.DreamImages.CountAsync(i => i.DreamId == dream.Id, ct),
+            Kind = kind,
             CreatedAt = DateTimeOffset.UtcNow
         };
 

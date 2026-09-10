@@ -32,7 +32,7 @@ export interface PairResponse {
 
 // ── GET /api/v1/dreams ──────────────────────────────────────────────────────
 
-export const DREAM_STATUSES = ['dreaming', 'in-progress', 'achieved'] as const;
+export const DREAM_STATUSES = ["dreaming", "in-progress", "achieved"] as const;
 
 export type DreamStatus = (typeof DREAM_STATUSES)[number];
 
@@ -62,9 +62,18 @@ export interface Dream {
 	lastShownAt: string | null;
 	/** ISO datetime. */
 	createdAt: string;
-	/** In board order; the first is the one the tile shows. */
+	/** Both kinds, in board order; `photosOf` picks the one a screen wants. */
 	images: DreamImage[];
 }
+
+export const DREAM_IMAGE_KINDS = ["dreamt", "achieved"] as const;
+
+/**
+ * What a photograph is of: the dream, or the dream come true. The board and
+ * the reel show the dreamt one; the Síň slávy stands the two side by side,
+ * which is the whole of the proof that it happened (D28).
+ */
+export type DreamImageKind = (typeof DREAM_IMAGE_KINDS)[number];
 
 /**
  * One photograph, as URLs under `/media/`. `ready` is false for the moment
@@ -73,6 +82,7 @@ export interface Dream {
 export interface DreamImage {
 	id: string;
 	sortOrder: number;
+	kind: DreamImageKind;
 	width: number;
 	height: number;
 	ready: boolean;

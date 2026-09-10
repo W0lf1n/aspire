@@ -465,3 +465,44 @@ of type on a photograph is one more thing between the person and the picture
 - **120 characters, like the title.** A line, not a paragraph — the why has
   500 characters for the explaining. The column, the server's sentence and
   `rules.ts` all read `AffirmationMaxLength`, so they cannot drift.
+
+### D28 — A photograph knows which of the two it is, and the wall stands them side by side
+
+PLAN.md §3.3 wants the achieved photograph beside the dreamt one. That is
+two pictures of one dream, and every screen has to know which is which: the
+reel must not open on the proof, and the wall is only proof if both are there.
+
+- **The kind is a column, not a path.** `DreamImage.Kind` is `dreamt` or
+  `achieved`, kebab-case on the wire, in the database and in
+  `packages/contracts`, the way `DreamStatus` already is. The files stay at
+  `{media}/{dreamId}/{imageId}/{size}.webp` — a new photograph is still a new
+  id, so nothing cached for a year can go stale, and the media store did not
+  have to learn a second word.
+- **The migration backfills `dreamt`, not `""`.** EF generates a new
+  non-nullable string column with `defaultValue: ""`, and
+  `DreamImageKindNames.Parse` throws on that — so the board would 500 on the
+  first read after a deploy rather than show the photographs already on it.
+  Every photograph taken before this change is a dreamt one; the migration
+  says so.
+- **The upload names its kind and the API does not argue.** `POST
+  /dreams/{id}/images?kind=achieved`; anything but the two words is a
+  sentence, and a missing one is `dreamt`. The dream's *status* is not
+  checked: a status can change after, and the answer to a dream that went
+  back to plním must never be deleting somebody's photograph. So the picker
+  is offered only while the dream is achieved, and what is already there
+  stays there.
+- **Replacing one kind leaves the other.** `photosToReplace` takes only the
+  kind being replaced — and the rows still being resized with it, or the old
+  one returns as a second picture a moment later. `photos.ts` holds this,
+  `photoOf` and `photosOf`, with the test; the three screens that used to
+  each find their own first-ready image now ask it.
+- **The wall shows the pair as one object.** Two halves, 4:5 each, a 2 px
+  seam, one set of corners and one shadow around both: the argument is that
+  the right-hand photograph looks like the left-hand one, and a gutter or an
+  arrow between them would be the interface explaining the joke. Nothing
+  labels which is which — the words and the date sit on the achieved half,
+  which is the one that happened. A dream with only one photograph is the
+  wide tile it always was.
+- **Offline keeps both.** `screenUrls` fed the media cache one picture per
+  dream; a wall of half-pairs without a signal is not a wall, so it now
+  keeps the dreamt and the achieved.

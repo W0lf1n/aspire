@@ -584,6 +584,15 @@ sky drifts: two radial lights over the gradient, 16 s alternate on
 first tile on the board caps its height to what is left under the wordmark
 and above the bar, giving up its ratio before its foot.
 
+### The pair (Síň slávy)
+A dream with both photographs stands them side by side: two 4:5 halves in a
+`1fr 1fr` grid with a 2 px seam, the pair owning one 20 px radius and the
+one photo shadow while the halves give up theirs, so it reads as a single
+object rather than two tiles. The title and the date sit in the right-hand
+half's `.dream__body` — the half that happened. Nothing labels which is
+which and nothing sits between them (D28). With one photograph it is the
+16:10 wide tile.
+
 ### Toast
 One glass pill in the ink, centred 16 px above the bar, at most 26 rem
 wide, 48 px tall, 14 px 600, rising 12 px in 220 ms on `--ease-out`. An

@@ -1,5 +1,6 @@
 using Aspire.Api.Auth;
 using Aspire.Api.Images;
+using Aspire.Domain;
 
 namespace Aspire.Api.Dreams;
 
@@ -131,9 +132,14 @@ public static class DreamEndpoints
 
         // ── the photographs ───────────────────────────────────────────────────
 
+        // `kind` says which of the two photographs this is: the dreamt one
+        // by default, the achieved one when the dream came true (D28). A
+        // dream's status is not checked — a status can change after, and the
+        // answer to that must never be deleting somebody's photograph.
         app.MapPost("/api/v1/dreams/{id:guid}/images", async (
             Guid id,
             IFormFile file,
+            string? kind,
             HttpContext http,
             DeviceAuth auth,
             DreamService dreams,
@@ -143,11 +149,16 @@ public static class DreamEndpoints
             var device = await auth.ResolveAsync(http.Request.Headers.Authorization, ct);
             if (device is null) return Results.Unauthorized();
 
+            if (DreamImageKindNames.TryParse(kind) is not { } asked)
+            {
+                return Results.Problem("Fotka je buď vysněná, nebo skutečná.", statusCode: 400);
+            }
+
             var dream = await dreams.FindAsync(device.BoardId, id, ct);
             if (dream is null) return Results.NotFound();
 
             await using var upload = file.OpenReadStream();
-            var (image, problem) = await images.AddAsync(dream, upload, file.Length, ct);
+            var (image, problem) = await images.AddAsync(dream, upload, file.Length, asked, ct);
             if (image is null) return Results.Problem(problem, statusCode: 400);
 
             // 202: the row is there, the sizes follow. `Ready` says when.
