@@ -55,17 +55,17 @@ Two accents, `--signal` (ember, acts) and `--dusk` (marks), one gradient
 
 ## Routes
 
-| Route                 | Screen                                                          |
-| --------------------- | --------------------------------------------------------------- |
-| `/`                   | Nástěnka. The reel: a tile a screen, the day's pick first       |
-| `/pridat`             | Přidat sen. The dream's form (`DreamForm`) with an ember pill   |
-| `/sen/[id]`           | One dream: the tile, the facts, the heart, Upravit and Smazat   |
-| `/sen/[id]/upravit`   | The same form with the saved values; back is the dream          |
-| `/sin-slavy`          | Síň slávy. The achieved dreams, the most recent first; the pair |
-| `/nastaveni`          | The hub: Vzhled, Párování, the version                          |
-| `/nastaveni/vzhled`   | systém / světlý / tmavý                                         |
-| `/nastaveni/parovani` | The code and a device name; paired, Odpojit                     |
-| `/styleguide`         | Tokens and components, both themes. Unlinked                    |
+| Route                 | Screen                                                                     |
+| --------------------- | -------------------------------------------------------------------------- |
+| `/`                   | Nástěnka. The reel: a tile a screen, the day's pick first; the anniversary |
+| `/pridat`             | Přidat sen. The dream's form (`DreamForm`) with an ember pill              |
+| `/sen/[id]`           | One dream: the tile, the facts, the heart, Upravit and Smazat              |
+| `/sen/[id]/upravit`   | The same form with the saved values; back is the dream                     |
+| `/sin-slavy`          | Síň slávy. The achieved dreams, the most recent first; the pair            |
+| `/nastaveni`          | The hub: Vzhled, Párování, the version                                     |
+| `/nastaveni/vzhled`   | systém / světlý / tmavý                                                    |
+| `/nastaveni/parovani` | The code and a device name; paired, Odpojit                                |
+| `/styleguide`         | Tokens and components, both themes. Unlinked                               |
 
 The bar is four slots: Nástěnka · ⊕ · Síň slávy · Nastavení. `lib/ui/nav.ts`
 decides which one a path lights and has the test.
@@ -74,7 +74,8 @@ decides which one a path lights and has the test.
 
 Vitest, node environment, `requireAssertions: true`. `nav.test.ts`,
 `settings.test.ts`, `api/pairing.test.ts`, `dreams/rules.test.ts`,
-`dreams/board.test.ts` (the reel, the daily pick, the tile's line),
+`dreams/board.test.ts` (the reel, the daily pick, the tile's line, the
+anniversary), `dreams/format.test.ts`,
 `dreams/photos.test.ts` (which of a dream's two photographs a screen shows),
 `images/downscale.test.ts` and
 `offline/cache.test.ts`; a new rule gets a test before it gets a screen, and

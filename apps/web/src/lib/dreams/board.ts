@@ -1,8 +1,8 @@
 /**
- * Which dreams the board shows, which one it opens with, and what a tile
- * says under the title.
+ * Which dreams the board shows, which one it opens with, what a tile says
+ * under the title, and whose anniversary today is.
  *
- * Three rules live here. The reel is what is not yet achieved (PLAN §3.2): a
+ * Four rules live here. The reel is what is not yet achieved (PLAN §3.2): a
  * dream marked splněno leaves the swipe and turns up in the Síň slávy, so
  * the board stays what is still ahead. And the daily pick is the tile the
  * reel opens on — the dream shown least recently — so the board is a
@@ -87,6 +87,40 @@ export function reelOrder(dreams: Dream[], pickedId: string | null): Dream[] {
 	const rows = reelDreams(dreams);
 	const picked = rows.find((dream) => dream.id === pickedId);
 	return picked ? [picked, ...rows.filter((dream) => dream !== picked)] : rows;
+}
+
+/** A dream that came true on this day in an earlier year, and how long ago. */
+export interface Anniversary {
+	dream: Dream;
+	/** Whole years since, always one or more. */
+	years: number;
+}
+
+/**
+ * Today's anniversary: the dream achieved on this day of this month in an
+ * earlier year (PLAN.md §3.3). The proof that the system works is the wall;
+ * this is the wall reaching the board on the one morning it has a reason to.
+ *
+ * The day is the device's own, as the daily pick's is (`shownToday`), so an
+ * anniversary lands on the day the person is living rather than on UTC's.
+ * A dream achieved on 29 February has its anniversary on 29 February; the
+ * alternative is inventing a date it did not happen on.
+ *
+ * When two fell on the same day, the one achieved most recently wins, which
+ * is the order the wall is in — one line on the board, never a list.
+ */
+export function anniversaryToday(dreams: Dream[], now: Date = new Date()): Anniversary | null {
+	for (const dream of achievedDreams(dreams)) {
+		if (dream.achievedAt === null) continue;
+
+		const then = new Date(dream.achievedAt);
+		if (then.getMonth() !== now.getMonth() || then.getDate() !== now.getDate()) continue;
+
+		const years = now.getFullYear() - then.getFullYear();
+		if (years >= 1) return { dream, years };
+	}
+
+	return null;
 }
 
 /** A stamp as a number, with never counting as the beginning of time. */

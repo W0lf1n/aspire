@@ -207,4 +207,12 @@ the argument is that the right-hand picture looks like the left-hand one.
 Replacing one kind leaves the other where it is (`photos.ts`), and the
 media cache keeps both so the wall is whole without a signal.
 
-Still ahead in M3: the anniversary, and the voice memo if §8.4 says yes.
+**The anniversary** (§3.3, done): on the one morning a year a dream has one,
+the wall reaches the board — a single line above the reel, dusk-washed with
+a small trophy, the way back to the dream itself (D29). Push is M5's, so
+this is where an anniversary can be seen for now. The sentence's verb agrees
+with *sen* rather than with the person, because a board is a pairing code
+and the server has never been told anybody's gender (D21).
+
+Still ahead in M3: the voice memo, if §8.4 says yes. §3.3 and §3.4 are
+otherwise done.

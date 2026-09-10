@@ -1,6 +1,14 @@
 import { describe, expect, it } from 'vitest';
 import type { Dream } from '@aspire/contracts';
-import { achievedDreams, pickDaily, reelDreams, reelOrder, shownToday, tileLine } from './board';
+import {
+	achievedDreams,
+	anniversaryToday,
+	pickDaily,
+	reelDreams,
+	reelOrder,
+	shownToday,
+	tileLine
+} from './board';
 
 /** Every stamp is a whole number of days from this, so no timezone changes it. */
 const NOW = new Date('2026-09-10T09:00:00Z');
@@ -25,6 +33,47 @@ function dream(id: string, over: Partial<Dream> = {}): Dream {
 		...over
 	};
 }
+
+describe('anniversaryToday', () => {
+	/** Achieved on 10 September, the day NOW falls on, `years` years back. */
+	function achieved(id: string, yearsAgo: number, day = '09-10') {
+		return dream(id, {
+			status: 'achieved',
+			achievedAt: `${2026 - yearsAgo}-${day}T12:00:00Z`
+		});
+	}
+
+	it('finds the dream that came true on this day in an earlier year', () => {
+		const found = anniversaryToday([achieved('a', 1)], NOW);
+
+		expect(found).toEqual({ dream: expect.objectContaining({ id: 'a' }), years: 1 });
+	});
+
+	it('counts the whole years', () => {
+		expect(anniversaryToday([achieved('a', 4)], NOW)?.years).toBe(4);
+	});
+
+	it('is nothing on any other day, and nothing on the day itself', () => {
+		expect(anniversaryToday([achieved('a', 1, '09-11')], NOW)).toBeNull();
+		expect(anniversaryToday([achieved('a', 1, '10-10')], NOW)).toBeNull();
+		// Achieved this morning is not an anniversary; it is today.
+		expect(anniversaryToday([achieved('a', 0)], NOW)).toBeNull();
+	});
+
+	it('ignores a dream that is not achieved', () => {
+		const still = dream('a', { status: 'in-progress', achievedAt: null });
+
+		expect(anniversaryToday([still], NOW)).toBeNull();
+		expect(anniversaryToday([], NOW)).toBeNull();
+	});
+
+	it('takes the most recent when two fell on the same day', () => {
+		const found = anniversaryToday([achieved('old', 5), achieved('recent', 2)], NOW);
+
+		expect(found?.dream.id).toBe('recent');
+		expect(found?.years).toBe(2);
+	});
+});
 
 describe('tileLine', () => {
 	it('says the affirmation when there is one', () => {

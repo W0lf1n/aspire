@@ -506,3 +506,30 @@ reel must not open on the proof, and the wall is only proof if both are there.
 - **Offline keeps both.** `screenUrls` fed the media cache one picture per
   dream; a wall of half-pairs without a signal is not a wall, so it now
   keeps the dreamt and the achieved.
+
+### D29 — The anniversary is one line on the board, and its verb agrees with the dream
+
+PLAN.md §3.3 asks for "1 year ago you achieved X". Push is M5's, so for now
+the anniversary has to be somewhere the person already looks — and the place
+they look every morning is the board.
+
+- **One line above the reel, not a card and not a tile.** The photograph is
+  the hero (rule 4); an anniversary that pushed the day's dream down the
+  screen would be the wall borrowing the board rather than reaching it. The
+  line is a dusk wash with a small dusk circle, because dusk marks and never
+  acts (tokens.css), and the whole of it is the way back to the dream.
+- **Only when there is one, which is most days never.** `anniversaryToday`
+  is in `dreams/board.ts` with the other three rules about what the board
+  shows, and has its test. The day is the device's own, as the daily pick's
+  is: an anniversary should land on the day the person is living, not on
+  UTC's. A dream achieved on 29 February keeps its anniversary on 29
+  February — the alternative is inventing a date it did not happen on.
+- **The most recent one wins when two share a day.** That is the wall's own
+  order, and one line is the rule; a list of anniversaries is a screen, and
+  the screen already exists.
+- **„Před rokem se ti splnil sen …“** — the verb agrees with *sen*, which is
+  masculine, and not with the person. A board is a pairing code and the
+  server has never been told anybody's gender (D21), so a sentence that
+  needed to know would be wrong for half the boards. Czech wants `rokem` for
+  one year and `lety` for every number above it; `formatAnniversary` in
+  `dreams/format.ts` holds that, with its test.

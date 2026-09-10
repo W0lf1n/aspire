@@ -7,6 +7,10 @@
 	 * dream shown least recently, so the board is a different one each
 	 * morning (`board.ts`, D25).
 	 *
+	 * On the one morning a year a dream has an anniversary, the wall reaches
+	 * the board: one line above the reel, the way back to the dream itself
+	 * (D29). It is not a card and not a tile — the photograph stays the hero.
+	 *
 	 * Empty, it has one state worth designing. The empty state is not an
 	 * illustration with a caption; it is the first dream's own tile, with the
 	 * sky where the photograph will be and the words where the words will be,
@@ -17,7 +21,8 @@
 	import { ApiError, likeDream, listBoard, markShown } from '$lib/api/client';
 	import { describeError } from '$lib/api/errors';
 	import { readToken } from '$lib/api/token';
-	import { pickDaily, reelOrder, shownToday, tileLine } from '$lib/dreams/board';
+	import { anniversaryToday, pickDaily, reelOrder, shownToday, tileLine } from '$lib/dreams/board';
+	import { formatAnniversary } from '$lib/dreams/format';
 	import { photoOf } from '$lib/dreams/photos';
 	import { STATUS_BADGE } from '$lib/dreams/rules';
 	import { rememberBoard } from '$lib/offline/cache';
@@ -39,6 +44,9 @@
 
 	/** Dreams on the board, none of them left to swipe: all of them are done. */
 	const allAchieved = $derived(dreams !== null && dreams.length > 0 && reel.length === 0);
+
+	/** A dream that came true on this day in an earlier year, or nothing. */
+	const anniversary = $derived(dreams === null ? null : anniversaryToday(dreams));
 
 	$effect(() => {
 		let live = true;
@@ -128,6 +136,20 @@
 		</p>
 	{/if}
 
+	{#if anniversary}
+		<a
+			class="anniversary"
+			href={resolve('/sen/[id]', { id: anniversary.dream.id })}
+			aria-label={formatAnniversary(anniversary.years, anniversary.dream.title)}
+		>
+			<span class="circle circle--sm circle--dusk" aria-hidden="true">
+				<Icon name="trophy" size={16} stroke={1.8} />
+			</span>
+			<span aria-hidden="true">{formatAnniversary(anniversary.years, anniversary.dream.title)}</span
+			>
+		</a>
+	{/if}
+
 	{#if reel.length > 0}
 		<!--
 			The reel: one tile the height of the screen per dream, snapping as
@@ -212,6 +234,29 @@
 <TabBar />
 
 <style>
+	/* The one morning a year the wall has something to say to the board: a
+	   line, a dusk circle, and the way back to the dream. Dusk because this
+	   marks rather than acts (tokens.css), and a line rather than a card
+	   because the tile under it is the point of the screen. */
+	.anniversary {
+		display: flex;
+		align-items: center;
+		gap: var(--space-2);
+		margin-bottom: var(--space-2);
+		padding: var(--space-2);
+		border-radius: var(--radius-sm);
+		background: var(--dusk-wash);
+		color: var(--ink);
+		font-size: var(--text-sm);
+		line-height: var(--leading-base);
+		text-decoration: none;
+		text-wrap: pretty;
+	}
+
+	.anniversary:active {
+		transform: scale(0.99);
+	}
+
 	/* The name, in the flow, at the hero size: it is the only title the board
 	   has, and it scrolls away with the tile. */
 	.wordmark {
