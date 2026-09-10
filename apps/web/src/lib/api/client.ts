@@ -121,6 +121,14 @@ export function likeDream(id: string): Promise<Dream> {
 	return call<Dream>(`/dreams/${id}/likes`, { method: 'POST' });
 }
 
+/**
+ * This dream was the board's first tile today. Nothing comes back: the stamp
+ * is for tomorrow's pick and for the board's other devices (D25).
+ */
+export function markShown(id: string): Promise<void> {
+	return call<void>(`/dreams/${id}/shown`, { method: 'POST' });
+}
+
 /** The photograph, already downscaled on the device. 202: the sizes follow. */
 export function uploadImage(dreamId: string, photo: Blob): Promise<DreamImage> {
 	const body = new FormData();

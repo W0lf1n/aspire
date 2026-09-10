@@ -109,6 +109,20 @@ public sealed class DreamService(AppDbContext db, MediaStore media)
     }
 
     /// <summary>
+    /// This dream was the board's first tile today. The daily pick reads the
+    /// stamp back: least recently shown first, so tomorrow the board opens
+    /// on another one and every device on the board agrees on which.
+    /// </summary>
+    public async Task<bool> MarkShownAsync(string boardId, Guid id, CancellationToken ct = default)
+    {
+        var now = DateTimeOffset.UtcNow;
+        var touched = await db.Dreams
+            .Where(d => d.BoardId == boardId && d.Id == id)
+            .ExecuteUpdateAsync(set => set.SetProperty(d => d.LastShownAt, now), ct);
+        return touched > 0;
+    }
+
+    /// <summary>
     /// Validated input onto a dream. Achieved gets its date the first time
     /// it is set and keeps it after; leaving achieved gives the date back.
     /// </summary>

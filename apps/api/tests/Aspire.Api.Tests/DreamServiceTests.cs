@@ -114,6 +114,29 @@ public sealed class DreamServiceTests : IDisposable
     }
 
     [Fact]
+    public async Task Being_shown_stamps_the_dream_and_nothing_else()
+    {
+        var dream = await _dreams.CreateAsync(BoardA, Input());
+        var other = await _dreams.CreateAsync(BoardA, Input("Loď"));
+        var before = DateTimeOffset.UtcNow;
+
+        Assert.True(await _dreams.MarkShownAsync(BoardA, dream.Id));
+
+        // Read past the change tracker: the stamp is an ExecuteUpdate, so the
+        // instance `CreateAsync` left tracked still says null.
+        var shown = await _db.Dreams.AsNoTracking().FirstAsync(d => d.Id == dream.Id);
+        Assert.NotNull(shown.LastShownAt);
+        Assert.InRange(shown.LastShownAt!.Value, before.AddSeconds(-1), DateTimeOffset.UtcNow.AddSeconds(1));
+        Assert.Null((await _db.Dreams.AsNoTracking().FirstAsync(d => d.Id == other.Id)).LastShownAt);
+    }
+
+    [Fact]
+    public async Task A_dream_that_is_not_there_was_not_shown()
+    {
+        Assert.False(await _dreams.MarkShownAsync(BoardA, Guid.NewGuid()));
+    }
+
+    [Fact]
     public async Task Deleting_removes_the_dream()
     {
         var dream = await _dreams.CreateAsync(BoardA, Input());
@@ -132,10 +155,12 @@ public sealed class DreamServiceTests : IDisposable
         Assert.Null(await _dreams.FindAsync(BoardB, dream.Id));
         Assert.Null(await _dreams.UpdateAsync(BoardB, dream.Id, Input("Ukradený")));
         Assert.Null(await _dreams.LikeAsync(BoardB, dream.Id));
+        Assert.False(await _dreams.MarkShownAsync(BoardB, dream.Id));
         Assert.False(await _dreams.DeleteAsync(BoardB, dream.Id));
 
         var untouched = await _dreams.FindAsync(BoardA, dream.Id);
         Assert.Equal("Dům u lesa", untouched!.Title);
         Assert.Equal(0, untouched.Likes);
+        Assert.Null(untouched.LastShownAt);
     }
 }

@@ -25,6 +25,7 @@ function dream(id: string, images: DreamImage[]): Dream {
 		targetYear: null,
 		likes: 0,
 		achievedAt: null,
+		lastShownAt: null,
 		createdAt: '2026-09-10T00:00:00Z',
 		images
 	};

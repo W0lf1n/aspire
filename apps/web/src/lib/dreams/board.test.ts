@@ -1,0 +1,141 @@
+import { describe, expect, it } from 'vitest';
+import type { Dream } from '@aspire/contracts';
+import { achievedDreams, pickDaily, reelDreams, reelOrder, shownToday } from './board';
+
+/** Every stamp is a whole number of days from this, so no timezone changes it. */
+const NOW = new Date('2026-09-10T09:00:00Z');
+const TODAY = '2026-09-10T09:00:00Z';
+const YESTERDAY = '2026-09-09T09:00:00Z';
+const A_WEEK_AGO = '2026-09-03T09:00:00Z';
+
+function dream(id: string, over: Partial<Dream> = {}): Dream {
+	return {
+		id,
+		title: id,
+		why: '',
+		status: 'dreaming',
+		sortOrder: 0,
+		targetYear: null,
+		likes: 0,
+		achievedAt: null,
+		lastShownAt: null,
+		createdAt: '2026-09-01T00:00:00Z',
+		images: [],
+		...over
+	};
+}
+
+describe('reelDreams', () => {
+	it('keeps what is still ahead, in board order', () => {
+		const rows = [
+			dream('a'),
+			dream('b', { status: 'achieved', achievedAt: YESTERDAY }),
+			dream('c', { status: 'in-progress' })
+		];
+
+		expect(reelDreams(rows).map((d) => d.id)).toEqual(['a', 'c']);
+	});
+});
+
+describe('achievedDreams', () => {
+	it('keeps only the achieved, the most recent first', () => {
+		const rows = [
+			dream('old', { status: 'achieved', achievedAt: A_WEEK_AGO }),
+			dream('dreaming'),
+			dream('new', { status: 'achieved', achievedAt: YESTERDAY })
+		];
+
+		expect(achievedDreams(rows).map((d) => d.id)).toEqual(['new', 'old']);
+	});
+
+	it('breaks a tie on board order, and leaves the board alone', () => {
+		const rows = [
+			dream('second', { status: 'achieved', achievedAt: YESTERDAY, sortOrder: 1 }),
+			dream('first', { status: 'achieved', achievedAt: YESTERDAY, sortOrder: 0 })
+		];
+
+		expect(achievedDreams(rows).map((d) => d.id)).toEqual(['first', 'second']);
+		expect(rows.map((d) => d.id)).toEqual(['second', 'first']);
+	});
+});
+
+describe('shownToday', () => {
+	it('is a day, not a duration', () => {
+		expect(shownToday(null, NOW)).toBe(false);
+		expect(shownToday(TODAY, NOW)).toBe(true);
+		expect(shownToday(YESTERDAY, NOW)).toBe(false);
+	});
+});
+
+describe('pickDaily', () => {
+	const first = () => 0;
+
+	it('has nothing to pick from an empty board', () => {
+		expect(pickDaily([], NOW, first)).toBeNull();
+	});
+
+	it('has nothing to pick when every dream is achieved', () => {
+		const rows = [dream('a', { status: 'achieved', achievedAt: YESTERDAY })];
+
+		expect(pickDaily(rows, NOW, first)).toBeNull();
+	});
+
+	it('holds all day: the dream already shown today stays the pick', () => {
+		const rows = [dream('never'), dream('today', { lastShownAt: TODAY })];
+
+		expect(pickDaily(rows, NOW, first)?.id).toBe('today');
+	});
+
+	it('takes one never shown at all before one shown a week ago', () => {
+		const rows = [dream('week', { lastShownAt: A_WEEK_AGO }), dream('never')];
+
+		expect(pickDaily(rows, NOW, first)?.id).toBe('never');
+	});
+
+	it('picks among those never shown at random', () => {
+		const rows = [dream('a'), dream('b'), dream('c')];
+
+		expect(pickDaily(rows, NOW, () => 0)?.id).toBe('a');
+		expect(pickDaily(rows, NOW, () => 0.5)?.id).toBe('b');
+		expect(pickDaily(rows, NOW, () => 0.99)?.id).toBe('c');
+	});
+
+	it('takes the least recently shown once every dream has had its turn', () => {
+		const rows = [
+			dream('yesterday', { lastShownAt: YESTERDAY }),
+			dream('week', { lastShownAt: A_WEEK_AGO })
+		];
+
+		expect(pickDaily(rows, NOW, first)?.id).toBe('week');
+	});
+
+	it('never picks an achieved dream, however long it has been', () => {
+		const rows = [
+			dream('done', { status: 'achieved', achievedAt: YESTERDAY }),
+			dream('yesterday', { lastShownAt: YESTERDAY })
+		];
+
+		expect(pickDaily(rows, NOW, first)?.id).toBe('yesterday');
+	});
+});
+
+describe('reelOrder', () => {
+	it('puts the pick in front and leaves the rest in board order', () => {
+		const rows = [dream('a'), dream('b'), dream('c')];
+
+		expect(reelOrder(rows, 'c').map((d) => d.id)).toEqual(['c', 'a', 'b']);
+	});
+
+	it('is the board order when there is no pick, or the pick has gone', () => {
+		const rows = [dream('a'), dream('b')];
+
+		expect(reelOrder(rows, null).map((d) => d.id)).toEqual(['a', 'b']);
+		expect(reelOrder(rows, 'deleted').map((d) => d.id)).toEqual(['a', 'b']);
+	});
+
+	it('does not bring an achieved dream back by picking it', () => {
+		const rows = [dream('a'), dream('done', { status: 'achieved', achievedAt: YESTERDAY })];
+
+		expect(reelOrder(rows, 'done').map((d) => d.id)).toEqual(['a']);
+	});
+});

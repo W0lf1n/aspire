@@ -2,17 +2,22 @@
 	/**
 	 * Nástěnka — the board, and the launch route.
 	 *
-	 * In M0 it has one state worth designing: empty. The empty state is not
-	 * an illustration with a caption; it is the first dream's own tile, with
-	 * the sky where the photograph will be and the words where the words will
-	 * be, so the board already looks like the board before there is anything
-	 * on it. M1 replaces the tile with the swipe.
+	 * The reel is what is still ahead: a dream marked splněno leaves it for
+	 * the Síň slávy, and the tile the reel opens on is the day's pick — the
+	 * dream shown least recently, so the board is a different one each
+	 * morning (`board.ts`, D25).
+	 *
+	 * Empty, it has one state worth designing. The empty state is not an
+	 * illustration with a caption; it is the first dream's own tile, with the
+	 * sky where the photograph will be and the words where the words will be,
+	 * so the board already looks like the board before there is anything on it.
 	 */
 	import { resolve } from '$app/paths';
 	import type { Dream } from '@aspire/contracts';
-	import { ApiError, likeDream, listBoard } from '$lib/api/client';
+	import { ApiError, likeDream, listBoard, markShown } from '$lib/api/client';
 	import { describeError } from '$lib/api/errors';
 	import { readToken } from '$lib/api/token';
+	import { pickDaily, reelOrder, shownToday } from '$lib/dreams/board';
 	import { STATUS_BADGE } from '$lib/dreams/rules';
 	import { rememberBoard } from '$lib/offline/cache';
 	import { connection } from '$lib/offline/status.svelte';
@@ -24,6 +29,15 @@
 
 	/** The server answered 401 to a token this device still holds. */
 	let unknownDevice = $state(false);
+
+	/** The day's pick, chosen once when the board first arrives. */
+	let pickedId = $state<string | null>(null);
+
+	/** What the reel shows: the dreams still ahead, the pick in front. */
+	const reel = $derived(dreams === null ? [] : reelOrder(dreams, pickedId));
+
+	/** Dreams on the board, none of them left to swipe: all of them are done. */
+	const allAchieved = $derived(dreams !== null && dreams.length > 0 && reel.length === 0);
 
 	/** The photograph a tile shows: the first one whose sizes are ready. */
 	function photoOf(dream: Dream) {
@@ -41,6 +55,7 @@
 					if (!live) return;
 					dreams = rows;
 					unknownDevice = false;
+					openWith(rows);
 					// The cache's board is the last one seen: nothing to keep,
 					// nothing to wait for.
 					if (fromCache) return;
@@ -67,6 +82,27 @@
 		};
 	});
 
+	/**
+	 * The tile the board opens on, chosen once and then left alone: a reel
+	 * that reshuffles under a thumb mid-scroll is not a reel. The pick is
+	 * told it has been shown, which is what makes tomorrow's a different
+	 * one; without a signal the stamp is skipped and the board opens on
+	 * whatever the remembered one says (D25).
+	 */
+	function openWith(rows: Dream[]) {
+		if (pickedId !== null) return;
+
+		const chosen = pickDaily(rows);
+		if (!chosen) return;
+
+		pickedId = chosen.id;
+		if (connection.online && !shownToday(chosen.lastShownAt)) {
+			// Nobody is waiting for it, and a stamp that missed is a stamp
+			// the next open makes anyway.
+			void markShown(chosen.id).catch(() => undefined);
+		}
+	}
+
 	async function like(dream: Dream) {
 		try {
 			const liked = await likeDream(dream.id);
@@ -82,7 +118,7 @@
 	<title>Aspire</title>
 </svelte:head>
 
-<main class="page" class:page--reel={dreams !== null && dreams.length > 0}>
+<main class="page" class:page--reel={reel.length > 0}>
 	<h1 class="wordmark">Aspire</h1>
 
 	{#if !connection.online}
@@ -96,15 +132,15 @@
 		</p>
 	{/if}
 
-	{#if dreams && dreams.length > 0}
+	{#if reel.length > 0}
 		<!--
 			The reel: one tile the height of the screen per dream, snapping as
-			they scroll. The whole picture opens the dream; the heart on it is
-			the one control, above the link, so a tap on it is a like and a tap
-			anywhere else is the dream.
+			they scroll, the day's pick first. The whole picture opens the
+			dream; the heart on it is the one control, above the link, so a tap
+			on it is a like and a tap anywhere else is the dream.
 		-->
 		<section class="reel">
-			{#each dreams as dream, index (dream.id)}
+			{#each reel as dream, index (dream.id)}
 				{@const photo = photoOf(dream)}
 				<article class="dream reel__tile" class:dream--sky={!photo}>
 					{#if photo}
@@ -145,8 +181,14 @@
 		<article class="dream dream--sky first" aria-labelledby="first-title">
 			<span class="sky" aria-hidden="true"></span>
 			<div class="dream__body">
-				<h2 id="first-title" class="dream__title">Zatím žádný sen</h2>
-				<p class="dream__why">Přidej první. Obrázek, který ti připomene, proč to všechno děláš.</p>
+				<h2 id="first-title" class="dream__title">
+					{allAchieved ? 'Všechno splněno' : 'Zatím žádný sen'}
+				</h2>
+				<p class="dream__why">
+					{allAchieved
+						? 'Na nástěnce nezbyl sen, který by čekal. Vysni si další.'
+						: 'Přidej první. Obrázek, který ti připomene, proč to všechno děláš.'}
+				</p>
 				<div class="actions first__actions">
 					<a class="btn btn--photo btn--lg" href={resolve('/pridat')}>
 						<Icon name="plus" size={18} stroke={2} />
@@ -156,10 +198,17 @@
 			</div>
 		</article>
 
-		<p class="hint how">
-			Fotka z telefonu, název a jedna věta proč. Sny pak listuješ jako příběhy, jeden na celou
-			obrazovku.
-		</p>
+		{#if allAchieved}
+			<p class="hint how">
+				Splněné sny nezmizely — najdeš je v
+				<a class="link" href={resolve('/sin-slavy')}>Síni slávy</a>.
+			</p>
+		{:else}
+			<p class="hint how">
+				Fotka z telefonu, název a jedna věta proč. Sny pak listuješ jako příběhy, jeden na celou
+				obrazovku.
+			</p>
+		{/if}
 	{/if}
 </main>
 

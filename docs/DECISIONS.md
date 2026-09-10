@@ -4,7 +4,7 @@ Every answered question and every deviation from `PLAN.md`, with the reason.
 Prosper keeps a file like this and it is the most useful file in that
 repository; this one starts on the same day the code does.
 
-**Revised:** 2026-09-09
+**Revised:** 2026-09-10
 
 ---
 
@@ -344,3 +344,47 @@ and the device keeps a picture of it.
 iPhone evicts an unused PWA's storage after about a week (PLAN.md §7); the
 caches refill on the next open with a signal, and nothing here depends on
 them being there.
+
+---
+
+## After M1 · 2026-09-10 — the daily pick and the wall
+
+### D25 — The pick is once a day and worked out on the device; the reel is what is not yet done
+
+PLAN.md §3.2 asks for two things M1 did not build: the board should show
+dreaming and in-progress by default, and the first tile should be a dream
+chosen for the day rather than always the same one. Both are here.
+
+- **The reel is what is still ahead.** A dream marked splněno leaves the
+  swipe. The filter is the client's rather than a query parameter on
+  `/dreams`: the board stays one request, one cached response and one prune
+  of the photograph cache (D24), and two screens read it. A personal board is
+  a few dozen dreams; a second list would be a second cache entry, and the
+  wall would be blank without a signal.
+- **The Síň slávy is now the wall, which is half of M3.** Filtering without
+  it would have made splněno mean *gone*, and a filter that loses a dream is
+  worse than no filter. It is the achieved dreams, most recent first, each
+  still its own photograph. The before-and-after photograph, the affirmation
+  and the anniversary stay M3's.
+- **The pick is once a day, not once an open.** PLAN.md §5 gives the rule as
+  `ORDER BY last_shown_at NULLS FIRST, random() LIMIT 1` and §3.2 says "on
+  open". Taken literally that moves the first tile every time the board is
+  looked at, including the poll that waits for a photograph to be resized.
+  So: the dream already stamped today stays the pick, and only when there is
+  none does the least recently shown win — at random among those never shown
+  at all, which is the plan's rule. Exactly one dream is stamped a day, which
+  makes it idempotent, keeps the tile still under a thumb, and lets two
+  devices on one board agree on the day's dream.
+- **The device works the pick out; only the stamp is a request.**
+  `lastShownAt` is on the wire now, so a board that has arrived already has
+  everything the rule needs and the first tile is right on the first paint,
+  with no second round trip before the reel can render.
+  `POST /dreams/{id}/shown` answers 204 and nobody waits for it. Offline it
+  is skipped, as every write is (D24): the board still opens on a pick,
+  worked out from the remembered board, though a board remembered from
+  before today's stamp can pick a different dream than the one another
+  device saw. It is a dream from your own board either way.
+- **The pick wears no badge.** Nothing on the tile says it was chosen. The
+  reordering is meant to be felt as *this is what the board opened on*, not
+  read as a label, and a second pill on a photograph is one more thing
+  between the person and the picture (rule 4).

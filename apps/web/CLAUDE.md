@@ -56,11 +56,11 @@ Two accents, `--signal` (ember, acts) and `--dusk` (marks), one gradient
 
 | Route                 | Screen                                                        |
 | --------------------- | ------------------------------------------------------------- |
-| `/`                   | Nástěnka. The reel: one tile a screen, snapping; or the first |
+| `/`                   | Nástěnka. The reel: a tile a screen, the day's pick first     |
 | `/pridat`             | Přidat sen. The dream's form (`DreamForm`) with an ember pill |
 | `/sen/[id]`           | One dream: the tile, the facts, the heart, Upravit and Smazat |
 | `/sen/[id]/upravit`   | The same form with the saved values; back is the dream        |
-| `/sin-slavy`          | Síň slávy. Empty until M3                                     |
+| `/sin-slavy`          | Síň slávy. The achieved dreams, the most recent first         |
 | `/nastaveni`          | The hub: Vzhled, Párování, the version                        |
 | `/nastaveni/vzhled`   | systém / světlý / tmavý                                       |
 | `/nastaveni/parovani` | The code and a device name; paired, Odpojit                   |
@@ -72,7 +72,7 @@ decides which one a path lights and has the test.
 ## Testing
 
 Vitest, node environment, `requireAssertions: true`. `nav.test.ts`,
-`settings.test.ts`, `api/pairing.test.ts`, `dreams/rules.test.ts` and
-`images/downscale.test.ts` and `offline/cache.test.ts`; a new
-rule gets a test before it gets a screen, and it lives in a `.ts` module the
-component imports, never in the component.
+`settings.test.ts`, `api/pairing.test.ts`, `dreams/rules.test.ts`,
+`dreams/board.test.ts`, `images/downscale.test.ts` and
+`offline/cache.test.ts`; a new rule gets a test before it gets a screen, and
+it lives in a `.ts` module the component imports, never in the component.

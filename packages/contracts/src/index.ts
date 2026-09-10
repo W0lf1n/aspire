@@ -48,6 +48,12 @@ export interface Dream {
 	likes: number;
 	/** ISO datetime, or null while the dream is still a dream. */
 	achievedAt: string | null;
+	/**
+	 * ISO datetime of the day this dream was the board's first tile, or null
+	 * while it has never been one. The daily pick reads it: least recently
+	 * shown first, so the board opens on a different dream each day.
+	 */
+	lastShownAt: string | null;
 	/** ISO datetime. */
 	createdAt: string;
 	/** In board order; the first is the one the tile shows. */

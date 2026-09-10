@@ -56,6 +56,7 @@ public sealed record DreamDto(
     int? TargetYear,
     int Likes,
     DateTimeOffset? AchievedAt,
+    DateTimeOffset? LastShownAt,
     DateTimeOffset CreatedAt,
     IReadOnlyList<DreamImageDto> Images)
 {
@@ -68,6 +69,7 @@ public sealed record DreamDto(
         dream.TargetYear,
         dream.Likes,
         dream.AchievedAt,
+        dream.LastShownAt,
         dream.CreatedAt,
         images.Select(DreamImageDto.From).ToList());
 }

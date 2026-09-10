@@ -118,7 +118,7 @@ Daily pick rule: `ORDER BY last_shown_at NULLS FIRST, random() LIMIT 1` among st
 | M1 | Dreams + board | Done 2026-09-10 (§10), less the desktop grid and categories (§8.3) | 2 weekends |
 | M2 | PWA offline | Folded into M1 on 2026-09-10 (D24): the photographs and the board cached, read-only offline | done |
 | **→ MVP live. Load real dreams. Use 2 weeks.** | | | |
-| M3 | Hall of Fame + affirmations | Achieved flow, before/after, affirmation line, voice memo | 1–2 weekends |
+| M3 | Hall of Fame + affirmations | Achieved flow, before/after, affirmation line, voice memo; the wall itself is done (§11) | 1–2 weekends |
 | M4 | Wallpaper export | Collage renderer, presets, save flow | 1 weekend |
 | M5 | Daily nudge | Push subscription, morning notification with image | 1 weekend |
 
@@ -167,4 +167,21 @@ and full WebP under `/media/{dreamId}/{imageId}/` with the EXIF gone (D23).
 M2 folded in (D24): the photographs and the board cached on the device, the
 board readable without a signal, every write locked while there is none,
 and a dead token named rather than shown as an empty board. Not built:
-categories (§8.3), the desktop grid, the daily pick, drag to reorder.
+categories (§8.3), the desktop grid, the daily pick, drag to reorder — the
+daily pick and the achieved filter followed the same day (§11).
+
+## 11. After M1 — the daily pick and the wall · 2026-09-10
+
+§3.2's two missing halves, taken out of order because both are small and
+both change what daily use feels like (D25). The board's reel is now what is
+still ahead: a dream marked splněno leaves it. It arrives instead in the Síň
+slávy, which was a stub and is now the wall — the achieved dreams, most
+recent first, each with its photograph and the date. And the reel opens on
+the day's dream: the one shown least recently, chosen on the device from the
+board it already has, stamped through `POST /dreams/{id}/shown`, and held
+for the rest of the day so the tile does not move under a thumb.
+
+M3 keeps the rest of §3.3 and §3.4: the achieved photograph beside the
+dreamt one, the affirmation line, the voice memo (§8.4), the anniversary.
+Still not built from M1: categories (§8.3), the desktop grid, drag to
+reorder.

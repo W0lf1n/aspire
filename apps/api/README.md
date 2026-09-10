@@ -19,6 +19,7 @@ more than store rows.
 | `PUT`    | `/api/v1/dreams/{id}`       | `DreamInput` in, the dream out                |
 | `DELETE` | `/api/v1/dreams/{id}`       | 204                                           |
 | `POST`   | `/api/v1/dreams/{id}/likes` | One more on the heart; the dream out          |
+| `POST`   | `/api/v1/dreams/{id}/shown` | The board opened on it today; 204             |
 | `POST`   | `/api/v1/dreams/{id}/images` | Multipart `file`; 202 with the image, `ready` once resized |
 | `DELETE` | `/api/v1/dreams/{id}/images/{imageId}` | 204                                |
 

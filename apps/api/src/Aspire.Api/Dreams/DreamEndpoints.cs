@@ -114,6 +114,21 @@ public static class DreamEndpoints
             return Results.Ok(DreamDto.From(dream, await images.OfDreamsAsync([dream.Id], ct)));
         });
 
+        // The board opened with this dream today. Nothing comes back: the
+        // stamp is for tomorrow's pick and for the board's other devices.
+        app.MapPost("/api/v1/dreams/{id:guid}/shown", async (
+            Guid id,
+            HttpContext http,
+            DeviceAuth auth,
+            DreamService dreams,
+            CancellationToken ct) =>
+        {
+            var device = await auth.ResolveAsync(http.Request.Headers.Authorization, ct);
+            if (device is null) return Results.Unauthorized();
+
+            return await dreams.MarkShownAsync(device.BoardId, id, ct) ? Results.NoContent() : Results.NotFound();
+        });
+
         // ── the photographs ───────────────────────────────────────────────────
 
         app.MapPost("/api/v1/dreams/{id:guid}/images", async (
