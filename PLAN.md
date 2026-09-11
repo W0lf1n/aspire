@@ -1,6 +1,6 @@
 # Aspire — Project Plan
 
-Status: planning · Owner: Petr · Created: 2026-09-09
+Status: M0–M5 done · Owner: Petr · Created: 2026-09-09 · Revised: 2026-09-11
 
 Third app in the personal self-improvement trio (Prosper → Planner → **Aspire**, the dreamboard). Building first. Standalone. No integration with the others for now.
 
@@ -33,7 +33,9 @@ Yager: "Dream building" is step one of everything. Dream must be visual, specifi
 
 ### 3.2 Board view (MVP)
 - **Mobile:** full-screen vertical swipe, one dream per screen (Instagram-stories feel). Tap → detail with "why" and gallery.
-- **Desktop/tablet:** masonry grid, click → detail.
+- ~~**Desktop/tablet:** masonry grid, click → detail.~~ Dropped 2026-09-11:
+  a grid is a gallery, a reel is a queue, and desktop stays the phone layout
+  with room around it (D38).
 - "Daily dream": on open, first card is a random dream (weighted toward least-recently-seen). Prevents habituation.
 - Filter by category / status. Default: dreaming + in progress.
 
@@ -102,11 +104,12 @@ Columns are snake_case as built (D9).
 ```
 boards             id, name, code_hash, created_at
 devices            id, board_id, name, token_hash, paired_at, last_seen_at?
-categories         id, board_id, name, icon, sort_order            (§8.3 still open)
-dreams             id, board_id, category_id?, title, why, affirmation?, target_year?,
+                   (no `categories` table: the nine are fixed, so the category
+                   is an enum column on the dream — §8.3, D32)
+dreams             id, board_id, category?, title, why, affirmation?, target_year?,
                    status, sort_order, likes, achieved_at?, last_shown_at?, created_at, updated_at
 dream_images       id, dream_id, sort_order, width, height, is_achieved_photo, processed_at?
-dream_audio        id, dream_id, path, duration_s
+                   (no `dream_audio`: the voice memo is dropped — §8.4, D31)
 push_subscriptions id, board_id, endpoint, p256dh, auth
 ```
 
@@ -117,12 +120,12 @@ Daily pick rule: `ORDER BY last_shown_at NULLS FIRST, random() LIMIT 1` among st
 | # | Milestone | Scope | Est. |
 |---|---|---|---|
 | M0 | Scaffold | Copy Prosper/Planner skeleton, media volume, deploy | 1 weekend |
-| M1 | Dreams + board | Done 2026-09-10 (§10), less the desktop grid and categories (§8.3) | 2 weekends |
+| M1 | Dreams + board | Done 2026-09-10 (§10). Categories followed (§13); the desktop grid dropped 2026-09-11 (D38) | 2 weekends |
 | M2 | PWA offline | Folded into M1 on 2026-09-10 (D24): the photographs and the board cached, read-only offline | done |
 | **→ MVP live. Load real dreams. Use 2 weeks.** | | | |
 | M3 | Hall of Fame + affirmations | Done 2026-09-10 (§12): affirmation, before/after, anniversary. Voice memo dropped (§8.4) | done |
 | M4 | Wallpaper export | Done 2026-09-10 (§14): collage renderer, the phone's own canvas, share or save | done |
-| M5 | Daily nudge | Push subscription, morning notification with image | 1 weekend |
+| M5 | Daily nudge | Done 2026-09-11 (§15): subscription, schedule, the crypto by hand, the morning notification | done |
 
 Smallest of the three apps. Good candidate to build **first** if you want a quick win, or **second** right after Planner MVP — both are one-month projects at weekend pace.
 
@@ -328,8 +331,33 @@ pair, before the database exists, once. Without one the API runs with
 notifications off and says so; the screen tells the person rather than
 offering a switch that cannot work.
 
-**M0 through M5 are done.** Still unbuilt from M1: the desktop grid, which
-§3.2 wants as a masonry layout — that needs the 34 rem column to widen, and
-`DESIGN.md` says desktop is deliberately the phone layout with room around
-it, so it is a design question before it is a screen. §3.7's later/maybe
-list is untouched and out of scope.
+**M0 through M5 are done.** What M1 left behind — the desktop grid — is
+settled in §16 rather than built. §3.7's later/maybe list is untouched and
+out of scope.
+
+---
+
+## 16. The desktop grid, dropped · 2026-09-11
+
+§3.2's masonry grid for desktop and tablet was the last thing in the plan
+that was neither built nor decided. It is **dropped** (D38), so **every
+milestone is closed and nothing in §3.1–§3.6 is outstanding.**
+
+It was never only a layout. The app is one column at most 34 rem wide, and
+above 35 rem it shows its edges as a hairline and is otherwise unchanged —
+`DESIGN.md`'s whole shape. A masonry board would be the only screen that is
+not that. But the deciding argument is what a grid *feels* like: §2 asks for
+a full-screen image per dream, and a cell in a wall of twelve is a
+thumbnail. The habituation D30 fixed by shuffling the reel comes back on a
+wall where everything is visible at once — nothing is ever next, so nothing
+is ever arrived at — and the day's pick (D25), the reason the board is a
+different one each morning, has nowhere to be on it.
+
+A desktop wall, if it is ever wanted, is a new route beside the reel with
+its own answer to what the pick means there. It is not a breakpoint on the
+board.
+
+**What is actually left**, and none of it is a milestone: §3.7's share link
+for a single dream, and D37's open question — whether a hundred-dream board
+should prefetch every photograph at all, which narrows D24's promise and is
+Petr's to answer.

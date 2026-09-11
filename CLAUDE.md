@@ -2,7 +2,7 @@
 
 Guidance for Claude Code working in this repository.
 
-**Last revised:** 2026-09-11 · M5 · 87 web tests · 166 API tests
+**Last revised:** 2026-09-11 · M5 closed, D38 · 87 web tests · 166 API tests
 
 ---
 
@@ -26,8 +26,11 @@ dropped (§8.4). §13 is what followed: the reel shuffled on every open in
 place of drag to reorder, and windowed so a hundred dreams are not a
 hundred tiles. Categories followed (§8.3 answered: Yager's nine,
 fixed — D32), §14 is M4, the wallpaper, and §15 is M5, the morning nudge.
-M0 through M5 are done. Still unbuilt from M1: the desktop grid, which
-needs the 34 rem column to widen and so is a design question first.
+**M0 through M5 are done**, and §16 closes the last thing M1 left behind:
+the desktop grid is dropped, not built — a grid of thumbnails is a gallery
+and this app is a queue, so there is no breakpoint at which a screen
+changes its shape (D38). What is left is §3.7's share link and D37's
+question about prefetching a hundred-dream board, neither a milestone.
 
 ---
 

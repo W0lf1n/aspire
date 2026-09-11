@@ -416,7 +416,10 @@ gutter, 12 px between cards, 12 px plus the safe-area inset at the top, and
 enough room at the foot to scroll the last row clear of the bar (bar lift +
 62 px + 32 px on a screen with a bar; 24 px plus the inset on one without).
 Above 35 rem the column shows its edges as a hairline on each side and is
-otherwise unchanged: desktop is the phone layout with room around it.
+otherwise unchanged: desktop is the phone layout with room around it. That
+is deliberate and now decided — the wide masonry board PLAN.md §3.2 asked
+for is dropped, because a grid of thumbnails is a gallery and this app is a
+queue (D38). There is no breakpoint at which a screen changes its shape.
 
 The spacing scale is a 4 px grid: 4, 8, 12, 16, 24, 32, 40, 56. Rows are
 64 px tall (52 short), a hub row's pressable area bleeds to the card's edge.

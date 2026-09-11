@@ -823,3 +823,40 @@ a first load, which may be mobile data. The alternative is caching a window
 ahead of the thumb rather than the whole board — but D24 promises the board
 is readable without a signal, and narrowing that promise is a product
 decision, not a performance one. It is Petr's to make.
+
+---
+
+## After M5 · 2026-09-11 — the desktop
+
+### D38 — The desktop grid is dropped; desktop stays the phone with room around it
+
+PLAN.md §3.2 has asked for a masonry grid on desktop and tablet since the
+first draft, click through to the detail, and it was the one thing M1 left
+behind. It is dropped rather than built.
+
+The app is one column, at most 34 rem, and above 35 rem it shows its edges
+as a hairline and is otherwise unchanged — that is DESIGN.md's layout and
+it is the whole of the app's shape. A masonry board would be the only
+screen that is not that, and the exception would have to be held against
+every primitive for as long as the app exists: the page's one scroll
+region, the floating bar positioned inside the column, the tile that gives
+up its ratio so the bar is never covered.
+
+But the real argument is not the cost. **A grid is a different feeling from
+a reel.** §2 asks for a full-screen image per dream, and a masonry cell is
+a thumbnail; twelve of them at once is a gallery of things you own rather
+than one thing you want. The habituation that D30 fixed by shuffling comes
+straight back on a wall where everything is visible at once — nothing is
+ever *next*, so nothing is ever arrived at. And the day's pick (D25), which
+is what makes the board different each morning, has nowhere to be when
+every tile is equally in view.
+
+Desktop is not where this app is used. Where it is used — adding a dream
+from a laptop, reading the Síň slávy on a big screen — the phone column
+already works, and works well: a 4:5 tile at 34 rem is a photograph at a
+comfortable size, not a phone screenshot stretched.
+
+So: nothing is built, §3.2's second bullet and §6's M1 note are struck
+through, and M1 has nothing outstanding. If a desktop wall is ever wanted
+it is a **new route** — a wall beside the reel, with its own answer to what
+the pick means there — and not a breakpoint bolted onto the board.
