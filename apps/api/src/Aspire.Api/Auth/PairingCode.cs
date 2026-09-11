@@ -24,6 +24,31 @@ public static class PairingCode
     private const int SaltBytes = 16;
     private const int HashBytes = 32;
 
+    /// <summary>
+    /// A fresh code, <paramref name="digits"/> of them, from the operating
+    /// system's own randomness — never <c>Random</c>, which is seeded from the
+    /// clock and would make two boards created in the same second guessable
+    /// from each other.
+    ///
+    /// The leading digit is never zero, as <c>DEPLOYMENT.md</c>'s own
+    /// <c>shuf</c> line has always produced: a code is read aloud, written
+    /// down and typed back, and a leading zero is the digit that gets lost on
+    /// the way. It costs a sixth of a bit out of forty.
+    ///
+    /// <c>GetInt32</c> rather than a byte and a remainder: a remainder over a
+    /// range that does not divide 256 makes the low digits likelier, which is
+    /// exactly the bias a guesser starts from.
+    /// </summary>
+    public static string Generate(int digits)
+    {
+        ArgumentOutOfRangeException.ThrowIfLessThan(digits, 2);
+
+        var code = new char[digits];
+        code[0] = (char)('1' + RandomNumberGenerator.GetInt32(0, 9));
+        for (var i = 1; i < digits; i++) code[i] = (char)('0' + RandomNumberGenerator.GetInt32(0, 10));
+        return new string(code);
+    }
+
     public static string Hash(string code)
     {
         var salt = RandomNumberGenerator.GetBytes(SaltBytes);

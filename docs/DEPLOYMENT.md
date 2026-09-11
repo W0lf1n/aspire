@@ -93,9 +93,12 @@ Then, back on the box, the working copy the deployment runs from:
 sudo git clone /opt/aspire.git /opt/aspire
 ```
 
-A remote somewhere else — a private repository on a host you already use —
-works the same way from step 2 on, and is also what lets
-`.github/workflows/ci.yml` actually run; it has never had a remote to run on.
+A remote somewhere else works the same way from step 2 on, and is what CI
+and the Deploy button are: the repository is on GitHub as
+`W0lf1n/aspire`, `.github/workflows/ci.yml` runs there on every push, and
+**[The Deploy button](#the-deploy-button)** below is the same deployment as
+**[Updating](#updating)**, pressed from a phone. A box set up against the
+bare repository needs one line changed to use it; that section says which.
 
 ### 2. Write the two secrets
 
@@ -329,12 +332,59 @@ not touch the devices already paired into it. Deleting a board's row in
 `psql` deletes its dreams and its devices with it; there is no command for
 that, on purpose.
 
+### Somebody wants to try it
+
+From the laptop, one command — the whole of handing a stranger their own
+board (D46):
+
+```bash
+scripts/invite.sh Zuzana
+```
+
+It opens one SSH session, runs `board invite` in the API's container, and
+prints the board's twelve digits in **your** terminal. The API makes the code
+itself, from the operating system's randomness rather than from whatever a
+person would type twice, and prints it **once**: what is stored is the PBKDF2
+hash, so there is no command that reads it back. Lost means `board code` with
+a new one, not a lookup.
+
+The script says what to send with it. What they get is a tenant: their own
+dreams, their own photographs, their own devices, and nothing of yours — a
+board is the whole of what a device can see (D21). Their own „Vše", their own
+daily pick, their own Síň slávy.
+
+This is not a GitHub Action on purpose. A workflow that prints a code leaves
+it in a run log for ninety days, readable by anybody who can read the
+repository, and a board's code is the only thing standing between a stranger
+and somebody's dreams.
+
+Over SSH by hand it is the same command the script runs:
+
+```bash
+cd /opt/aspire/deploy && docker compose exec api dotnet Aspire.Api.dll board invite Zuzana
+```
+
 ---
 
 ## Updating
 
+One command, on the box or from GitHub's Deploy button — the same command
+either way, because the button runs this script over SSH and does nothing
+else (D45):
+
 ```bash
-cd /opt/aspire && sudo git pull && cd deploy && docker compose build --pull && docker compose up -d
+/opt/aspire/deploy/deploy.sh
+```
+
+It fetches, fast-forwards, rebuilds with `--pull`, swaps the containers and
+then **waits for the app to answer** before calling it a deployment; one that
+does not answer prints the API's last fifty lines and exits non-zero. It
+refuses to run over a working copy with uncommitted changes, which is the one
+thing `git pull` would quietly destroy at two in the morning. A tag or a sha
+deploys as well as a branch:
+
+```bash
+/opt/aspire/deploy/deploy.sh v1.2.0
 ```
 
 `--pull` fetches the base images' security patches; without it `build`
@@ -342,9 +392,90 @@ reuses whatever it pulled the first time, forever. Postgres and the media
 volume are untouched by a rebuild. A migration in the new code runs on the
 API's first start.
 
+**Going back** is the same script with the sha it printed last time. A build
+that fails changes nothing at all — the old containers serve from the old
+images until `up -d` swaps them — so the only deployment worth undoing is one
+that built and then misbehaved.
+
 The phone picks up a new client by itself: the app asks for a new service
 worker on every resume and reconnect, announces it with *Obnovit*, and
 reloads on the next navigation.
+
+### The Deploy button
+
+`.github/workflows/deploy.yml` is manual only: **Actions → Deploy → Run
+workflow**, a ref (`master` unless you mean otherwise), and it opens an SSH
+session and runs the script above. The run's summary page shows what the box
+said.
+
+It needs five things once, and then never again.
+
+**1. A key for the runner, without a passphrase.** Yours has one, which is
+right for yours and impossible for a machine. Make a second one, on the
+laptop:
+
+```bash
+ssh-keygen -t ed25519 -N '' -C 'github-actions aspire deploy' -f ~/.ssh/aspire-deploy
+```
+
+**2. The box accepts it.** Append the public half to the deploy user's
+`authorized_keys`:
+
+```bash
+ssh root@aspire.petrbohac.eu "mkdir -p ~/.ssh && cat >>~/.ssh/authorized_keys" <~/.ssh/aspire-deploy.pub
+```
+
+That user has to own `/opt/aspire` and be able to talk to Docker. `root` is
+the short answer and the one the rest of this runbook assumes.
+
+**3. The box pulls from GitHub.** The script fast-forwards from `origin`, so
+`origin` has to be the repository the button deploys — not the bare
+repository on the box, if that is what step 1 set up:
+
+```bash
+cd /opt/aspire && git remote -v
+```
+
+```bash
+cd /opt/aspire && sudo git remote set-url origin https://github.com/W0lf1n/aspire.git
+```
+
+A **private** repository also has to let the box read it: add a second key
+pair as a *deploy key* on GitHub (Settings → Deploy keys, read-only), keep
+its private half on the box, and use the SSH remote
+`git@github.com:W0lf1n/aspire.git` rather than `https://`. A public
+repository needs neither.
+
+**4. The four secrets**, in Settings → Secrets and variables → Actions:
+
+| Secret            | What                                                               |
+| ----------------- | ------------------------------------------------------------------ |
+| `VPS_HOST`        | `aspire.petrbohac.eu`                                              |
+| `VPS_USER`        | `root`, or whoever owns `/opt/aspire`                              |
+| `VPS_SSH_KEY`     | the **private** half of step 1, the whole file, both `-----` lines |
+| `VPS_KNOWN_HOSTS` | the box's host key, so the runner knows what it is talking to      |
+
+The last one comes from the laptop, where the box is already known:
+
+```bash
+ssh-keyscan -t ed25519 aspire.petrbohac.eu
+```
+
+Compare it against the line already in your own `~/.ssh/known_hosts` before
+pasting it in — that comparison is the whole point of the secret. Keyscanning
+inside the workflow on every run would instead trust whatever answered that
+night, which is the attack a known_hosts file exists to stop.
+
+A checkout somewhere other than `/opt/aspire` is the optional repository
+**variable** `VPS_PATH`.
+
+**5. Press it once while watching.** The first run proves the key, the host
+key, the remote and the path in one go, and failing any of them costs a
+minute rather than a deployment.
+
+The button does not check that CI passed — it deploys what you point it at.
+What it deployed is in the run summary, and `git log -1` on the box says the
+same thing afterwards.
 
 ---
 

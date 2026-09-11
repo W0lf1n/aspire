@@ -1,0 +1,97 @@
+# The Deploy button. It runs nothing of its own: it opens an SSH session and
+# calls `deploy/deploy.sh` on the box, which is the same script you would run
+# by hand over SSH (D45). Everything that decides what a deployment *is* lives
+# there, in the repository, beside the compose file it acts on.
+#
+# Manual only. A personal VPS with one person on it does not need every green
+# commit arriving unannounced; the button is pressed when the phone is in a
+# pocket and not while somebody is looking at their board on the train.
+name: Deploy
+
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: 'What to deploy — a branch, a tag, or a commit sha'
+        required: true
+        default: master
+
+# Two deployments at once would have the box building two trees into one set
+# of images. The second waits rather than cancelling the first: a cancelled
+# `up -d` is a half-swapped deployment, which is the one state this has no
+# story for.
+concurrency:
+  group: deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: deploy to aspire.petrbohac.eu
+    runs-on: ubuntu-latest
+
+    # `bash` by name, not the default `bash -e`: the difference is `pipefail`,
+    # and without it `ssh … | tee` reports tee's success and a failed deploy
+    # goes green.
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+      # The ref is typed by a person into a box and then handed to a remote
+      # shell, so it is checked before it gets there — and passed through the
+      # environment rather than interpolated into the script, which is the
+      # difference between a variable and an injection.
+      - name: The ref is a ref
+        env:
+          REF: ${{ inputs.ref }}
+        run: |
+          case "$REF" in
+            *[!A-Za-z0-9._/-]* | '' | -*) echo "Not a ref: $REF" >&2; exit 1 ;;
+          esac
+
+      # No action from the marketplace for this: it is four lines of ssh, and
+      # a third party in the path to the box is a third party with the key.
+      #
+      # The host key comes from a secret, not from `ssh-keyscan`. Keyscanning
+      # on every run means trusting whatever answers on the night somebody is
+      # in the middle — which is the attack the known_hosts file exists for.
+      - name: Deploy
+        env:
+          SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+          KNOWN_HOSTS: ${{ secrets.VPS_KNOWN_HOSTS }}
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+          DEPLOY_PATH: ${{ vars.VPS_PATH || '/opt/aspire' }}
+          REF: ${{ inputs.ref }}
+        run: |
+          install -d -m 700 ~/.ssh
+          printf '%s\n' "$SSH_KEY" >~/.ssh/deploy
+          chmod 600 ~/.ssh/deploy
+          printf '%s\n' "$KNOWN_HOSTS" >~/.ssh/known_hosts
+
+          # `IdentitiesOnly` so the agent's own keys are never offered, and
+          # `BatchMode` so a key with a passphrase fails here in a second
+          # rather than hanging on a prompt nobody can see.
+          ssh -i ~/.ssh/deploy \
+            -o IdentitiesOnly=yes \
+            -o BatchMode=yes \
+            -o ConnectTimeout=15 \
+            "$VPS_USER@$VPS_HOST" \
+            "$DEPLOY_PATH/deploy/deploy.sh '$REF'" | tee deploy.log
+
+      # What was deployed, on the run's own page, so the answer to "what is on
+      # the box" does not need an SSH session.
+      - name: Say what happened
+        if: always()
+        env:
+          REF: ${{ inputs.ref }}
+        run: |
+          {
+            echo '## Deploy'
+            echo
+            echo "Ref: \`$REF\`"
+            echo
+            echo '```'
+            tail -20 deploy.log 2>/dev/null || echo 'No output: the session never reached the box.'
+            echo '```'
+          } >>"$GITHUB_STEP_SUMMARY"

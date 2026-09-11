@@ -441,3 +441,27 @@ with no photograph; `⊕` on the bar is still Přidat, which is the way in when
 the dream arrives as a picture. The bar goes to five slots to hold it, and
 `.sheet` in `app.css` finally spends `--elev-sheet` and the 28 px radius the
 tokens have held since M0.
+
+---
+
+## 20. The button, and inviting somebody · 2026-09-11
+
+**Deploying is one script and one button** (D45). `deploy/deploy.sh` is
+§Updating with its eyes open — it refuses to fast-forward over a working copy
+somebody edited on the box, and it does not call a deployment finished until
+`/api/v1/health` answers — and `.github/workflows/deploy.yml` is
+`workflow_dispatch` and an `ssh` that runs it. The logic is in the repository
+rather than in YAML, so the same deployment happens by hand, from the button,
+or from cron if it ever wants to.
+
+**And a second person is a board, which was always true** (D21) — what was
+missing was the code. `board invite <name>` makes the board and twelve digits
+from the operating system's randomness in one command and prints them once;
+`scripts/invite.sh` runs it on the box over SSH, so the code is on one
+terminal and in no log (D46). §8's sixth question closed on boards being
+tenants with their own codes and no accounts; this is that answer with a
+command under it — their own dreams, their own photographs, their own Síň
+slávy, nothing shared either way.
+
+Still no signup form and still no login (D6). A board is something the
+operator makes.

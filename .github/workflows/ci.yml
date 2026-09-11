@@ -76,9 +76,10 @@ jobs:
   # Dockerfile and finding it on the VPS at the end of `DEPLOYMENT.md` step 3.
   #
   # It builds and throws away. Nothing is pushed anywhere: the deployment builds
-  # from source on the box, so there is no registry to push to.
-  deploy:
-    name: deploy images
+  # from source on the box, so there is no registry to push to — `deploy.yml`
+  # is the one that deploys, and it only presses a button (D45).
+  images:
+    name: images
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -125,6 +126,7 @@ jobs:
           test "$(status /)" = 200
           curl -fsS http://localhost:8081/manifest.webmanifest | grep -q '"short_name": "Aspire"'
           test "$(status /sin-slavy)" = 200
+          test "$(status /seznam)" = 200
           test "$(status /neco/co/neexistuje)" = 200
 
           # `/api/` must be proxied, not served. There is no API container here,

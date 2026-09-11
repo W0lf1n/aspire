@@ -34,6 +34,50 @@ public sealed class BoardCommandTests : IDisposable
 
     private Task<int> Run(params string[] args) => BoardCommand.RunAsync(args, _db, _out);
 
+    /// <summary>The code `invite` printed, read back off the screen.</summary>
+    private string PrintedCode() =>
+        _out.ToString()
+            .Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries)
+            .First(line => line.StartsWith("Pairing code: ", StringComparison.Ordinal))["Pairing code: ".Length..];
+
+    [Fact]
+    public async Task Invite_makes_a_board_that_pairs_with_the_code_it_printed()
+    {
+        var exit = await Run("board", "invite", "Zuzana");
+
+        Assert.Equal(0, exit);
+        var code = PrintedCode();
+        Assert.Equal(BoardCommand.GeneratedCodeLength, code.Length);
+        var board = await _auth.FindBoardAsync(code);
+        Assert.Equal("Zuzana", board!.Name);
+    }
+
+    [Fact]
+    public async Task Invite_makes_a_different_code_every_time()
+    {
+        await Run("board", "invite", "Zuzana");
+        var first = PrintedCode();
+        _out.GetStringBuilder().Clear();
+
+        await Run("board", "invite", "Martin");
+
+        Assert.NotEqual(first, PrintedCode());
+    }
+
+    [Fact]
+    public async Task Invite_refuses_a_second_board_of_the_same_name()
+    {
+        await Run("board", "invite", "Zuzana");
+        _out.GetStringBuilder().Clear();
+
+        var exit = await Run("board", "invite", "Zuzana");
+
+        Assert.Equal(1, exit);
+        Assert.Equal(1, await _db.Boards.CountAsync());
+        // Nothing to read: a refused invite must not look like a code.
+        Assert.DoesNotContain("Pairing code:", _out.ToString());
+    }
+
     [Fact]
     public async Task Add_makes_a_board_that_pairs()
     {
@@ -111,6 +155,8 @@ public sealed class BoardCommandTests : IDisposable
     [Theory]
     [InlineData("board")]
     [InlineData("board", "add", "Zuzana")]
+    [InlineData("board", "invite")]
+    [InlineData("board", "invite", "Zuzana", "483920174635")]
     [InlineData("board", "drop", "Zuzana")]
     public async Task Anything_else_prints_the_usage(params string[] args)
     {

@@ -2,7 +2,7 @@
 
 Guidance for Claude Code working in this repository.
 
-**Last revised:** 2026-09-11 · M5 closed, D38–D44 · 174 web tests · 166 API tests
+**Last revised:** 2026-09-11 · M5 closed, D38–D46 · 174 web tests · 177 API tests
 
 ---
 
@@ -36,8 +36,10 @@ reel a reel: every page is the screen, a swipe is worth one dream however
 long it is, and the chrome floats on the photograph (D40). §19 is the
 newest: the areas are three — Chtít · Být · Dělat — rather than Yager's
 nine (D43), and Seznam is a fourth tab where the board is one column and
-＋ opens a sheet of the five fields a sentence can answer (D44). What is
-left is §3.7's share link, which is not a milestone.
+＋ opens a sheet of the five fields a sentence can answer (D44). §20 is the
+deployment as a script the button only presses (D45) and `board invite`,
+which is a second person's whole onboarding (D46). What is left is §3.7's
+share link, which is not a milestone.
 
 ---
 
@@ -141,7 +143,12 @@ apps/api/src/
 apps/api/tests/Aspire.Api.Tests/   xUnit, SQLite in memory
 
 packages/contracts/  the wire types; mirrored in Contracts.cs
-deploy/              compose, nginx, the host vhost, backup.sh
+deploy/              compose, nginx, the host vhost, backup.sh, and deploy.sh —
+                     the deployment itself, which the Deploy workflow only
+                     runs over SSH (D45)
+scripts/             check-bundle.mjs, and invite.sh — a board and its code
+                     for somebody else, printed in one terminal (D46)
+.github/workflows/   ci.yml on every push; deploy.yml on a button
 ```
 
 ---

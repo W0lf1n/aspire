@@ -67,14 +67,15 @@ apps/web/            SvelteKit + TypeScript PWA, adapter-static, no component li
   src/lib/styles/    tokens.css (the only place a colour exists) and app.css (the primitives)
   src/lib/ui/        hand-rolled components: Icon, TabBar, AppBar, Toaster, theme, nav
   src/lib/api/       the API client and the device token
-  src/routes/        / · /pridat · /sin-slavy · /nastaveni · /nastaveni/vzhled · /nastaveni/parovani · /styleguide
+  src/routes/        / · /seznam · /pridat · /sin-slavy · /nastaveni · /nastaveni/vzhled · /nastaveni/parovani · /styleguide
 apps/api/            ASP.NET Core 10 minimal API
   src/Aspire.Api/            endpoints, pairing auth, rate limits
   src/Aspire.Domain/         entities, no EF
   src/Aspire.Infrastructure/ EF Core + Npgsql, migrations
   tests/Aspire.Api.Tests/    xUnit
 packages/contracts/  the wire types, shared by both sides
-deploy/              compose, both nginx configs, the host vhost, the nightly backup
+deploy/              compose, both nginx configs, the host vhost, the nightly backup, deploy.sh
+scripts/             the bundle budget, and invite.sh — a board for somebody else
 docs/                the runbook, the decisions, the brand
 ```
 
@@ -92,9 +93,31 @@ Three containers behind one loopback port, on the same VPS as Prosper:
 cd deploy && cp .env.example .env && docker compose up -d --build
 ```
 
+Updating it afterwards is one script, on the box or from **Actions → Deploy →
+Run workflow**, which is the same script over SSH (D45):
+
+```bash
+/opt/aspire/deploy/deploy.sh
+```
+
 **[`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md)** is the runbook: the VPS, the
-nginx vhost for `aspire.petrbohac.eu`, the certificate, the media volume, and
-the backup.
+nginx vhost for `aspire.petrbohac.eu`, the certificate, the media volume, the
+backup, and what the Deploy button needs before its first press.
+
+---
+
+## Give somebody their own board
+
+A board is the tenant — its own dreams, its own devices, nothing shared (D21)
+— so inviting somebody is making one and handing them its code:
+
+```bash
+scripts/invite.sh Zuzana
+```
+
+It SSHes to the box, has the API make twelve digits, and prints them once, in
+your terminal and in no log (D46). They type the code in Nastavení → Párování
+and they are on their own board.
 
 ---
 

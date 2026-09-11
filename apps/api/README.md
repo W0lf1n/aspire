@@ -103,6 +103,16 @@ The rest is the operator's, through the API's own binary:
 dotnet run --project src/Aspire.Api -- board list
 ```
 
+`invite` is the one to reach for. It makes the board and its code in the same
+breath — twelve digits from the operating system's randomness, never a
+person's — and prints the code once, because what is kept is the hash (D46):
+
+```bash
+dotnet run --project src/Aspire.Api -- board invite Zuzana
+```
+
+`add` is the same thing with a code you brought yourself:
+
 ```bash
 dotnet run --project src/Aspire.Api -- board add Zuzana 483920174635
 ```
