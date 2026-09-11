@@ -1,6 +1,6 @@
 # Deployment — running Aspire on the VPS
 
-**Revised:** 2026-09-10
+**Revised:** 2026-09-11
 **Audience:** whoever is holding the SSH key
 
 Prosper's runbook, applied to a second app on the same box. Where the two
@@ -74,13 +74,13 @@ hardware you own, and the `git pull` under **[Updating](#updating)** keeps
 working exactly as written. On the box:
 
 ```bash
-sudo git init --bare /srv/aspire.git
+sudo git init --bare /opt/aspire.git
 ```
 
 On the laptop, once:
 
 ```bash
-git remote add origin ssh://root@aspire.petrbohac.eu/srv/aspire.git
+git remote add origin ssh://root@aspire.petrbohac.eu/opt/aspire.git
 ```
 
 ```bash
@@ -90,7 +90,7 @@ git push -u origin master
 Then, back on the box, the working copy the deployment runs from:
 
 ```bash
-sudo git clone /srv/aspire.git /srv/aspire
+sudo git clone /opt/aspire.git /opt/aspire
 ```
 
 A remote somewhere else — a private repository on a host you already use —
@@ -100,7 +100,7 @@ works the same way from step 2 on, and is also what lets
 ### 2. Write the two secrets
 
 ```bash
-cd /srv/aspire/deploy && cp .env.example .env
+cd /opt/aspire/deploy && cp .env.example .env
 ```
 
 Then fill in `.env`. Neither value has a default and compose refuses to start
@@ -135,7 +135,7 @@ The command makes a pair and touches nothing else, so it works before the
 database exists:
 
 ```bash
-cd /srv/aspire/deploy && docker compose run --rm api dotnet Aspire.Api.dll vapid
+cd /opt/aspire/deploy && docker compose run --rm api dotnet Aspire.Api.dll vapid
 ```
 
 It prints three lines. Put them in `.env`, then restart the API. Set
@@ -154,7 +154,7 @@ notifications to a tab (PLAN.md §7).
 ### 3. Start the three containers
 
 ```bash
-cd /srv/aspire/deploy && docker compose up -d --build
+cd /opt/aspire/deploy && docker compose up -d --build
 ```
 
 The first build takes a few minutes. After that:
@@ -170,7 +170,7 @@ proxying to the API. The database migrated itself while that was happening;
 ### 4. Give the domain to nginx
 
 ```bash
-sudo cp /srv/aspire/deploy/nginx/aspire.conf.example /etc/nginx/sites-available/aspire.conf
+sudo cp /opt/aspire/deploy/nginx/aspire.conf.example /etc/nginx/sites-available/aspire.conf
 ```
 
 ```bash
@@ -194,7 +194,7 @@ sudo crontab -e
 ```
 
 ```
-23 3 * * *  /srv/aspire/deploy/backup.sh >> /var/log/aspire-backup.log 2>&1
+23 3 * * *  /opt/aspire/deploy/backup.sh >> /var/log/aspire-backup.log 2>&1
 ```
 
 Then run it once by hand, now, and restore from it once into a throwaway. The
@@ -222,11 +222,11 @@ the whole of it:
 Tables and columns are `snake_case`, so `psql` reads the way it looks:
 
 ```bash
-cd /srv/aspire/deploy && docker compose exec db psql -U aspire -d aspire -c '\dt'
+cd /opt/aspire/deploy && docker compose exec db psql -U aspire -d aspire -c '\dt'
 ```
 
 ```bash
-cd /srv/aspire/deploy && docker compose exec db psql -U aspire -d aspire -c 'select id, board_id, name, paired_at, last_seen_at from devices;'
+cd /opt/aspire/deploy && docker compose exec db psql -U aspire -d aspire -c 'select id, board_id, name, paired_at, last_seen_at from devices;'
 ```
 
 **Adding a migration** is a developer step, on a laptop, before the code
@@ -239,7 +239,7 @@ schema it cannot migrate.
 Destructive in a way nothing else here is — the volumes *are* the board:
 
 ```bash
-cd /srv/aspire/deploy && docker compose down -v
+cd /opt/aspire/deploy && docker compose down -v
 ```
 
 `-v` drops `pgdata` **and `media`**: every dream, every photograph, every
@@ -262,7 +262,7 @@ which is what lets the non-root API write into a volume Docker would
 otherwise create as root.
 
 ```bash
-cd /srv/aspire/deploy && docker compose exec api ls -la /data/media
+cd /opt/aspire/deploy && docker compose exec api ls -la /data/media
 ```
 
 ---
@@ -290,15 +290,15 @@ ignored. The API's own image carries the commands; each one runs against
 the database and exits:
 
 ```bash
-cd /srv/aspire/deploy && docker compose exec api dotnet Aspire.Api.dll board list
+cd /opt/aspire/deploy && docker compose exec api dotnet Aspire.Api.dll board list
 ```
 
 ```bash
-cd /srv/aspire/deploy && docker compose exec api dotnet Aspire.Api.dll board add Zuzana 483920174635
+cd /opt/aspire/deploy && docker compose exec api dotnet Aspire.Api.dll board add Zuzana 483920174635
 ```
 
 ```bash
-cd /srv/aspire/deploy && docker compose exec api dotnet Aspire.Api.dll board code Nástěnka 209384756123
+cd /opt/aspire/deploy && docker compose exec api dotnet Aspire.Api.dll board code Nástěnka 209384756123
 ```
 
 A code is digits, twelve of them as in step 2. Changing a board's code does
@@ -311,7 +311,7 @@ that, on purpose.
 ## Updating
 
 ```bash
-cd /srv/aspire && sudo git pull && cd deploy && docker compose build --pull && docker compose up -d
+cd /opt/aspire && sudo git pull && cd deploy && docker compose build --pull && docker compose up -d
 ```
 
 `--pull` fetches the base images' security patches; without it `build`
@@ -330,7 +330,7 @@ reloads on the next navigation.
 **`curl localhost:8081/api/v1/health` hangs or 502s.**
 
 ```bash
-cd /srv/aspire/deploy && docker compose ps && docker compose logs --tail=50 api
+cd /opt/aspire/deploy && docker compose ps && docker compose logs --tail=50 api
 ```
 
 The usual cause is Postgres refusing the password, which means `.env` changed
@@ -356,18 +356,18 @@ somebody other than the app user, so the resize fails and the row goes with it
 deployments fail one photograph at a time instead. What it looks like:
 
 ```bash
-cd /srv/aspire/deploy && docker compose logs api --tail=400 | grep -A4 "could not be processed"
+cd /opt/aspire/deploy && docker compose logs api --tail=400 | grep -A4 "could not be processed"
 ```
 
 ```bash
-cd /srv/aspire/deploy && docker compose exec api sh -c 'id; ls -ld /data/media'
+cd /opt/aspire/deploy && docker compose exec api sh -c 'id; ls -ld /data/media'
 ```
 
 `drwxr-xr-x root root` against `uid=1654(app)` is the fault. Repair the volume
 once, and `media-init` keeps it that way from then on:
 
 ```bash
-cd /srv/aspire/deploy && docker compose exec -u root api chown -R 1654:1654 /data/media && docker compose restart api
+cd /opt/aspire/deploy && docker compose exec -u root api chown -R 1654:1654 /data/media && docker compose restart api
 ```
 
 The photographs already lost are lost: their rows were deleted, so those
