@@ -124,6 +124,33 @@ though it does not look like one. It seeds the first board on the first
 start and is ignored after that; "Boards" below has the commands that
 change a code or add a board.
 
+### 2b. The notification keys, if you want the morning nudge
+
+The morning nudge (PLAN.md §3.6) needs a VAPID key pair. Without one the API
+runs perfectly well, the worker says so once at start, and the Upozornění
+screen tells the person the server cannot send — so this step is optional
+and can be done later.
+
+The command makes a pair and touches nothing else, so it works before the
+database exists:
+
+```bash
+cd /srv/aspire/deploy && docker compose run --rm api dotnet Aspire.Api.dll vapid
+```
+
+It prints three lines. Put them in `.env`, then restart the API. Set
+`Push__Subject` to an address a push service can reach you at — it is sent
+with every notification and some services will use it if something is wrong.
+
+**Generate this once.** The public half is baked into every subscription
+every browser has already made, so a new pair silently stops every
+notification anybody has turned on; they have to turn them on again. The
+command warns if the server already has one.
+
+Notifications also need HTTPS, which step 5 gives you, and on an iPhone the
+app has to be added to the home screen first — Safari will not offer
+notifications to a tab (PLAN.md §7).
+
 ### 3. Start the three containers
 
 ```bash

@@ -1,21 +1,41 @@
 <script lang="ts">
 	/**
-	 * Nastavení — the hub, and the last tab. Two rows in M0, each a room of
-	 * its own with a back chevron here: Vzhled and Párování. Every row carries
-	 * a live one-line summary of what is in the room, so the hub reads as a
-	 * status page before it is a menu.
+	 * Nastavení — the hub, and the last tab. Each row is a room of its own
+	 * with a back chevron there: Vzhled, Upozornění, Tapeta, Párování. Every
+	 * row carries a live one-line summary of what is in the room, so the hub
+	 * reads as a status page before it is a menu.
+	 *
+	 * The theme and the token are on the device and read at once; the nudge
+	 * is the server's and arrives a moment later, so the row starts at the
+	 * one state that is true before anybody has asked for anything.
 	 */
 	import { resolve } from '$app/paths';
 	// The package version, not `$app/environment`'s: that one is the build
 	// stamp the service worker keys its cache on, and reads as a timestamp.
 	import { version } from '../../../package.json';
+	import type { NudgeMode } from '@aspire/contracts';
 	import { readToken } from '$lib/api/token';
+	import { current } from '$lib/push/nudge';
 	import Icon from '$lib/ui/Icon.svelte';
 	import TabBar from '$lib/ui/TabBar.svelte';
 	import { settingsRows } from '$lib/ui/settings';
 	import { readTheme } from '$lib/ui/theme';
 
-	const rows = settingsRows({ theme: readTheme(), paired: readToken() !== null });
+	let nudge = $state<NudgeMode>('off');
+
+	const rows = $derived(settingsRows({ theme: readTheme(), paired: readToken() !== null, nudge }));
+
+	$effect(() => {
+		let live = true;
+		current()
+			.then((settings) => {
+				if (live) nudge = settings.mode;
+			})
+			.catch(() => undefined);
+		return () => {
+			live = false;
+		};
+	});
 </script>
 
 <svelte:head>

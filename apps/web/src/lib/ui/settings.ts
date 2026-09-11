@@ -4,9 +4,11 @@
  */
 
 import type { IconName } from './Icon.svelte';
+import { MODE_LABEL } from '$lib/push/schedule';
+import type { NudgeMode } from '@aspire/contracts';
 import { THEME_LABEL, type Theme } from './theme';
 
-export type SettingsPage = 'vzhled' | 'tapeta' | 'parovani';
+export type SettingsPage = 'vzhled' | 'upozorneni' | 'tapeta' | 'parovani';
 
 export interface SettingsRow {
 	id: SettingsPage;
@@ -21,6 +23,8 @@ export interface SettingsFacts {
 	theme: Theme;
 	/** Whether this device holds a token. */
 	paired: boolean;
+	/** What the morning nudge is set to on this device (PLAN.md §3.6). */
+	nudge: NudgeMode;
 }
 
 export function settingsRows(facts: SettingsFacts): SettingsRow[] {
@@ -31,6 +35,13 @@ export function settingsRows(facts: SettingsFacts): SettingsRow[] {
 			title: 'Vzhled',
 			sub: THEME_LABEL[facts.theme],
 			icon: 'sun-moon'
+		},
+		{
+			id: 'upozorneni',
+			href: '/nastaveni/upozorneni',
+			title: 'Upozornění',
+			sub: MODE_LABEL[facts.nudge].toLocaleLowerCase('cs-CZ'),
+			icon: 'sparkles'
 		},
 		{
 			id: 'tapeta',

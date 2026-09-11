@@ -10,6 +10,7 @@ using Aspire.Api.Nudges;
 using Aspire.Api.Wallpaper;
 using Aspire.Infrastructure;
 using Aspire.Infrastructure.Media;
+using Aspire.Infrastructure.Push;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
@@ -59,6 +60,12 @@ builder.Services.AddSingleton(new VapidKeys(
     builder.Configuration["Push:PublicKey"],
     builder.Configuration["Push:PrivateKey"],
     builder.Configuration["Push:Subject"]));
+// The morning nudge's sender and its worker (PLAN.md §3.6). The worker
+// stops itself when there is no key pair to send with.
+builder.Services.AddHttpClient<WebPushSender>(client =>
+    client.Timeout = TimeSpan.FromSeconds(15));
+builder.Services.AddHostedService<NudgeWorker>();
+
 builder.Services.AddSingleton<ImageQueue>();
 builder.Services.AddHostedService<ImageWorker>();
 builder.Services.AddScoped<ImageService>();
@@ -127,6 +134,16 @@ if (allowedOrigins.Length > 0)
 
 var app = builder.Build();
 
+// `vapid` is the one command that touches nothing: it makes a key pair and
+// prints it. It runs before the migration on purpose — the moment you need
+// it is while setting a box up, which is before its database exists.
+if (VapidCommand.IsVapidCommand(args))
+{
+    Console.OutputEncoding = System.Text.Encoding.UTF8;
+    return await VapidCommand.RunAsync(
+        Console.Out, app.Services.GetRequiredService<VapidKeys>().PublicKey);
+}
+
 if (allowedOrigins.Length > 0) app.UseCors();
 
 app.UseRateLimiter();
@@ -144,8 +161,6 @@ if (app.Configuration.GetValue("Database:MigrateOnStart", true))
     await BoardSeed.ApplyAsync(db, app.Configuration["Pairing:Code"]);
 }
 
-// The operator's commands run in this same image, with the database and the
-// hashing the server uses, and then leave without ever listening.
 if (BoardCommand.IsBoardCommand(args))
 {
     // A board's name may carry a háček, and a Windows console would rather not.

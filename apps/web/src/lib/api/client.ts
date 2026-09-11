@@ -14,6 +14,9 @@ import type {
 	DreamImageKind,
 	DreamInput,
 	HealthResponse,
+	NudgeInput,
+	NudgeSettings,
+	PushKeyResponse,
 	PairRequest,
 	PairResponse
 } from '@aspire/contracts';
@@ -162,6 +165,24 @@ export async function wallpaper(
 	});
 	const response = await send(`/wallpaper?${query}`);
 	return response.blob();
+}
+
+// ── the morning nudge (PLAN.md §3.6) ────────────────────────────
+
+/** The VAPID public key a browser needs before it can subscribe. */
+export function nudgeKey(): Promise<PushKeyResponse> {
+	return call<PushKeyResponse>('/nudge/key');
+}
+
+/** What this device's nudge is set to; off when it has never subscribed. */
+export function readNudge(endpoint: string | null): Promise<NudgeSettings> {
+	const query = endpoint ? `?endpoint=${encodeURIComponent(endpoint)}` : '';
+	return call<NudgeSettings>(`/nudge${query}`);
+}
+
+/** Set it, or turn it off — `off` deletes the subscription entirely. */
+export function saveNudge(input: NudgeInput): Promise<NudgeSettings> {
+	return call<NudgeSettings>('/nudge', { method: 'PUT', body: JSON.stringify(input) });
 }
 
 export function deleteImage(dreamId: string, imageId: string): Promise<void> {

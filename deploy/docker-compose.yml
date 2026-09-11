@@ -84,6 +84,13 @@ services:
       # by the time this starts; the API refuses to start if it cannot write
       # there, rather than losing a photograph at a time.
       Media__Root: /data/media
+      # The morning nudge (PLAN.md §3.6). Optional, and empty by default: with
+      # no pair the API runs with notifications off and says so once. Made by
+      # `docker compose run --rm api dotnet Aspire.Api.dll vapid`, once and
+      # never again — a new pair stops every subscription anybody has (D34).
+      Push__PublicKey: ${Push__PublicKey:-}
+      Push__PrivateKey: ${Push__PrivateKey:-}
+      Push__Subject: ${Push__Subject:-}
     volumes:
       - media:/data/media
     # Deliberately not published. The only way in is through `web`, which is

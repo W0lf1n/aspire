@@ -17,6 +17,10 @@
  *
  * Nothing else under `/api/` is cached, and no write ever is: offline, a
  * dream can be looked at and nothing more.
+ *
+ * It also shows the morning nudge (PLAN.md §3.6) and opens the dream it was
+ * about when it is tapped — a push arrives when no page of this app is
+ * running at all, so the notification is the worker's to show (D35).
  */
 
 import { build, files, prerendered, version } from '$service-worker';
@@ -74,6 +78,65 @@ sw.addEventListener('fetch', (event) => {
 	}
 
 	event.respondWith(respond(request, url));
+});
+
+/**
+ * The morning nudge. The payload is one dream, and the notification is its
+ * photograph, its title and the line the tile would carry. A push with no
+ * body, or one this does not understand, still shows something rather than
+ * nothing: a silent failed notification is worse than a plain one, because
+ * the browser will show its own if we show none.
+ */
+sw.addEventListener('push', (event) => {
+	event.waitUntil(show(event.data?.json()));
+});
+
+interface Nudge {
+	title?: string;
+	dream?: string;
+	line?: string | null;
+	id?: string;
+	image?: string | null;
+}
+
+async function show(payload: unknown): Promise<void> {
+	const nudge = (payload ?? {}) as Nudge;
+
+	await sw.registration.showNotification(nudge.dream ?? nudge.title ?? 'Aspire', {
+		body: nudge.line ?? undefined,
+		icon: '/icon-192.png',
+		badge: '/icon-192.png',
+		// The photograph itself where the platform shows one; where it does
+		// not, nothing is lost but the picture.
+		image: nudge.image ?? undefined,
+		// One nudge a morning: a second replaces the first rather than
+		// stacking under it.
+		tag: 'aspire-nudge',
+		data: { path: nudge.id ? `/sen/${nudge.id}` : '/' }
+	} as NotificationOptions);
+}
+
+/**
+ * Tapping it opens the dream it was about — in the tab that is already
+ * there when one is, because a second copy of the app is not what anybody
+ * wanted from a notification.
+ */
+sw.addEventListener('notificationclick', (event) => {
+	event.notification.close();
+	const path = (event.notification.data as { path?: string } | null)?.path ?? '/';
+
+	event.waitUntil(
+		(async () => {
+			const open = await sw.clients.matchAll({ type: 'window', includeUncontrolled: true });
+			for (const client of open) {
+				if (new URL(client.url).origin !== sw.location.origin) continue;
+				await client.navigate(path).catch(() => undefined);
+				return client.focus().then(() => undefined);
+			}
+
+			await sw.clients.openWindow(path);
+		})()
+	);
 });
 
 async function respond(request: Request, url: URL): Promise<Response> {

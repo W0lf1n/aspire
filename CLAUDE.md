@@ -2,7 +2,7 @@
 
 Guidance for Claude Code working in this repository.
 
-**Last revised:** 2026-09-10 · M4 · 82 web tests · 123 API tests
+**Last revised:** 2026-09-11 · M5 · 87 web tests · 166 API tests
 
 ---
 
@@ -25,8 +25,9 @@ photograph beside the dreamt one, the anniversary, and the voice memo
 dropped (§8.4). §13 is what followed: the reel shuffled on every open in
 place of drag to reorder, and windowed so a hundred dreams are not a
 hundred tiles. Categories followed (§8.3 answered: Yager's nine,
-fixed — D32), and §14 is M4, the wallpaper. Next is M5, the daily nudge.
-Still unbuilt from M1: the desktop grid.
+fixed — D32), §14 is M4, the wallpaper, and §15 is M5, the morning nudge.
+M0 through M5 are done. Still unbuilt from M1: the desktop grid, which
+needs the 34 rem column to widen and so is a design question first.
 
 ---
 
@@ -101,18 +102,24 @@ apps/web/src/
 ├─ lib/images/     downscale.ts — the photograph to 2048 px on the device.
 ├─ lib/offline/    status.svelte.ts — the connection flag every screen reads —
 │                  and cache.ts, which fills and prunes the photo cache.
+├─ lib/push/       nudge.ts — the browser's half of the morning notification
+│                  — and schedule.ts, the time as a field shows it.
 ├─ routes/         / · /pridat · /sen/[id] · /sen/[id]/upravit · /sin-slavy
-│                  · /nastaveni · /nastaveni/vzhled · /nastaveni/tapeta
-│                  · /nastaveni/parovani · /styleguide (unlinked, for review)
+│                  · /nastaveni · /nastaveni/vzhled · /nastaveni/upozorneni
+│                  · /nastaveni/tapeta · /nastaveni/parovani
+│                  · /styleguide (unlinked, for review)
 └─ service-worker.ts  three caches: the shell per build, the photographs
                       cache-first, the board network-first (D24).
 
 apps/api/src/
 ├─ Aspire.Api/             Program.cs (minimal APIs), Auth/, Boards/, Dreams/,
 │                          Images/ (the queue and the worker), Wallpaper/
-│                          (the lock-screen collage), Contracts.cs
+│                          (the lock-screen collage), Nudges/ (the morning
+│                          notification and its worker), Contracts.cs
 ├─ Aspire.Domain/          Board, Dream, DreamImage, Device. No EF.
-└─ Aspire.Infrastructure/  AppDbContext, Media/ (the store, the resize), Migrations/
+└─ Aspire.Infrastructure/  AppDbContext, Media/ (the store, the resize, the
+                          collage), Push/ (RFC 8291 + 8292, by hand),
+                          Migrations/
 apps/api/tests/Aspire.Api.Tests/   xUnit, SQLite in memory
 
 packages/contracts/  the wire types; mirrored in Contracts.cs
@@ -166,6 +173,14 @@ old file answers "no such column". Delete it and start the API again.
 
 **A Bash heredoc over about 8 kB is cut short on this machine** and fails
 with an unmatched quote. Write large files with the Write tool.
+
+**A control character can hide inside a string literal.** `WebPushCrypto`'s
+HKDF labels ended up holding a raw `0x01` byte rather than the two
+characters ``, so the info strings were one byte long and every derived
+key was wrong. `grep` showed the line as correct, because a 0x01 prints as
+nothing; `sed -n '34p' file | cat -A` shows it as `^A`. When a string
+constant is definitely right and the output is definitely wrong, look at the
+bytes before looking anywhere else.
 
 **The web batch in `docker build` runs from the repository root**, because
 the client imports `@aspire/contracts`. `docker build -f apps/web/Dockerfile .`,

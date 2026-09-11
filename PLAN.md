@@ -288,3 +288,48 @@ that turns it on. Still unbuilt from M1: the desktop grid, which §3.2 wants
 as a masonry layout — that needs the 34 rem column to widen, and
 `DESIGN.md` says desktop is deliberately the phone layout with room around
 it, so it is a design question before it is a screen.
+
+---
+
+## 15. M5 — the morning nudge · 2026-09-11
+
+§3.6 built. One dream, on the phone, at the hour you chose: off, every day,
+or only on working days, and tapping it opens that dream.
+
+**The subscription is per device** and the push endpoint is the device, so
+subscribing again moves the row rather than making a second; off is the
+absence of a row, which is also what a browser that revokes one leaves
+behind. The device sends its **UTC offset in minutes, not a zone name** —
+the API runs with `InvariantGlobalization` and has no zone database — and
+sends it again every time the app opens, so it is right the morning after a
+clock change (D34).
+
+`NudgeSchedule` is pure and tested: a weekend, a day already sent, a server
+that was down all morning. It fires within two hours of the time and then
+skips the day, because a dream at bedtime is not the morning habit this is.
+
+**The crypto is written here, not taken from a package** (D35). VAPID is an
+ECDSA P-256 signature over a JWT and the body is ECDH + HKDF + AES-128-GCM,
+all of it in `System.Security.Cryptography`, and the test is RFC 8291 §5's
+own worked example — byte for byte, so the code is checked against the
+standard rather than against itself. That test earned its keep immediately:
+the HKDF labels held a raw `0x01` byte rather than the two characters
+`\x01`, which `grep` cannot see and which would have failed silently on a
+phone at seven in the morning.
+
+The worker wakes every minute, and a sent nudge stamps `LastShownAt` — a
+notification puts a dream in front of somebody, so the board opens on the
+one they were told about and tomorrow's is different (D36). The service
+worker shows the notification, because a push arrives when no page of the
+app is running.
+
+`docker compose run --rm api dotnet Aspire.Api.dll vapid` makes the key
+pair, before the database exists, once. Without one the API runs with
+notifications off and says so; the screen tells the person rather than
+offering a switch that cannot work.
+
+**M0 through M5 are done.** Still unbuilt from M1: the desktop grid, which
+§3.2 wants as a masonry layout — that needs the 34 rem column to widen, and
+`DESIGN.md` says desktop is deliberately the phone layout with room around
+it, so it is a design question before it is a screen. §3.7's later/maybe
+list is untouched and out of scope.

@@ -111,6 +111,38 @@ export interface DreamImage {
 	fullUrl: string;
 }
 
+// ── GET/PUT /api/v1/nudge ─────────────────────────────────────
+
+export const NUDGE_MODES = ['off', 'daily', 'weekdays'] as const;
+
+/** Off, every day, or only on working days (PLAN.md §3.6). */
+export type NudgeMode = (typeof NUDGE_MODES)[number];
+
+/** A device's standing nudge, as it reads it back. No keys come out. */
+export interface NudgeSettings {
+	mode: NudgeMode;
+	/** Minutes past midnight where the device is. */
+	atMinutes: number;
+}
+
+/** What a device sends to be nudged: the browser's subscription, and when. */
+export interface NudgeInput extends NudgeSettings {
+	endpoint: string;
+	p256dh: string;
+	auth: string;
+	/**
+	 * Minutes ahead of UTC. An offset rather than a zone name, because the
+	 * server has no zone database; the device sends it again every time the
+	 * app opens, so it is right the morning after a clock change (D34).
+	 */
+	utcOffsetMinutes: number;
+}
+
+/** The VAPID public key, or empty when the server cannot send at all. */
+export interface PushKeyResponse {
+	publicKey: string;
+}
+
 // ── POST /api/v1/dreams · PUT /api/v1/dreams/{id} ──────────────────────────
 
 /** What the client sends to make or change a dream. */

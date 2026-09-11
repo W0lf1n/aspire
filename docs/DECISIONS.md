@@ -732,3 +732,56 @@ off / daily / weekdays. The parts of that decided before anything was sent:
   server with no pair does not do notifications, says so with a 503 rather
   than keeping a subscription it cannot honour, and runs perfectly well
   otherwise — which is what a laptop wants.
+
+### D35 — The push crypto is written here, against the specification's own numbers
+
+PLAN.md §4 named the `WebPush` NuGet. The sending is written against the
+RFCs instead, on `System.Security.Cryptography`.
+
+- **Nothing is invented.** VAPID is an ECDSA P-256 signature over a JWT
+  (RFC 8292) and the body is ECDH + HKDF + AES-128-GCM in the order RFC 8291
+  sets out; every one of those primitives is in the BCL, and the whole of
+  `WebPushCrypto` is about 180 lines of composing them. Hand-rolling a
+  cipher would be reckless; composing standard ones to a published spec is
+  what every library in this space also does.
+- **The test is the specification's own worked example.** RFC 8291 §5
+  publishes a push message with the keys, the salt and the resulting body,
+  so the test asserts that this code produces those exact bytes — not that
+  it agrees with itself. A round trip through an independent decrypt, and a
+  VAPID signature verified against the public half, cover the rest.
+- **What that caught.** The HKDF labels held a raw `0x01` byte rather than
+  the two characters `\x01`, so every derived key was wrong. `grep` showed
+  the line as correct — a 0x01 prints as nothing. Without the vector this
+  would have shipped and failed silently on a phone at seven in the morning,
+  which is the worst possible place to find out. The trap is in CLAUDE.md.
+- **The dependency this does not add.** `WebPush` is at 1.0.13; the API's
+  only other package for this would have been one more thing to audit and
+  upgrade for a protocol that has not changed since 2017. The client already
+  ships no runtime dependency (rule 3); the server keeps the same habit
+  where the cost of doing so is a file with a test.
+
+### D36 — `vapid` runs before the database, and the worker wakes every minute
+
+- **The command touches nothing.** `docker compose run --rm api dotnet
+  Aspire.Api.dll vapid` prints a pair and exits, and it runs *before* the
+  migration in `Program.cs`: the moment you need it is while setting a box
+  up, which is before its database exists. Run a second time it warns first,
+  because replacing the pair silently orphans every subscription anybody has
+  (D34) and the person running it twice has not read this file.
+- **A minute is the tick.** The person chose the time to the minute, so
+  nothing should be more than a minute late; the round is one query over a
+  table with as many rows as there are phones, and the schedule is
+  arithmetic. A board's dreams are read once however many of its devices are
+  due, because a household is several phones and one board.
+- **A sent nudge stamps `LastShownAt`.** A notification puts a dream in
+  front of somebody, which is what "shown" means (D25) — so the board opens
+  on the dream they were already told about when they tap it, and tomorrow's
+  nudge is a different one. `DailyPick` is the same rule as `board.ts`'s,
+  in C#, with its own test; the client has to keep its copy because it opens
+  the board without a signal (D24).
+- **A failed send is left unstamped**, so the next minute tries again and
+  the grace window ends the day. A push service answering 404 or 410 is
+  telling the truth and the row goes.
+- **The service worker shows the notification**, because a push arrives when
+  no page of the app is running. Tapping it opens that dream in the tab that
+  is already there rather than a second copy of the app.

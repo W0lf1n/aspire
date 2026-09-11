@@ -111,8 +111,22 @@ dotnet run --project src/Aspire.Api -- board add Zuzana 483920174635
 dotnet run --project src/Aspire.Api -- board code Nástěnka 209384756123
 ```
 
-On the VPS the same three run as `docker compose exec api dotnet
-Aspire.Api.dll board …` (`docs/DEPLOYMENT.md`). A code is digits only, six
+The morning nudge's key pair has its own command, which touches neither the
+database nor the disk — it runs before the migration, because the moment you
+need it is while setting a box up:
+
+```bash
+dotnet run --project src/Aspire.Api -- vapid
+```
+
+It prints `Push__PublicKey`, `Push__PrivateKey` and `Push__Subject` for the
+environment. Generate a pair **once**: the public half is in every
+subscription every browser has already made, so a new one silently stops
+all of them (D34). Run a second time it warns before it prints.
+
+On the VPS the same commands run as `docker compose exec api dotnet
+Aspire.Api.dll board …` (`vapid` wants `run --rm` rather than `exec`, since
+it may be needed before anything is up — `docs/DEPLOYMENT.md`). A code is digits only, six
 at least, twelve in production.
 
 ---
