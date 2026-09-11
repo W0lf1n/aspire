@@ -408,7 +408,8 @@ workflow**, a ref (`master` unless you mean otherwise), and it opens an SSH
 session and runs the script above. The run's summary page shows what the box
 said.
 
-It needs five things once, and then never again.
+It needs five things once, and then never again. The second is the longest
+and has a section of its own.
 
 **1. A key for the runner, without a passphrase.** Yours has one, which is
 right for yours and impossible for a machine. Make a second one, on the
@@ -418,15 +419,9 @@ laptop:
 ssh-keygen -t ed25519 -N '' -C 'github-actions aspire deploy' -f ~/.ssh/aspire-deploy
 ```
 
-**2. The box accepts it.** Append the public half to the deploy user's
-`authorized_keys`:
-
-```bash
-ssh root@aspire.petrbohac.eu "mkdir -p ~/.ssh && cat >>~/.ssh/authorized_keys" <~/.ssh/aspire-deploy.pub
-```
-
-That user has to own `/opt/aspire` and be able to talk to Docker. `root` is
-the short answer and the one the rest of this runbook assumes.
+**2. A user for it, that can do nothing else.** Its own section, below:
+**[A user that can only deploy](#a-user-that-can-only-deploy)**. Do that now
+and come back; the rest of this is GitHub's side.
 
 **3. The box pulls from GitHub.** The script fast-forwards from `origin`, so
 `origin` has to be the repository the button deploys — not the bare
@@ -451,7 +446,7 @@ repository needs neither.
 | Secret            | What                                                               |
 | ----------------- | ------------------------------------------------------------------ |
 | `VPS_HOST`        | `aspire.petrbohac.eu`                                              |
-| `VPS_USER`        | `root`, or whoever owns `/opt/aspire`                              |
+| `VPS_USER`        | `aspire-deploy`, the user made below                               |
 | `VPS_SSH_KEY`     | the **private** half of step 1, the whole file, both `-----` lines |
 | `VPS_KNOWN_HOSTS` | the box's host key, so the runner knows what it is talking to      |
 
@@ -466,8 +461,10 @@ pasting it in — that comparison is the whole point of the secret. Keyscanning
 inside the workflow on every run would instead trust whatever answered that
 night, which is the attack a known_hosts file exists to stop.
 
-A checkout somewhere other than `/opt/aspire` is the optional repository
-**variable** `VPS_PATH`.
+The workflow sends one command — `aspire-deploy <ref>` — and nothing else,
+because that is the only thing the key on the box is allowed to ask for. The
+checkout path lives in the wrapper on the box rather than in a repository
+variable.
 
 **5. Press it once while watching.** The first run proves the key, the host
 key, the remote and the path in one go, and failing any of them costs a
@@ -476,6 +473,87 @@ minute rather than a deployment.
 The button does not check that CI passed — it deploys what you point it at.
 What it deployed is in the run summary, and `git log -1` on the box says the
 same thing afterwards.
+
+### A user that can only deploy
+
+The key in GitHub's secrets is a key to the box, and a key to the box is
+worth exactly what it can be used for. This gives it a user of its own, and
+then gives that user one thing to do (D47).
+
+**What cannot be fenced off, said plainly.** The deployment writes
+`/opt/aspire` and talks to the Docker socket, and socket access *is* root —
+a member of the `docker` group can start a container with `/` mounted in it.
+So the deployment runs as root, through one `sudo` rule, and what is fenced
+is the key: no shell, no file, no port forwarding, no `scp`, and one command
+whose only argument has to look like a ref. A leaked secret can then ask for
+a deployment and nothing else.
+
+It also means anybody who can push to `master` can run code as root on this
+box, because the box builds what it fetches. That is true of every continuous
+deployment; it is worth saying once. Keep push rights to this repository as
+tight as the SSH key.
+
+All of this is on the box, as root.
+
+**1. The user.** No password, so nothing can log in as it but a key:
+
+```bash
+sudo useradd --create-home --shell /bin/bash --comment 'GitHub Actions deploy' aspire-deploy && sudo passwd --lock aspire-deploy
+```
+
+It is deliberately **not** in the `docker` group and owns nothing: the whole
+of what it can do arrives in step 3.
+
+**2. The one command it may run.** `deploy/aspire-deploy` in this repository
+is the fence; it goes somewhere the deploy user cannot write:
+
+```bash
+sudo install -m 755 -o root -g root /opt/aspire/deploy/aspire-deploy /usr/local/bin/aspire-deploy
+```
+
+**3. The sudo rule.** One line, one script, no password — and `visudo -c`
+rather than an editor, so a typo cannot lock the box's sudo:
+
+```bash
+printf 'aspire-deploy ALL=(root) NOPASSWD: /opt/aspire/deploy/deploy.sh, /opt/aspire/deploy/deploy.sh *\n' | sudo tee /etc/sudoers.d/aspire-deploy >/dev/null && sudo chmod 440 /etc/sudoers.d/aspire-deploy && sudo visudo -c
+```
+
+The script it names must not be writable by the user that may run it as root,
+or the rule is a root shell with extra steps. `/opt/aspire` is root-owned
+from `git clone`; this makes sure of it:
+
+```bash
+sudo chown -R root:root /opt/aspire && sudo find /opt/aspire -perm -o+w -not -type l
+```
+
+That `find` should print nothing at all.
+
+**4. The key, pinned to the command.** Everything before the key type is the
+fence: sshd runs `/usr/local/bin/aspire-deploy` whatever the client asks for,
+and puts the ask in `SSH_ORIGINAL_COMMAND` for the wrapper to check.
+
+On the laptop, in the same shell where the key was made:
+
+```bash
+printf 'command="/usr/local/bin/aspire-deploy",no-agent-forwarding,no-port-forwarding,no-pty,no-user-rc,no-X11-forwarding %s' "$(cat ~/.ssh/aspire-deploy.pub)" | ssh root@aspire.petrbohac.eu "install -d -m 700 -o aspire-deploy -g aspire-deploy /home/aspire-deploy/.ssh && cat >>/home/aspire-deploy/.ssh/authorized_keys && chown aspire-deploy:aspire-deploy /home/aspire-deploy/.ssh/authorized_keys && chmod 600 /home/aspire-deploy/.ssh/authorized_keys"
+```
+
+**5. Prove both halves.** The first says a deployment works; the second says
+nothing else does. Both from the laptop:
+
+```bash
+ssh -i ~/.ssh/aspire-deploy -o IdentitiesOnly=yes -o BatchMode=yes aspire-deploy@aspire.petrbohac.eu "aspire-deploy 'master'"
+```
+
+```bash
+ssh -i ~/.ssh/aspire-deploy -o IdentitiesOnly=yes -o BatchMode=yes aspire-deploy@aspire.petrbohac.eu "cat /etc/shadow"
+```
+
+The first prints the deployment. The second must print `This key may only
+run: aspire-deploy <ref>` and exit 126 — and so must `ssh … aspire-deploy@…`
+with no command at all, which is somebody asking for a shell.
+
+`VPS_USER` in the four secrets above is then `aspire-deploy`, not `root`.
 
 ---
 

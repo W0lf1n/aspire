@@ -452,7 +452,10 @@ somebody edited on the box, and it does not call a deployment finished until
 `/api/v1/health` answers — and `.github/workflows/deploy.yml` is
 `workflow_dispatch` and an `ssh` that runs it. The logic is in the repository
 rather than in YAML, so the same deployment happens by hand, from the button,
-or from cron if it ever wants to.
+or from cron if it ever wants to. The key GitHub holds is not a key to the
+box: it belongs to an `aspire-deploy` user and carries a forced command that
+takes `aspire-deploy <ref>` and refuses everything else — no shell, no file,
+no forwarding (D47).
 
 **And a second person is a board, which was always true** (D21) — what was
 missing was the code. `board invite <name>` makes the board and twelve digits

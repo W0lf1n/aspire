@@ -26,6 +26,16 @@ REPO_DIR="$(cd "$DEPLOY_DIR/.." && pwd)"
 REF="${1:-master}"
 REMOTE="${ASPIRE_DEPLOY_REMOTE:-origin}"
 
+# The ref goes to git as an argument, so a leading dash would be an option and
+# not a branch. Checked here as well as in `aspire-deploy`, because this script
+# is also run by hand and a fence that only exists on one path is not a fence.
+case "$REF" in
+'' | -* | *[!A-Za-z0-9._/-]*)
+	echo "Not a ref: $REF" >&2
+	exit 2
+	;;
+esac
+
 # The port the host's nginx proxies to — `.env`'s, because that is the one
 # compose published. Read rather than sourced: `.env` holds both secrets, and
 # a script does not need to have them in its environment to curl a port.

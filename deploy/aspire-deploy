@@ -1,0 +1,68 @@
+#!/bin/sh
+# The only thing the deploy key can do (D47).
+#
+# Installed on the box as `/usr/local/bin/aspire-deploy`, root-owned, and
+# named as the forced command on the deploy user's key:
+#
+#     command="/usr/local/bin/aspire-deploy",no-pty,no-port-forwarding,… ssh-ed25519 AAAA…
+#
+# With that in `authorized_keys`, sshd runs *this* whatever the client asked
+# for, and puts what the client asked for in `SSH_ORIGINAL_COMMAND`. So the
+# key cannot open a shell, cannot read a file, cannot forward a port, and
+# cannot run anything but a deployment of a ref that looks like a ref — which
+# is the whole of what a secret sitting in GitHub is worth if it leaks.
+#
+# The deployment itself runs as root through one `sudo` rule, because a
+# deployment writes `/opt/aspire` and talks to the Docker socket, and socket
+# access is root however it is dressed up. What is fenced here is the key, not
+# the privilege it asks for.
+#
+# By hand, as a user with the sudo rule, it also takes the ref as an argument:
+#
+#     aspire-deploy            # master
+#     aspire-deploy v1.2.0
+set -eu
+
+DEPLOY="${ASPIRE_DEPLOY_SCRIPT:-/opt/aspire/deploy/deploy.sh}"
+
+REF="${1:-master}"
+
+# Over SSH the argument is not the client's — sshd's forced command replaced
+# it — so the ask is read from `SSH_ORIGINAL_COMMAND`, and only one shape of
+# ask is accepted. Anything else is somebody with the key trying something
+# else, and it is refused rather than interpreted.
+if [ -n "${SSH_ORIGINAL_COMMAND:-}" ]; then
+	case "$SSH_ORIGINAL_COMMAND" in
+	'aspire-deploy') REF='master' ;;
+	'aspire-deploy '*) REF="${SSH_ORIGINAL_COMMAND#aspire-deploy }" ;;
+	*)
+		echo "This key may only run: aspire-deploy <ref>" >&2
+		exit 126
+		;;
+	esac
+
+	# The workflow sends the ref in single quotes, which is what keeps it one
+	# word on a key that has no forced command and therefore a real shell
+	# behind it. Here there is no shell to do the unquoting, so this does.
+	QUOTE="'"
+	case "$REF" in
+	"$QUOTE"*"$QUOTE")
+		REF="${REF#$QUOTE}"
+		REF="${REF%$QUOTE}"
+		;;
+	esac
+fi
+
+# The ref reaches git, so it is a ref or it is nothing. A leading dash would
+# be an option rather than a branch, which is the injection this shape of
+# argument has.
+case "$REF" in
+'' | -* | *[!A-Za-z0-9._/-]*)
+	echo "Not a ref: $REF" >&2
+	exit 2
+	;;
+esac
+
+# `-n` so a misconfigured sudoers fails in a second instead of waiting at a
+# password prompt nobody is there to answer.
+exec sudo -n "$DEPLOY" "$REF"

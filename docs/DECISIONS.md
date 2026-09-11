@@ -1232,6 +1232,9 @@ SSH session, runs that script, and does nothing else.
   time, and the two things a tired person skips. So the script is the runbook
   with its eyes: it refuses to fast-forward over uncommitted changes, and it
   does not call a deployment finished until `/api/v1/health` answers `ok`.
+- **The key it uses can only ask for a deployment**, which is D47 — the
+  first version of this pointed the workflow at `root` and a path, and that
+  made the secret in GitHub a root shell.
 - **The logic is in the repository, not in the workflow.** A deployment that
   lives in YAML can only be run by the thing that reads the YAML. This one
   runs by hand over SSH, from the button, from cron if it ever wants to be,
@@ -1290,3 +1293,46 @@ is one SSH session that runs it on the box.
   terminal is open.
 - **Still no signup form** (D6). A board is something the operator makes, and
   this is the operator making one in a single command rather than in four.
+
+### D47 — The deploy key gets a user of its own, and one command to run
+
+The box has an `aspire-deploy` user. Its key carries a forced command,
+`/usr/local/bin/aspire-deploy` (`deploy/aspire-deploy` in this repository),
+which accepts exactly `aspire-deploy <ref>` and runs the deployment through
+one `sudo` rule.
+
+- **Because a key in a third party's vault is worth what it can be used
+  for.** The first version of D45 pointed the workflow at `root` and a path,
+  which means the secret in GitHub was a root shell on the VPS. Nothing about
+  GitHub makes that unreasonable; the trouble is that it is unbounded — a
+  leaked secret, a compromised runner, or any of the ways a token gets out
+  become the whole box rather than one deployment.
+- **What could not be fenced, and is said out loud in the runbook.** The
+  deployment writes `/opt/aspire` and talks to the Docker socket, and socket
+  access is root: a member of the `docker` group starts a container with `/`
+  mounted in it and is done. So the deployment still runs as root. Pretending
+  otherwise by putting the deploy user in the `docker` group would be the
+  same privilege with a longer story.
+- **So the fence is on the key, where it can actually hold.** `command=` in
+  `authorized_keys` means sshd runs the wrapper whatever the client asks for,
+  with the ask in `SSH_ORIGINAL_COMMAND`; `no-pty`, `no-port-forwarding`,
+  `no-agent-forwarding`, `no-X11-forwarding` and `no-user-rc` take the rest.
+  The wrapper refuses everything that is not `aspire-deploy <ref>` and every
+  ref that is not `[A-Za-z0-9._/-]`, a leading dash included — that last one
+  is an option to `git checkout`, not a branch. A shell, a `cat`, an `scp`
+  and a `master; rm -rf /` all end at the same sentence.
+- **The sudo rule names one script and nothing else**, and the script is
+  root-owned in a root-owned tree, because a script a user may run as root
+  and may also edit is a root shell with extra steps.
+- **The wrapper is in the repository and copied to `/usr/local/bin`**, not
+  symlinked into `/opt/aspire`. It is the fence; a fence that moves when the
+  thing it fences is updated is not one. It changes about never.
+- **The workflow's vocabulary shrank to match.** It sends `aspire-deploy
+  '<ref>'` rather than a path to a script, so the path lives on the box and
+  `VPS_PATH` is gone. The single quotes are for the case where somebody sets
+  this up without the forced command and a real shell sees the string; with
+  the forced command there is no shell, so the wrapper unquotes it itself.
+- **What this still does not stop:** anybody who can push to `master` can run
+  code as root on the box, because the box builds what it fetches. That is
+  what continuous deployment is. The runbook says so next to the commands
+  rather than leaving it to be discovered.
