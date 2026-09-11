@@ -138,9 +138,27 @@ database exists:
 cd /opt/aspire/deploy && docker compose run --rm api dotnet Aspire.Api.dll vapid
 ```
 
-It prints three lines. Put them in `.env`, then restart the API. Set
-`Push__Subject` to an address a push service can reach you at — it is sent
-with every notification and some services will use it if something is wrong.
+It prints three lines. Put them in `.env`, set `Push__Subject` to an address
+a push service can reach you at — it is sent with every notification and some
+services will use it if something is wrong — and then **recreate** the API,
+not restart it:
+
+```bash
+cd /opt/aspire/deploy && docker compose up -d api
+```
+
+`docker compose restart api` will not do. A restart starts the same container
+again, and a container keeps the environment it was created with, so the keys
+in `.env` would never reach it — the screen would go on saying the server
+cannot send and nothing would say why. `up -d` notices the changed
+environment and makes a new container.
+
+The API says which it is at start: one line about notifications being off
+when there is no pair, and nothing at all when there is one.
+
+```bash
+cd /opt/aspire/deploy && docker compose logs api | grep -i "push notifications"
+```
 
 **Generate this once.** The public half is baked into every subscription
 every browser has already made, so a new pair silently stops every
@@ -150,6 +168,11 @@ command warns if the server already has one.
 Notifications also need HTTPS, which step 5 gives you, and on an iPhone the
 app has to be added to the home screen first — Safari will not offer
 notifications to a tab (PLAN.md §7).
+
+**The app tells you whether this step is done.** Nastavení · Upozornění
+shows the switch when the server has a pair and this browser can be asked,
+and one sentence saying why when it cannot — „Server zatím upozornění
+posílat neumí“ is this step (D41).
 
 ### 3. Start the three containers
 
