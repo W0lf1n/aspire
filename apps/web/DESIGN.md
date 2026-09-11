@@ -454,7 +454,8 @@ that is physically a print.
 - **Glass** (`--elev-glass`, `0 8px 32px rgb(33 28 25 / 14%)`; dark 45 %
   black): the tab bar and the toast.
 - **Sheet** (`--elev-sheet`, `0 -12px 48px rgb(0 0 0 / 25%)`; dark 60 %):
-  defined for the bottom sheet; no sheet is built in M0.
+  the bottom sheet, and only it — the one surface that arrives from an edge
+  rather than sitting on the ground (D44).
 - The toggle's 18 px knob carries a 1 px `rgb(0 0 0 / 20%)` shadow so it
   reads on the ember track. A control detail, not a surface shadow.
 
@@ -568,8 +569,9 @@ luminance step.
   a 1 px rim gradient lit from the top-left (`--glass-shine` to
   `--glass-rim`), a highlight entering along the top edge, and a lens
   (`--glass-lens`, its own rim) in the current tab's slot that springs to the
-  chosen one in 360 ms on `--ease-spring`. Four equal slots: Nástěnka, the
-  disc, Síň slávy, Nastavení. Tabs are a 24 px icon over an 11 px 600 label
+  chosen one in 360 ms on `--ease-spring`. Five equal slots: Nástěnka, the
+  disc, Seznam, Síň slávy, Nastavení — `--slots` on `.tabbar` is the one
+  number the columns, the lens's width and its travel are worked out from. Tabs are a 24 px icon over an 11 px 600 label
   in ink-3, ink when current, ink-2 on hover. It does not bend what scrolls
   under it (Prosper's displacement map is not carried over; a photograph
   does not need it).
@@ -594,12 +596,26 @@ first tile on the board caps its height to what is left under the wordmark
 and above the bar, giving up its ratio before its foot.
 
 ### Areas (chips)
-Nine fixed areas (D32). In a form they wrap into rows of `.chip .chip--soft`
+Three fixed areas — Chtít · Být · Dělat (D43; Yager's nine until then, D32). In a form they wrap into rows of `.chip .chip--soft`
 — glass has no ground to be glass over inside a card, so `--soft` is the
 card's own version, as `.seg--soft` is; the chosen one is `.chip--on` in the
 pill's colours. Above the reel they are a rail instead, one line, scrolled
 sideways with the bar hidden and bled to both screen edges with a negative
 inline margin so a chip is never cut mid-word by the page's padding.
+
+### The sheet
+A form that arrives from the bottom edge instead of a screen you navigate to
+(D44): `.sheet` is a native `<dialog>` opened with `showModal`, so the top
+layer carries it over the floating bar without a z-index, and the escape key,
+the focus trap and the inert screen behind it come free. The panel is the
+app's column (34 rem) at most, 28 px on its top corners, `--ground` so what
+sits in it is a card on the ground exactly as on a page, capped at the screen
+less 56 px and scrolling inside itself; a 36×4 `--hairline-2` grab bar says
+which edge it came from and is not a control. It rises 100 % of its own
+height in 220 ms on `--ease-out` while the screen dims to `--overlay`, both
+with `allow-discrete` so it leaves the way it came. The dim is a plain
+element, not `::backdrop`: a backdrop does not inherit the tokens everywhere,
+and a colour outside `tokens.css` is not a colour this app owns.
 
 ### The reel (Nástěnka)
 A pager, not a list (D40). The scroll region is the reel alone —

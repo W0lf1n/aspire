@@ -5,6 +5,7 @@ import {
 	anniversaryToday,
 	byCategory,
 	categoriesOnBoard,
+	listOrder,
 	pickDaily,
 	reelDreams,
 	reelOrder,
@@ -81,9 +82,9 @@ describe('anniversaryToday', () => {
 
 describe('byCategory', () => {
 	const rows = [
-		dream('a', { category: 'travel' }),
-		dream('b', { category: 'home' }),
-		dream('c', { category: 'travel' }),
+		dream('a', { category: 'want' }),
+		dream('b', { category: 'be' }),
+		dream('c', { category: 'want' }),
 		dream('none')
 	];
 
@@ -92,37 +93,74 @@ describe('byCategory', () => {
 	});
 
 	it('keeps one area, in the order it was given', () => {
-		expect(byCategory(rows, 'travel').map((d) => d.id)).toEqual(['a', 'c']);
+		expect(byCategory(rows, 'want').map((d) => d.id)).toEqual(['a', 'c']);
 	});
 
 	it('leaves a dream with no category out of every area but everything', () => {
-		expect(byCategory(rows, 'home').map((d) => d.id)).toEqual(['b']);
-		expect(byCategory(rows, 'fun')).toEqual([]);
+		expect(byCategory(rows, 'be').map((d) => d.id)).toEqual(['b']);
+		expect(byCategory(rows, 'do')).toEqual([]);
 		expect(byCategory(rows, 'all').map((d) => d.id)).toContain('none');
 	});
 });
 
 describe('categoriesOnBoard', () => {
-	const ALL = ['home', 'car', 'travel', 'family'] as const;
+	const ALL = ['want', 'be', 'do'] as const;
 
 	it('offers only the areas the board has something in, in the listed order', () => {
-		const rows = [dream('a', { category: 'family' }), dream('b', { category: 'home' })];
+		const rows = [dream('a', { category: 'do' }), dream('b', { category: 'want' })];
 
-		expect(categoriesOnBoard(rows, ALL)).toEqual(['home', 'family']);
+		expect(categoriesOnBoard(rows, ALL)).toEqual(['want', 'do']);
 	});
 
 	it('does not count an achieved dream, which has left the reel', () => {
 		const rows = [
-			dream('a', { category: 'car' }),
-			dream('done', { category: 'travel', status: 'achieved', achievedAt: YESTERDAY })
+			dream('a', { category: 'be' }),
+			dream('done', { category: 'want', status: 'achieved', achievedAt: YESTERDAY })
 		];
 
-		expect(categoriesOnBoard(rows, ALL)).toEqual(['car']);
+		expect(categoriesOnBoard(rows, ALL)).toEqual(['be']);
 	});
 
 	it('is nothing when no dream has a category', () => {
 		expect(categoriesOnBoard([dream('a')], ALL)).toEqual([]);
 		expect(categoriesOnBoard([], ALL)).toEqual([]);
+	});
+});
+
+describe('listOrder', () => {
+	it('is the most recently written first', () => {
+		const rows = [
+			dream('old', { createdAt: A_WEEK_AGO }),
+			dream('new', { createdAt: TODAY }),
+			dream('middle', { createdAt: YESTERDAY })
+		];
+
+		expect(listOrder(rows).map((d) => d.id)).toEqual(['new', 'middle', 'old']);
+	});
+
+	it('keeps an achieved dream, which the reel and the wall each drop half of', () => {
+		const rows = [
+			dream('done', { status: 'achieved', achievedAt: YESTERDAY, createdAt: TODAY }),
+			dream('still', { createdAt: YESTERDAY })
+		];
+
+		expect(listOrder(rows).map((d) => d.id)).toEqual(['done', 'still']);
+	});
+
+	it('breaks a tie on the later sortOrder, so the order never wobbles', () => {
+		const rows = [
+			dream('first', { createdAt: TODAY, sortOrder: 1 }),
+			dream('second', { createdAt: TODAY, sortOrder: 2 })
+		];
+
+		expect(listOrder(rows).map((d) => d.id)).toEqual(['second', 'first']);
+	});
+
+	it('leaves the board it was given alone', () => {
+		const rows = [dream('a', { createdAt: A_WEEK_AGO }), dream('b', { createdAt: TODAY })];
+		listOrder(rows);
+
+		expect(rows.map((d) => d.id)).toEqual(['a', 'b']);
 	});
 });
 

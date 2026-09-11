@@ -37,20 +37,11 @@ export const DREAM_STATUSES = ['dreaming', 'in-progress', 'achieved'] as const;
 export type DreamStatus = (typeof DREAM_STATUSES)[number];
 
 /**
- * The nine areas of PLAN.md §3.1, Yager's own set and fixed (D32). A dream
+ * The three areas of PLAN.md §3.1: whether the dream is something to want,
+ * something to be, or something to do (D43, in place of D32's nine). A dream
  * may belong to none of them.
  */
-export const DREAM_CATEGORIES = [
-	'home',
-	'car',
-	'travel',
-	'family',
-	'freedom',
-	'giving',
-	'business',
-	'health',
-	'fun'
-] as const;
+export const DREAM_CATEGORIES = ['want', 'be', 'do'] as const;
 
 export type DreamCategory = (typeof DREAM_CATEGORIES)[number];
 
@@ -66,7 +57,7 @@ export interface Dream {
 	 */
 	affirmation: string;
 	status: DreamStatus;
-	/** One of the nine, or null. */
+	/** One of the three, or null. */
 	category: DreamCategory | null;
 	sortOrder: number;
 	targetYear: number | null;

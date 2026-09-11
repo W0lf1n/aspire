@@ -593,6 +593,10 @@ once. §3.4 and §4's `MediaRecorder` line are struck through.
 
 ### D32 — Categories are Yager's nine, fixed, and the board asks for one at a time
 
+**Superseded by D43 (2026-09-11): the set is three — Chtít · Být · Dělat.**
+Everything below still holds except the nine themselves: fixed rather than a
+table, optional on a dream, chips in the form and a rail over the board.
+
 PLAN.md §8.3 asked whether categories were the fixed Yager set or free-form.
 They are the fixed set: `home`, `car`, `travel`, `family`, `freedom`,
 `giving`, `business`, `health`, `fun`, shown as Bydlení · Auto · Cestování ·
@@ -1117,3 +1121,94 @@ bricking but not a missed toast, the toast fix is useless on a build whose
 chunks are gone, and the button is the one that works when the other two have
 already failed. This is the screen the app is recovered *from*, so it does not
 get to depend on anything.
+
+---
+
+## After M5 · 2026-09-11 — the list, and three areas instead of nine
+
+### D43 — The areas are Chtít · Být · Dělat, and D32's nine are gone
+
+Yager's nine — Bydlení · Auto · Cestování · Rodina · Svoboda · Dávání ·
+Byznys · Zdraví · Zábava — are replaced by three: `want`, `be`, `do`, shown
+as **Chtít · Být · Dělat**. Same enum, same column, same one lower-case word
+on the wire; `packages/contracts`, `DreamCategory` and `CATEGORY_LABEL` move
+together as they always have.
+
+- **Asked, and answered.** D32 argued the nine are the method and fixed them
+  for that reason. The method the board is actually kept by turned out to be
+  a different one: a dream is something you want, something you want to be,
+  or something you want to do — and that is a question you can answer in the
+  second it takes to write the dream down. Nine is a taxonomy you have to
+  stop and place a dream in.
+- **What the set costs is the form, not the column.** Nine chips wrapped
+  into three rows of the form and ran off both edges of the board's rail.
+  Three chips are one row in the form and four pills — „Vše“ and the three —
+  in the rail. Nothing in either place had to change to hold them: the form
+  still wraps, the rail still scrolls, and both were built to (D32).
+- **Optional, exactly as before.** A dream with no area belongs to none, and
+  the rail offers only the areas the board has something in. Pressing the
+  chip already chosen takes the area off again — a fourth „žádná“ chip would
+  be one more thing to read for a state the three already say.
+- **The old words are cleared, not mapped.** The `Areas` migration nulls
+  every category that is not one of the three. Nine do not map onto three
+  without inventing an answer the person never gave, and a dream showing an
+  area it was never put in is worse than a dream showing none — the field is
+  optional and „no area“ is a state every screen already draws. The column
+  is the same shape, so the migration carries no schema change at all; it
+  exists for the sentence in it. `DreamCategoryNames.Parse` still throws on a
+  word it does not know, which is the truth about a row this build never
+  wrote.
+- **On the laptop the migration does not run.** SQLite mode creates the
+  schema and leaves it alone, so a dev `aspire.db` written before this keeps
+  its nine words and answers the board endpoint with a 500. The same
+  `UPDATE` run against the file fixes it without losing the dreams.
+
+### D44 — Seznam is the fourth tab, and a dream is written in a sheet
+
+`/seznam` is a new screen: every dream on the board as one line, the most
+recently written first, with ＋ in the corner opening a sheet of five fields
+— Název · Proč · Afirmace · Oblast · Kdy.
+
+- **The reel is for looking; this is for writing.** The board is a
+  photograph you swipe at arm's length, and it is deliberately bad at being
+  a list: one dream fills the screen, the order is shuffled every open
+  (D30), and what is achieved has left it altogether. None of that helps
+  when the question is „what have I got“ or „let me get this down before I
+  lose it“. So the list is the one screen on which the board is all of
+  itself — the achieved dream and the dream still ahead in the same column,
+  in the one order that never moves, newest at the top where you are looking
+  after you write one.
+- **A sheet, not a screen.** Přidat is a place you go: a photograph first,
+  its own route, the board underneath it gone. Writing a dream into a list
+  is an errand — you are already looking at the thing you want it to join,
+  and losing sight of it to type two sentences is the wrong trade. The sheet
+  rises over the list, the list stays visible behind the dim, and the saved
+  dream appears at the top of it as the sheet sinks.
+- **Five fields and no photograph.** The sheet asks what a sentence can
+  answer. A photograph is the one thing that cannot be typed — it is picked,
+  cropped, waited on — so it stays where the waiting has room: Přidat, or
+  the dream's own screen afterwards. `⊕` on the bar is still Přidat and
+  still the way in when the dream arrives as a picture.
+- **No Stav.** A dream being written for the first time is „sním“; that is
+  what the word means. The segment is on Přidat and on Upravit, where the
+  answer can have changed. `DreamForm` grew two props for this — `withStatus`
+  and `oncancel` — rather than a second form: the fields, their checks and
+  their sentences are the same fields, and a copy of them is a copy that
+  drifts.
+- **The bar goes to five slots.** Nástěnka · ⊕ · Seznam · Síň slávy ·
+  Nastavení. The disc keeps the second slot, the lens now slides across
+  five, and `--slots` on `.tabbar` is the one number the columns, the lens's
+  width and its travel are all worked out from. Four labels at 10 px fit a
+  360 px screen with room; a sixth slot would not, and that is the bar's
+  limit rather than a rule about tabs.
+- **The sheet is a primitive.** `.sheet` in `app.css`, spending
+  `--elev-sheet`, `--overlay` and the 28 px radius the token bank has held
+  since M0 for exactly this. It is a native `<dialog>` opened with
+  `showModal`, which is the whole reason to use one: the top layer puts it
+  over the floating bar with no z-index to argue with, and the escape key,
+  the focus trap and the inert screen behind it come with it. Being open is
+  the screen's state, never the element's — escape and the dim *ask* to
+  close — so a sheet in the middle of saving stays up.
+- **The dim is an element, not `::backdrop`.** A backdrop does not inherit
+  the tokens in every browser that has one, and a colour that is not in
+  `tokens.css` is not a colour this app owns.

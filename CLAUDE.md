@@ -2,7 +2,7 @@
 
 Guidance for Claude Code working in this repository.
 
-**Last revised:** 2026-09-11 · M5 closed, D38–D42 · 167 web tests · 166 API tests
+**Last revised:** 2026-09-11 · M5 closed, D38–D44 · 174 web tests · 166 API tests
 
 ---
 
@@ -24,8 +24,8 @@ keeping only what is not yet done. §12 is M3, done — the affirmation, the ach
 photograph beside the dreamt one, the anniversary, and the voice memo
 dropped (§8.4). §13 is what followed: the reel shuffled on every open in
 place of drag to reorder, and windowed so a hundred dreams are not a
-hundred tiles. Categories followed (§8.3 answered: Yager's nine,
-fixed — D32), §14 is M4, the wallpaper, and §15 is M5, the morning nudge.
+hundred tiles. Categories followed (§8.3 answered: a fixed set — D32),
+§14 is M4, the wallpaper, and §15 is M5, the morning nudge.
 **M0 through M5 are done**, and §16 closes the last thing M1 left behind:
 the desktop grid is dropped, not built — a grid of thumbnails is a gallery
 and this app is a queue, so there is no breakpoint at which a screen
@@ -33,8 +33,11 @@ changes its shape (D38). §17 answers D37's question: the board fetches a
 window of the reel and the whole of itself only where the browser says the
 connection is free, because a hundred dreams is 20 MB (D39). §18 makes the
 reel a reel: every page is the screen, a swipe is worth one dream however
-long it is, and the chrome floats on the photograph (D40). What is left
-is §3.7's share link, which is not a milestone.
+long it is, and the chrome floats on the photograph (D40). §19 is the
+newest: the areas are three — Chtít · Být · Dělat — rather than Yager's
+nine (D43), and Seznam is a fourth tab where the board is one column and
+＋ opens a sheet of the five fields a sentence can answer (D44). What is
+left is §3.7's share link, which is not a milestone.
 
 ---
 
@@ -97,13 +100,15 @@ apps/web/src/
 ├─ lib/styles/     tokens.css — the only place a colour exists — and app.css,
 │                  which owns the primitives: page, card, row, circle, badge,
 │                  seg, chip, toggle, facts, well, field, btn, dream.
-├─ lib/ui/         Hand-rolled components. No component library, and
-│                  pager.ts — one dream per swipe, however long the swipe.
+├─ lib/ui/         Hand-rolled components. No component library;
+│                  pager.ts — one dream per swipe, however long the swipe —
+│                  and Sheet.svelte, the `<dialog>` a form rises in (D44).
 ├─ lib/api/        client.ts (fetch + bearer), token.ts (localStorage),
 │                  pairing.ts (the flow) and errors.ts (the sentences).
-├─ lib/dreams/     rules.ts — what a dream may be — board.ts — what the reel
-│                  shows, which dream it opens on, what order the rest are
-│                  in, what a tile says and whose anniversary today is —
+├─ lib/dreams/     rules.ts — what a dream may be, and how it reads in a
+│                  list — board.ts — what the reel shows, which dream it
+│                  opens on, what order the rest and the Seznam are in,
+│                  what a tile says and whose anniversary today is —
 │                  photos.ts — which of a dream's two photographs a screen
 │                  shows — wallpaper.ts — who can be on a collage and how
 │                  big it is — and format.ts.
@@ -115,7 +120,8 @@ apps/web/src/
 │                  which shell caches a new build may throw away (D42).
 ├─ lib/push/       nudge.ts — the browser's half of the morning notification
 │                  — and schedule.ts, the time as a field shows it.
-├─ routes/         / · /pridat · /sen/[id] · /sen/[id]/upravit · /sin-slavy
+├─ routes/         / · /seznam · /pridat · /sen/[id] · /sen/[id]/upravit
+│                  · /sin-slavy
 │                  · /nastaveni · /nastaveni/vzhled · /nastaveni/upozorneni
 │                  · /nastaveni/tapeta · /nastaveni/stahovani
 │                  · /nastaveni/parovani
@@ -146,7 +152,7 @@ deploy/              compose, nginx, the host vhost, backup.sh
    Two accents exist, `--signal` (ember) and `--dusk`; there is no third.
    The weight ladder is **400 / 500 / 600** and **nothing is uppercase**.
 2. **No component library, no CSS framework.** The primitives live once in
-   `app.css`; a screen declares only its difference.
+   `app.css` — the sheet included; a screen declares only its difference.
 3. **Ask before adding a dependency.** Every package is a bundle-size
    decision against 150 kB brotli. The client ships no runtime dependency.
 4. **Photos are the hero.** Type on a photograph is `--photo-ink` over
@@ -166,11 +172,16 @@ deploy/              compose, nginx, the host vhost, backup.sh
 10. **Both themes, always.** Dark is `--dark-*` on `:root`, pointed at twice
     (system preference and explicit choice); change a dark value in the
     bank and nowhere else.
-11. **A photograph has two kinds**, `dreamt` and `achieved`, and no screen
+11. **An area is one of three**, `want` · `be` · `do` — Chtít · Být · Dělat
+    (D43) — fixed like the status, optional on a dream, and the same word in
+    `packages/contracts`, in `DreamCategory` and in the column. Yager's nine
+    were the set until 2026-09-11; a migration cleared them rather than
+    guessing which of three each one had meant.
+12. **A photograph has two kinds**, `dreamt` and `achieved`, and no screen
     picks one by hand. `dreams/photos.ts` says which one a screen shows and
     which ones a replacement takes with it, so changing the dreamt
     photograph never takes the proof with it (D28).
-12. **The reel is a pager.** Every page is exactly the scrollport, the
+13. **The reel is a pager.** Every page is exactly the scrollport, the
     offsets are multiples of it, and `ui/pager.ts` guarantees one dream per
     gesture on top of the browser's own snapping (D40). Anything that adds
     height to that scroll region — a mark, a header, a gap — breaks the

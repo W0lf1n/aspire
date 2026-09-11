@@ -6,6 +6,10 @@
 	 * is the screen's own business, above or below it. The form checks the
 	 * fields on the way out (`rules.ts`) and shows the server's sentence when
 	 * the server disagrees.
+	 *
+	 * The sheet on Seznam is the same form with the status left out and a way
+	 * back out beside the pill (D44): a dream written straight into a list is
+	 * one you are only just having, and „Sním“ is the state it is in.
 	 */
 	import type { DreamCategory, DreamInput, DreamStatus } from '@aspire/contracts';
 	import { DREAM_CATEGORIES, DREAM_STATUSES } from '@aspire/contracts';
@@ -31,7 +35,14 @@
 		error: string;
 		/** Why saving is not possible right now — offline — or nothing. */
 		locked?: string;
+		/**
+		 * Whether the status is asked for. Off where the answer is always
+		 * „sním“ — a dream being written for the first time.
+		 */
+		withStatus?: boolean;
 		onsubmit: (input: DreamInput) => void;
+		/** The way out, where the form is in a sheet rather than on a screen. */
+		oncancel?: () => void;
 	}
 
 	let {
@@ -41,7 +52,9 @@
 		busy,
 		error,
 		locked = '',
-		onsubmit
+		withStatus = true,
+		onsubmit,
+		oncancel
 	}: Props = $props();
 
 	// Read once, on purpose: the form seeds from what was saved and then owns
@@ -109,30 +122,33 @@
 		>
 	</label>
 
-	<div class="field">
-		<span class="field__label">Stav</span>
-		<div class="seg seg--soft" role="group" aria-label="Stav">
-			{#each DREAM_STATUSES as value (value)}
-				<button
-					type="button"
-					class="seg__item"
-					aria-pressed={status === value}
-					disabled={busy}
-					onclick={() => (status = value)}
-				>
-					{STATUS_LABEL[value]}
-				</button>
-			{/each}
+	{#if withStatus}
+		<div class="field">
+			<span class="field__label">Stav</span>
+			<div class="seg seg--soft" role="group" aria-label="Stav">
+				{#each DREAM_STATUSES as value (value)}
+					<button
+						type="button"
+						class="seg__item"
+						aria-pressed={status === value}
+						disabled={busy}
+						onclick={() => (status = value)}
+					>
+						{STATUS_LABEL[value]}
+					</button>
+				{/each}
+			</div>
 		</div>
-	</div>
+	{/if}
 
 	<div class="field">
 		<span class="field__label">Oblast <span>nepovinné</span></span>
 		<!--
-			Nine areas do not fit a segmented pill, so they are chips that wrap.
-			Pressing the one already chosen takes it off again, which is the
-			whole of „no area“ — an extra „žádná“ chip would be a tenth thing to
-			read for a state the other nine already say.
+			Three chips rather than a segmented pill, because a segment is a
+			choice you have to make and this one is optional: pressing the chip
+			already chosen takes the area off again, which is the whole of „no
+			area“ — a fourth „žádná“ chip would be one more thing to read for a
+			state the three already say.
 		-->
 		<div class="areas" role="group" aria-label="Oblast">
 			{#each DREAM_CATEGORIES as value (value)}
@@ -170,6 +186,11 @@
 	{/if}
 
 	<div class="actions actions--fill">
+		{#if oncancel}
+			<button type="button" class="btn btn--quiet" disabled={busy} onclick={oncancel}>
+				Zrušit
+			</button>
+		{/if}
 		<button
 			type="submit"
 			class="btn {accent ? 'btn--accent' : 'btn--primary'}"
@@ -181,8 +202,9 @@
 </form>
 
 <style>
-	/* Nine chips wrap rather than scroll: in a form they are a set to read
-	   through once, not a rail to swipe along. */
+	/* The chips wrap rather than scroll: in a form they are a set to read
+	   through once, not a rail to swipe along. Three fit a row on any phone;
+	   the wrap is what keeps them readable at the largest type sizes. */
 	.areas {
 		display: flex;
 		flex-wrap: wrap;

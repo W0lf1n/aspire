@@ -53,6 +53,7 @@ Two accents, `--signal` (ember, acts) and `--dusk` (marks), one gradient
 | `.seg`, `.seg__item`                                     | The segmented pill, `aria-pressed` selects; `--soft` inside a card                                        |
 | `.chip`, `.chip--soft`, `.round`, `.glass`               | Glass on the ground: a filter chip (`--soft` inside a card), a 40 px round button, the surface            |
 | `.btn`                                                   | Soft pill; `--primary`, `--accent`, `--photo`, `--card`, `--quiet`, `--danger`, `--sm`, `--lg`, `--block` |
+| `.sheet`, `.sheet__panel`                                | A native `<dialog>` rising from the bottom edge; `Sheet.svelte` is its behaviour                          |
 | `.toggle`, `.field`, `.facts`, `.well`, `.hint`, `.link` | The rest of the primitives                                                                                |
 
 ## Routes
@@ -60,6 +61,7 @@ Two accents, `--signal` (ember, acts) and `--dusk` (marks), one gradient
 | Route                   | Screen                                                                                                     |
 | ----------------------- | ---------------------------------------------------------------------------------------------------------- |
 | `/`                     | Nástěnka. The reel, a pager: one full-bleed dream per swipe, the day's pick then a shuffle, five at a time |
+| `/seznam`               | Seznam. Every dream as a line, newest first; ＋ opens a sheet of five fields (D44)                         |
 | `/pridat`               | Přidat sen. The dream's form (`DreamForm`) with an ember pill                                              |
 | `/sen/[id]`             | One dream: the tile, the facts, the heart, Upravit and Smazat                                              |
 | `/sen/[id]/upravit`     | The same form with the saved values; back is the dream                                                     |
@@ -72,8 +74,10 @@ Two accents, `--signal` (ember, acts) and `--dusk` (marks), one gradient
 | `/nastaveni/parovani`   | The code and a device name; paired, Odpojit                                                                |
 | `/styleguide`           | Tokens and components, both themes. Unlinked                                                               |
 
-The bar is four slots: Nástěnka · ⊕ · Síň slávy · Nastavení. `lib/ui/nav.ts`
-decides which one a path lights and has the test.
+The bar is five slots: Nástěnka · ⊕ · Seznam · Síň slávy · Nastavení, and
+`--slots` on `.tabbar` is the one number they are worked out from.
+`lib/ui/nav.ts` decides which one a path lights and has the test — a dream's
+own screens light Nástěnka whichever list was used to reach them.
 
 `lib/ui/pager.ts` is the reel's paging (D40): CSS does the snapping and the
 momentum, and the pager fences a gesture to one page either side of where it
@@ -84,9 +88,10 @@ grows the window and what keeps the neighbouring photographs eager.
 ## Testing
 
 Vitest, node environment, `requireAssertions: true`. `nav.test.ts`,
-`settings.test.ts`, `api/pairing.test.ts`, `dreams/rules.test.ts`,
-`dreams/board.test.ts` (the reel and its shuffle, the daily pick, the area
-filter, the tile's line, the anniversary), `ui/pager.test.ts` (the paging
+`settings.test.ts`, `api/pairing.test.ts`, `dreams/rules.test.ts` (what a
+dream may be, and its line in the Seznam), `dreams/board.test.ts` (the reel
+and its shuffle, the daily pick, the area filter, the Seznam's order, the
+tile's line, the anniversary), `ui/pager.test.ts` (the paging
 arithmetic: the fence, the wheel's reach in three delta modes, the keys, the
 glide's curve) and `ui/pager.wiring.test.ts` (the pager itself, on a fake
 scroll region and a frame queue the test turns by hand), `dreams/format.test.ts`,

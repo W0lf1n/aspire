@@ -26,7 +26,7 @@ Yager: "Dream building" is step one of everything. Dream must be visual, specifi
 
 ### 3.1 Dreams (MVP)
 - Dream = title · 1–5 images · "why" (1–3 sentences) · category · target year (optional) · status (dreaming / in progress / achieved) · created_at.
-- Categories (Yager-style, **fixed**, §8.3): Home · Car · Travel · Family · Freedom · Giving · Business · Health · Fun. Optional on a dream (D32).
+- Categories (**fixed**, §8.3): Want · Be · Do — Chtít · Být · Dělat. Optional on a dream. Yager's nine until 2026-09-11, when the set became the three questions a dream can answer as it is being written (D43, in place of D32).
 - Image upload: phone camera, library, paste URL. Server resizes to 3 sizes (thumb / screen / full), WebP.
 - ~~Reorder dreams by drag (board order = priority).~~ Dropped 2026-09-10: the
   reel is shuffled on every open instead, so no order is a route you learn (D30).
@@ -104,8 +104,8 @@ Columns are snake_case as built (D9).
 ```
 boards             id, name, code_hash, created_at
 devices            id, board_id, name, token_hash, paired_at, last_seen_at?
-                   (no `categories` table: the nine are fixed, so the category
-                   is an enum column on the dream — §8.3, D32)
+                   (no `categories` table: the three are fixed, so the category
+                   is an enum column on the dream — §8.3, D32, D43)
 dreams             id, board_id, category?, title, why, affirmation?, target_year?,
                    status, sort_order, likes, achieved_at?, last_shown_at?, created_at, updated_at
 dream_images       id, dream_id, sort_order, width, height, is_achieved_photo, processed_at?
@@ -145,7 +145,9 @@ Answered ones are struck through; the reasoning is in `docs/DECISIONS.md`.
 3. ~~Categories: fixed Yager set above, or fully free-form?~~ — answered
    2026-09-10: the fixed set, as an enum beside the status, and optional on
    a dream. The set is the method; a board that could rename it would need a
-   screen to rename it in (D32).
+   screen to rename it in (D32). Which set, re-answered 2026-09-11: three —
+   Chtít · Být · Dělat — because that is a question a dream can answer while
+   it is being written, and nine is a taxonomy you stop to place it in (D43).
 4. ~~Voice memo: worth it in v1.1, or drop?~~ — answered 2026-09-10: dropped.
    The app's promise is ten seconds of swiping in a queue, and audio is the
    one thing there you cannot use (D31).
@@ -247,13 +249,14 @@ time the end of them is neared, watched by an `IntersectionObserver` on a
 one-pixel mark. Nothing is removed from the top — taking a tile out of a
 snapping scroll region moves the one under the thumb.
 
-**Categories** (§3.1 and §3.2, §8.3 answered): Yager's nine, fixed, as an
-enum beside the status — optional on a dream, because a question a dream
-must answer before it can be written is a dream that does not get written.
-The form offers them as chips that wrap; the board offers the ones it has
+**Categories** (§3.1 and §3.2, §8.3 answered): a fixed set, as an enum
+beside the status — optional on a dream, because a question a dream must
+answer before it can be written is a dream that does not get written. The
+form offers them as chips that wrap; the board offers the ones it has
 something in as a rail above the reel, and asking for one narrows the reel
 after the shuffle so the tiles that stay do not move. The tile says the
-area in the tag it already had: `sním · Cestování` (D32).
+area in the tag it already had: `sním · Cestování` (D32). The set itself is
+three since §19: `sním · Dělat` (D43).
 
 Next: M4's wallpaper export (§14). Still unbuilt from M1: the desktop grid.
 
@@ -411,3 +414,30 @@ is. The empty board is still a page rather than a reel, and keeps it.
 
 **Nothing is left in the plan but §3.7's share link**, which was already true
 after §16 and is still not a milestone.
+
+---
+
+## 19. The list, and three areas · 2026-09-11
+
+**The areas are Chtít · Být · Dělat** (D43). §8.3 was answered with Yager's
+nine and the answer held for a day of using them: placing a dream in one of
+nine is a decision you make *about* the dream, after writing it, and the
+field is optional so the decision was mostly not made at all. Want, be, do is
+the same question asked in the second the dream is being written. The nine
+are gone from the column with it — the `Areas` migration clears every word
+that is not one of the three, because nine do not map onto three without
+inventing an answer nobody gave.
+
+**And §3.7's share link is still the only thing left in this plan**, which
+§18 already said. This section is not a milestone either: it is one screen
+and one vocabulary.
+
+**Seznam is the fourth tab** (D44). The reel is deliberately bad at being a
+list — one dream a screen, shuffled every open, the achieved ones gone — so
+`/seznam` is the board as one column, newest first, achieved and not in the
+same list. ＋ opens a sheet of the five fields a sentence can answer —
+Název · Proč · Afirmace · Oblast · Kdy — and the dream is saved as „sním“
+with no photograph; `⊕` on the bar is still Přidat, which is the way in when
+the dream arrives as a picture. The bar goes to five slots to hold it, and
+`.sheet` in `app.css` finally spends `--elev-sheet` and the 28 px radius the
+tokens have held since M0.

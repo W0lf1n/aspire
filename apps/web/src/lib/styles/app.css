@@ -717,6 +717,122 @@ a {
 	text-wrap: pretty;
 }
 
+/**
+ * The sheet: a panel that rises from the bottom edge with the screen dimmed
+ * behind it, for a form that is an errand rather than a place — writing a
+ * dream straight into the Seznam (D44). A screen is where you go; a sheet is
+ * what you do without leaving.
+ *
+ * It is a native `<dialog>`, so the browser gives the top layer — above the
+ * floating tab bar without a z-index to argue with — the escape key, the
+ * focus trap and the screen behind it going inert. The ground is the page's
+ * own, so what sits in the sheet is a card on the ground exactly as it is on
+ * a screen, at the same 16 px inset.
+ *
+ * The dim is a plain element rather than `::backdrop`: a backdrop does not
+ * inherit the tokens in every browser that has one, and a colour that is not
+ * in `tokens.css` is not a colour this app owns.
+ */
+.sheet {
+	position: fixed;
+	inset: 0;
+	max-width: none;
+	max-height: none;
+	width: 100%;
+	height: 100%;
+	margin: 0;
+	padding: 0;
+	border: none;
+	background: none;
+	color: var(--ink);
+	/* Opening is `display` changing, so the fade needs the discrete kind of
+	   transition — and the top layer needs to wait for it on the way out. */
+	opacity: 0;
+	transition:
+		opacity var(--dur-base) var(--ease-out),
+		display var(--dur-base) var(--ease-out) allow-discrete,
+		overlay var(--dur-base) var(--ease-out) allow-discrete;
+}
+
+.sheet[open] {
+	display: flex;
+	flex-direction: column;
+	justify-content: flex-end;
+	align-items: center;
+	opacity: 1;
+}
+
+@starting-style {
+	.sheet[open] {
+		opacity: 0;
+	}
+}
+
+.sheet::backdrop {
+	background: none;
+}
+
+/* The dim. Presentational: the escape key, the ✕ and the sheet's own way
+   out are the ones that are announced. */
+.sheet__dim {
+	position: fixed;
+	inset: 0;
+	z-index: 0;
+	background: var(--overlay);
+}
+
+/**
+ * The panel. The app's column on a desktop, the whole width on a phone, and
+ * never taller than the screen less a glimpse of what it covers.
+ */
+.sheet__panel {
+	position: relative;
+	z-index: 1;
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-3);
+	width: 100%;
+	max-width: 34rem;
+	max-height: calc(100dvh - var(--space-8));
+	overflow-y: auto;
+	overscroll-behavior: contain;
+	padding: var(--space-3) var(--space-4) calc(var(--space-5) + env(safe-area-inset-bottom, 0px));
+	background: var(--ground);
+	border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+	box-shadow: var(--elev-sheet);
+	translate: 0 100%;
+	transition: translate var(--dur-base) var(--ease-out);
+}
+
+.sheet[open] .sheet__panel {
+	translate: 0 0;
+}
+
+@starting-style {
+	.sheet[open] .sheet__panel {
+		translate: 0 100%;
+	}
+}
+
+/* The grab bar: what says which edge this came from. Not a control — the
+   sheet is not dragged. */
+.sheet__grab {
+	flex: none;
+	align-self: center;
+	width: 36px;
+	height: 4px;
+	border-radius: var(--radius-full);
+	background: var(--hairline-2);
+}
+
+.sheet__title {
+	margin: var(--space-1) 0 0;
+	font-size: var(--text-lg);
+	font-weight: 600;
+	letter-spacing: var(--track-title);
+	color: var(--ink);
+}
+
 .visually-hidden {
 	position: absolute;
 	width: 1px;

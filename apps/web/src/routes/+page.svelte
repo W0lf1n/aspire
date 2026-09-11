@@ -362,8 +362,8 @@
 				<!--
 					The areas this board has something in, and „Vše“ in front of
 					them. A rail rather than a wrap: over a reel it has to cost
-					one line, and the nine are a set you swipe past, not a form
-					you read (D32).
+					one line, whatever the set grows to. Four pills fit one now
+					(D43); it was ten and the rail is what survived it.
 				-->
 				<div class="areas" role="group" aria-label="Oblast">
 					<button

@@ -22,6 +22,11 @@ describe('activeTab', () => {
 		expect(activeTab('/sin-slavy')).toBe('hall');
 	});
 
+	it('lights the list', () => {
+		expect(activeTab('/seznam')).toBe('list');
+		expect(activeTab('/seznam/')).toBe('list');
+	});
+
 	it('lights nothing for a screen outside the bar', () => {
 		expect(activeTab('/pridat')).toBeNull();
 		expect(activeTab('/styleguide')).toBeNull();

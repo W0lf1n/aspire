@@ -1,11 +1,11 @@
 <script lang="ts">
 	/**
-	 * The bottom navigation: Nástěnka · ⊕ · Síň slávy · Nastavení.
+	 * The bottom navigation: Nástěnka · ⊕ · Seznam · Síň slávy · Nastavení.
 	 *
-	 * Four slots, in the order the brief gave them. The disc in the second
-	 * slot is the one accent-coloured thing on the bar and it opens Přidat;
-	 * the three tabs are peers. Anything under `/nastaveni` keeps Nastavení
-	 * lit, which is how its pages count.
+	 * Five slots, in the order the brief gave them. The disc in the second
+	 * slot is the one accent-coloured thing on the bar and it opens Přidat —
+	 * the screen with the photograph on it; the four tabs are peers. Anything
+	 * under `/nastaveni` keeps Nastavení lit, which is how its pages count.
 	 *
 	 * A frosted pill floating over the page's bottom edge — the page scrolls
 	 * under it. 62 px tall, 16 px in from each side, 24 px off the bottom (or
@@ -25,7 +25,7 @@
 	const active = $derived(activeTab(here));
 
 	/** The slot the lens sits in — the disc takes the second one. */
-	const SLOT: Record<string, number> = { board: 0, hall: 2, settings: 3 };
+	const SLOT: Record<string, number> = { board: 0, list: 2, hall: 3, settings: 4 };
 	const lensSlot = $derived(active ? SLOT[active] : null);
 </script>
 
@@ -72,13 +72,17 @@
 
 <style>
 	.tabbar {
+		/* One number the slots are worked out from: the columns, the lens's
+		   width and where it slides to are all this. */
+		--slots: 5;
+
 		position: absolute;
 		left: var(--space-4);
 		right: var(--space-4);
 		bottom: var(--tabbar-lift);
 		z-index: var(--z-nav);
 		display: grid;
-		grid-template-columns: repeat(4, 1fr);
+		grid-template-columns: repeat(var(--slots), 1fr);
 		align-items: center;
 		height: var(--tabbar);
 		padding: 0 var(--space-2);
@@ -138,15 +142,15 @@
 		pointer-events: none;
 	}
 
-	/* The lens under the current tab: one of four equal slots inside the
+	/* The lens under the current tab: one of the equal slots inside the
 	   padding, a step lighter than the glass, springing to the chosen one. */
 	.lens {
 		position: absolute;
 		top: 6px;
 		bottom: 6px;
-		left: calc(var(--space-2) + var(--slot) * ((100% - 2 * var(--space-2)) / 4));
+		left: calc(var(--space-2) + var(--slot) * ((100% - 2 * var(--space-2)) / var(--slots)));
 		z-index: -1;
-		width: calc((100% - 2 * var(--space-2)) / 4);
+		width: calc((100% - 2 * var(--space-2)) / var(--slots));
 		border-radius: var(--radius-full);
 		background: var(--glass-lens);
 		transition: left var(--dur-slow) var(--ease-spring);

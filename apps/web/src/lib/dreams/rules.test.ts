@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { AFFIRMATION_MAX, TITLE_MAX, WHY_MAX, toFields, toInput } from './rules';
+import { AFFIRMATION_MAX, TITLE_MAX, WHY_MAX, listLine, toFields, toInput } from './rules';
 
 describe('toInput', () => {
 	it('trims and reads a year', () => {
@@ -138,7 +138,7 @@ describe('toInput', () => {
 });
 
 describe('toInput, the area', () => {
-	it('carries one of the nine, and none at all', () => {
+	it('carries one of the three, and none at all', () => {
 		const fields = {
 			title: 'Kjóto',
 			why: '',
@@ -147,13 +147,13 @@ describe('toInput, the area', () => {
 			year: ''
 		} as const;
 
-		expect(toInput({ ...fields, category: 'travel' })).toEqual({
+		expect(toInput({ ...fields, category: 'want' })).toEqual({
 			input: {
 				title: 'Kjóto',
 				why: '',
 				affirmation: '',
 				status: 'dreaming',
-				category: 'travel',
+				category: 'want',
 				targetYear: null
 			}
 		});
@@ -189,5 +189,21 @@ describe('toFields', () => {
 				targetYear: null
 			}
 		});
+	});
+});
+
+describe('listLine', () => {
+	it('says the state, the area and the year, in that order', () => {
+		expect(listLine({ status: 'in-progress', category: 'do', targetYear: 2030 })).toBe(
+			'plním · Dělat · 2030'
+		);
+	});
+
+	it('leaves out what a dream was never asked for', () => {
+		expect(listLine({ status: 'dreaming', category: null, targetYear: null })).toBe('sním');
+		expect(listLine({ status: 'achieved', category: 'be', targetYear: null })).toBe(
+			'splněno · Být'
+		);
+		expect(listLine({ status: 'dreaming', category: null, targetYear: 2031 })).toBe('sním · 2031');
 	});
 });

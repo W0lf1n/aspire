@@ -1,9 +1,9 @@
 /**
  * Which dreams the board shows, which one it opens with, what order the
- * rest are in, which area it is asking for, what a tile says under the
- * title, and whose anniversary today is.
+ * rest are in, which area it is asking for, what order the Seznam is in,
+ * what a tile says under the title, and whose anniversary today is.
  *
- * Six rules live here. The reel is what is not yet achieved (PLAN §3.2): a
+ * Seven rules live here. The reel is what is not yet achieved (PLAN §3.2): a
  * dream marked splněno leaves the swipe and turns up in the Síň slávy, so
  * the board stays what is still ahead. And the daily pick is the tile the
  * reel opens on — the dream shown least recently — so the board is a
@@ -46,7 +46,7 @@ export function tileLine(dream: Pick<Dream, 'affirmation' | 'why'>): {
 }
 
 /**
- * What the board is asking for: one of the nine areas, or all of them
+ * What the board is asking for: one of the three areas, or all of them
  * (PLAN.md §3.2). Not a category itself, because „everything“ is a state of
  * the filter and never a thing a dream can belong to.
  */
@@ -65,7 +65,7 @@ export function byCategory(dreams: Dream[], filter: BoardFilter): Dream[] {
 	return filter === 'all' ? dreams : dreams.filter((dream) => dream.category === filter);
 }
 
-/** The areas the board has anything in, in the order the nine are listed. */
+/** The areas the board has anything in, in the order the three are listed. */
 export function categoriesOnBoard(dreams: Dream[], all: readonly DreamCategory[]): DreamCategory[] {
 	const present = new Set(
 		reelDreams(dreams)
@@ -78,6 +78,25 @@ export function categoriesOnBoard(dreams: Dream[], all: readonly DreamCategory[]
 /** The reel: everything still ahead of you, in board order. */
 export function reelDreams(dreams: Dream[]): Dream[] {
 	return dreams.filter((dream) => dream.status !== 'achieved');
+}
+
+/**
+ * The list: every dream there is, the most recently written first (D44).
+ *
+ * Not the reel and not the wall — both of those are a selection, and this is
+ * the board itself, the one place a dream that is achieved and a dream that
+ * is not stand in the same column. Newest first because the list is where
+ * dreams are written: what you just added is at the top, where you are
+ * looking.
+ *
+ * Ties go to the later `sortOrder`, so two dreams written in the same second
+ * — an import, a fast thumb — still come out in a fixed order rather than
+ * swapping places between renders.
+ */
+export function listOrder(dreams: Dream[]): Dream[] {
+	return [...dreams].sort(
+		(a, b) => stamp(b.createdAt) - stamp(a.createdAt) || b.sortOrder - a.sortOrder
+	);
 }
 
 /** The wall: what is behind you, the most recently achieved first. */

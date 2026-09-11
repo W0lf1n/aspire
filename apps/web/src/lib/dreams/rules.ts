@@ -4,7 +4,7 @@
  * these exist so the sentence appears on the keystroke, not on the round trip.
  */
 
-import type { DreamCategory, DreamInput, DreamStatus } from '@aspire/contracts';
+import type { Dream, DreamCategory, DreamInput, DreamStatus } from '@aspire/contracts';
 
 export const TITLE_MAX = 120;
 export const WHY_MAX = 500;
@@ -26,18 +26,31 @@ export const STATUS_BADGE: Record<DreamStatus, string> = {
 	achieved: 'splněno'
 };
 
-/** The nine areas, in Czech. Yager's set, fixed (D32). */
+/** The three areas, in Czech. What the dream is: want, be, do (D43). */
 export const CATEGORY_LABEL: Record<DreamCategory, string> = {
-	home: 'Bydlení',
-	car: 'Auto',
-	travel: 'Cestování',
-	family: 'Rodina',
-	freedom: 'Svoboda',
-	giving: 'Dávání',
-	business: 'Byznys',
-	health: 'Zdraví',
-	fun: 'Zábava'
+	want: 'Chtít',
+	be: 'Být',
+	do: 'Dělat'
 };
+
+/**
+ * The line under a dream's title in the Seznam: the state it is in, the area
+ * it is in, the year it is for — the sheet's own questions, answered back in
+ * the order it asked them.
+ *
+ * A field left empty says nothing rather than saying „—“: a list is read
+ * down the left edge, and a column of dashes is a column of noise. The state
+ * is always there, so the line never is empty.
+ */
+export function listLine(dream: Pick<Dream, 'status' | 'category' | 'targetYear'>): string {
+	return [
+		STATUS_BADGE[dream.status],
+		dream.category === null ? '' : CATEGORY_LABEL[dream.category],
+		dream.targetYear === null ? '' : String(dream.targetYear)
+	]
+		.filter((part) => part.length > 0)
+		.join(' · ');
+}
 
 export const STATUS_CLASS: Record<DreamStatus, string> = {
 	dreaming: 'badge--dreaming',
@@ -51,7 +64,7 @@ export interface DreamFields {
 	why: string;
 	affirmation: string;
 	status: DreamStatus;
-	/** One of the nine, or none. */
+	/** One of the three, or none. */
 	category: DreamCategory | null;
 	year: string;
 }

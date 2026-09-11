@@ -5,6 +5,7 @@
 	 * from the app; a developer route.
 	 */
 	import Icon from '$lib/ui/Icon.svelte';
+	import Sheet from '$lib/ui/Sheet.svelte';
 	import TabBar from '$lib/ui/TabBar.svelte';
 	import { applyTheme, readTheme, type Theme } from '$lib/ui/theme';
 	import { toast } from '$lib/ui/toast.svelte';
@@ -12,6 +13,7 @@
 	let theme = $state<Theme>(readTheme());
 	let on = $state(true);
 	let chip = $state<'vse' | 'sny' | 'cesta'>('vse');
+	let sheet = $state(false);
 
 	const THEMES: { value: Theme; label: string }[] = [
 		{ value: 'system', label: 'Systém' },
@@ -261,6 +263,20 @@
 		když ji sen má — o stupeň silnější a v plné bílé, jako druhá dlaždice — jinak proč.
 	</p>
 
+	<!-- ── the sheet ──────────────────────────────────────────────────── -->
+	<h2 class="section">Plátno</h2>
+	<section class="card">
+		<div class="actions">
+			<button type="button" class="btn btn--primary" onclick={() => (sheet = true)}>
+				Otevřít plátno
+			</button>
+		</div>
+		<p class="hint">
+			Vyjede zdola přes ztmavenou obrazovku, rohy 28, uvnitř stojí karta jako na stránce. Pro
+			formulář, který je pochůzka, ne místo — zavírá se únikem, ťuknutím vedle i vlastním tlačítkem.
+		</p>
+	</section>
+
 	<!-- ── space and radius ───────────────────────────────────────────── -->
 	<h2 class="section">Rozměry</h2>
 	<section class="card">
@@ -282,6 +298,16 @@
 </main>
 
 <TabBar />
+
+<Sheet open={sheet} title="Plátno" onclose={() => (sheet = false)}>
+	<section class="card">
+		<p class="hint">Karta na podkladu stránky, ve stejném odsazení jako kdekoli jinde.</p>
+		<div class="actions actions--fill">
+			<button type="button" class="btn btn--quiet" onclick={() => (sheet = false)}>Zrušit</button>
+			<button type="button" class="btn btn--accent" onclick={() => (sheet = false)}>Hotovo</button>
+		</div>
+	</section>
+</Sheet>
 
 <style>
 	.guide {

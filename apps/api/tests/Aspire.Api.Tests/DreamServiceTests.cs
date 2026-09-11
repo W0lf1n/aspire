@@ -97,11 +97,11 @@ public sealed class DreamServiceTests : IDisposable
     [Fact]
     public async Task A_category_is_kept_and_can_be_taken_back_off()
     {
-        var dream = await _dreams.CreateAsync(BoardA, Input(category: DreamCategory.Travel));
-        Assert.Equal(DreamCategory.Travel, dream.Category);
+        var dream = await _dreams.CreateAsync(BoardA, Input(category: DreamCategory.Want));
+        Assert.Equal(DreamCategory.Want, dream.Category);
 
-        var moved = await _dreams.UpdateAsync(BoardA, dream.Id, Input(category: DreamCategory.Home));
-        Assert.Equal(DreamCategory.Home, moved!.Category);
+        var moved = await _dreams.UpdateAsync(BoardA, dream.Id, Input(category: DreamCategory.Do));
+        Assert.Equal(DreamCategory.Do, moved!.Category);
 
         var none = await _dreams.UpdateAsync(BoardA, dream.Id, Input(category: null));
         Assert.Null(none!.Category);
@@ -115,8 +115,8 @@ public sealed class DreamServiceTests : IDisposable
             Assert.Equal(category, DreamCategoryNames.Parse(DreamCategoryNames.ToWire(category)));
         }
 
-        // The nine of PLAN.md §3.1, and no tenth without a decision.
-        Assert.Equal(9, Enum.GetValues<DreamCategory>().Length);
+        // The three of PLAN.md §3.1, and no fourth without a decision (D43).
+        Assert.Equal(3, Enum.GetValues<DreamCategory>().Length);
     }
 
     [Fact]
