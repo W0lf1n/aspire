@@ -86,7 +86,7 @@ Backend
 - Auth: same as Prosper.
 
 Frontend
-- SvelteKit PWA. Service worker caches **all** screen-size images of active dreams (typ. < 20 dreams × ~200 KB = fine). Board fully usable offline.
+- SvelteKit PWA. ~~Service worker caches **all** screen-size images of active dreams (typ. < 20 dreams × ~200 KB = fine). Board fully usable offline.~~ The 200 KB was right — 197 measured — but "all" was a twenty-dream assumption: at a hundred it is 20 MB, so the board caches a window of the reel and the whole of itself only on a connection the browser says is free (§17, D39).
 - Swipe: CSS scroll-snap, no heavy lib. `Motion One` or plain CSS for transitions.
 - Upload: `<input capture="environment">` for camera, drag-drop on desktop, client-side downscale before upload (max 2048 px) to save mobile data.
 - ~~Voice memo: `MediaRecorder` API → webm/opus upload.~~ Dropped (§8.4).
@@ -357,7 +357,31 @@ A desktop wall, if it is ever wanted, is a new route beside the reel with
 its own answer to what the pick means there. It is not a breakpoint on the
 board.
 
-**What is actually left**, and none of it is a milestone: §3.7's share link
-for a single dream, and D37's open question — whether a hundred-dream board
-should prefetch every photograph at all, which narrows D24's promise and is
-Petr's to answer.
+**What is actually left**, and it is not a milestone: §3.7's share link for
+a single dream. D37's open question is answered in §17.
+
+---
+
+## 17. What the board downloads · 2026-09-11
+
+D37 left one question open — whether a hundred-dream board should prefetch
+every photograph at all. It should not, and now it does not (D39).
+
+**Measured rather than guessed:** a `screen` photograph is 197 kB, so a
+hundred dreams is about **20 MB**. That is nothing for a phone to *store* —
+the app is not going to run anybody out of room — and it is real money to
+*fetch* on a metered plan, in the minute somebody is looking at the first
+tile. Size matters for a second reason too: iOS drops a PWA's caches after a
+week unused (§7), and a fatter origin is evicted sooner.
+
+So the board fetches **the reel's own window** — the tiles in the document
+plus a screenful ahead, ten photographs on open rather than a hundred — and
+the whole of itself only where the browser says the connection is free.
+Because the reel is shuffled on every open (D30), a window that only ever
+grew would still arrive at the whole board in time, so there is a ceiling of
+40 photographs on what windowing keeps.
+
+And because a window narrows D24's promise that the board reads without a
+signal, it is a choice rather than a default, in Nastavení · Stahování: *co
+prolistuješ · na wifi · vždy celá*. Safari cannot tell wifi from mobile data,
+so on an iPhone the middle one is not offered and the screen says why.

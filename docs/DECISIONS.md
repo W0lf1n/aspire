@@ -860,3 +860,80 @@ So: nothing is built, §3.2's second bullet and §6's M1 note are struck
 through, and M1 has nothing outstanding. If a desktop wall is ever wanted
 it is a **new route** — a wall beside the reel, with its own answer to what
 the pick means there — and not a breakpoint bolted onto the board.
+
+---
+
+## After M5 · 2026-09-11 — what the board downloads
+
+### D39 — The board fetches a window of the reel, and the whole of itself only when the connection is free
+
+D37 left a question open: whether a hundred-dream board should prefetch every
+photograph at all. It should not. The answer, and the arithmetic behind it.
+
+**The measurement first.** A `screen` photograph is 1280 px on its longest
+edge at WebP quality 82, and twelve real ones came to 2.36 MB — **197 kB
+each**. So a hundred-dream board is about **20 MB**, and an achieved dream
+has two photographs (D28), so a board with a full Síň slávy is more.
+
+**Twenty megabytes is not a storage problem.** A phone holds gigabytes of
+photographs; the app's own code budget is 150 kB and this is a hundred times
+that, but in absolute terms it is one podcast episode. If room were the only
+question the answer would be to cache everything and stop thinking about it.
+Two things make it a question anyway:
+
+- **The first open on mobile data.** Twenty megabytes arriving while somebody
+  is looking at the first tile, on a metered plan, competing with that tile.
+- **Eviction, which size makes likelier.** §7 already notes that iOS drops a
+  PWA's caches after about a week unused. Safari's eviction is per-origin and
+  opaque, and a fatter origin is a better target. A smaller cache survives.
+
+**So the window.** Prefetching follows the reel's own window (`aheadOf`): the
+tiles in the document plus one screenful ahead — ten photographs on open,
+fifteen when the reel has grown to ten, never the hundred. It is the same
+`REEL_WINDOW` the reel renders by (D30), not a second idea of a window.
+Measured on a twelve-dream board: five tiles, ten photographs, 2 MB instead
+of 2.4.
+
+**What the window does not do is download less over a month**, and this is
+worth being honest about. The reel is shuffled on every open (D30), so the
+window is a different handful every morning; a cache that only grew would
+arrive at the whole board anyway, just slower and in the order least likely
+to help. That was observed while building this — a second open pulled two
+photographs the first had not wanted. The window bounds the **peak**, which
+is what hurts; it does not bound the total.
+
+**Which is why there is a ceiling.** `WINDOW_KEEP` is 40 photographs, about
+8 MB: several mornings of swiping, and far enough under the size at which a
+browser starts choosing for itself. `overCap` drops the oldest *fetched* —
+the Cache API's key order is the only clock it has, and what just arrived is
+at the far end of it, so a tile about to be swiped to is never what goes.
+
+**And a window quietly narrows D24**, which promised the board is readable
+without a signal. Under a window, offline is "the dreams the shuffle handed
+you recently". That is acceptable for a reel — a queue is ten swipes, not a
+hundred — but it is a product change, not a performance one, so it is a
+choice and it is on a screen:
+
+- **Co prolistuješ** — the window only. The smallest data bill.
+- **Na wifi** — the whole board where the browser says the connection is
+  free, the window on mobile data. The default where it can be kept.
+- **Vždy celá** — the whole board regardless.
+
+**The connection is read, not guessed.** `navigator.connection.type` is the
+only member that says what a connection *is*; `effectiveType` is a speed
+estimate that cannot tell wifi from good cellular, so it is read in one
+direction only — definitely slow means treat it as metered, fast means
+nothing. A connection the browser will not describe counts as metered: the
+wrong guess one way costs a few megabytes of cache, and the other way costs
+somebody's data.
+
+**Safari has no Network Information API at all**, so on every iPhone — and
+Petr's friends are on iPhones — „na wifi" is a promise that cannot be kept.
+It is therefore **not offered there**: the screen shows two choices and a
+sentence saying why, the same way the nudge screen handles a server with no
+VAPID key rather than offering a switch that cannot work (§15). The default
+where nothing can be detected is the window.
+
+**The screen also answers the question that prompted all this** — how much
+room the app takes — with `navigator.storage.estimate()` and a button that
+forgets it. The photographs are a copy; the dreams are on the server.

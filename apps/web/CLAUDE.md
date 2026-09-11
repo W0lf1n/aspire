@@ -62,10 +62,11 @@ Two accents, `--signal` (ember, acts) and `--dusk` (marks), one gradient
 | `/sen/[id]`             | One dream: the tile, the facts, the heart, Upravit and Smazat                                       |
 | `/sen/[id]/upravit`     | The same form with the saved values; back is the dream                                              |
 | `/sin-slavy`            | Síň slávy. The achieved dreams, the most recent first; the pair                                     |
-| `/nastaveni`            | The hub: Vzhled, Párování, the version                                                              |
+| `/nastaveni`            | The hub: Vzhled, Upozornění, Tapeta, Stahování, Párování, the version                               |
 | `/nastaveni/upozorneni` | Upozornění. Off / daily / weekdays, and the hour                                                    |
 | `/nastaveni/tapeta`     | Tapeta. Up to six dreams onto a lock-screen collage                                                 |
 | `/nastaveni/vzhled`     | systém / světlý / tmavý                                                                             |
+| `/nastaveni/stahovani`  | How much of the board is kept offline: co prolistuješ / na wifi / vždy celá, and what it takes up   |
 | `/nastaveni/parovani`   | The code and a device name; paired, Odpojit                                                         |
 | `/styleguide`           | Tokens and components, both themes. Unlinked                                                        |
 
@@ -81,7 +82,18 @@ filter, the tile's line, the anniversary), `dreams/format.test.ts`,
 `dreams/photos.test.ts` (which of a dream's two photographs a screen shows),
 `dreams/wallpaper.test.ts` (who can be on a collage, and how big it is),
 `push/schedule.test.ts` (the nudge's time, both ways),
-`images/downscale.test.ts` and `offline/cache.test.ts` (what is kept, in
-what order, and a few at a time); a new rule gets a test before it gets a
+`images/downscale.test.ts`, `offline/cache.test.ts` (what is kept, in what
+order, a few at a time, the window ahead of the thumb and the ceiling) and
+`offline/policy.test.ts` (how much of the board a device keeps, and what an
+unreadable connection counts as); a new rule gets a test before it gets a
 screen, and it lives in a `.ts` module the component imports, never in the
 component.
+
+**The hidden Browser pane produces no frames.** Verifying the reel's
+windowing there failed and looked like a bug: with the pane hidden
+`document.visibilityState` is `hidden`, `requestAnimationFrame` never fires,
+and so no `IntersectionObserver` fires either — a fresh observer on an
+element plainly in view reported nothing. Emulating a phone viewport gives
+the page a real height but not a rendering loop. Anything that depends on an
+observer or an animation frame needs the pane visible, or a unit test on the
+arithmetic instead (`aheadOf`).

@@ -1,6 +1,15 @@
 import { describe, expect, it } from 'vitest';
 import type { Dream, DreamImage, DreamImageKind } from '@aspire/contracts';
-import { PREFETCH_AT_ONCE, pooled, prefetchOrder, screenUrls, stale } from './cache';
+import {
+	PREFETCH_AT_ONCE,
+	aheadOf,
+	overCap,
+	pooled,
+	prefetchOrder,
+	screenUrls,
+	stale
+} from './cache';
+import { REEL_WINDOW } from '$lib/dreams/board';
 
 function image(id: string, ready: boolean, kind: DreamImageKind = 'dreamt'): DreamImage {
 	return {
@@ -182,5 +191,52 @@ describe('stale', () => {
 	it('names what is cached and no longer wanted', () => {
 		expect(stale(['/x', '/y', '/z'], ['/y'])).toEqual(['/x', '/z']);
 		expect(stale([], ['/y'])).toEqual([]);
+	});
+});
+
+describe('overCap', () => {
+	it('has no ceiling when there is none to have', () => {
+		expect(overCap(['/a', '/b', '/c'], null)).toEqual([]);
+	});
+
+	it('leaves a cache that is under the ceiling alone', () => {
+		expect(overCap(['/a', '/b'], 2)).toEqual([]);
+		expect(overCap([], 2)).toEqual([]);
+	});
+
+	it('drops the oldest fetched, which is the front of the list', () => {
+		// The Cache API hands its keys back in insertion order, so the window
+		// that just arrived is at the end and is never what goes.
+		expect(overCap(['/old', '/older', '/new'], 1)).toEqual(['/old', '/older']);
+	});
+});
+
+describe('aheadOf', () => {
+	const reel = Array.from({ length: 12 }, (_, i) => dream(`d${i}`, [image(`i${i}`, true)]));
+
+	it('asks for the tiles in the document and one screenful more', () => {
+		expect(aheadOf(reel, REEL_WINDOW).map((d) => d.id)).toEqual([
+			'd0',
+			'd1',
+			'd2',
+			'd3',
+			'd4',
+			'd5',
+			'd6',
+			'd7',
+			'd8',
+			'd9'
+		]);
+	});
+
+	it('grows with the window, which is what makes a morning cost ten and not a hundred', () => {
+		expect(aheadOf(reel, 5)).toHaveLength(10);
+		expect(aheadOf(reel, 10)).toHaveLength(12);
+	});
+
+	it('stops at the end of the reel rather than running off it', () => {
+		expect(aheadOf(reel, 12)).toHaveLength(12);
+		expect(aheadOf(reel.slice(0, 3), REEL_WINDOW)).toHaveLength(3);
+		expect(aheadOf([], REEL_WINDOW)).toEqual([]);
 	});
 });

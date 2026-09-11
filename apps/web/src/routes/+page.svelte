@@ -40,7 +40,15 @@
 	import { formatAnniversary } from '$lib/dreams/format';
 	import { photoOf } from '$lib/dreams/photos';
 	import { CATEGORY_LABEL, STATUS_BADGE } from '$lib/dreams/rules';
-	import { prefetchOrder, rememberBoard } from '$lib/offline/cache';
+	import { aheadOf, prefetchOrder, rememberBoard } from '$lib/offline/cache';
+	import {
+		capFor,
+		detects,
+		effectivePolicy,
+		metered,
+		readPolicy,
+		wantsWholeBoard
+	} from '$lib/offline/policy';
 	import { connection } from '$lib/offline/status.svelte';
 	import Icon from '$lib/ui/Icon.svelte';
 	import TabBar from '$lib/ui/TabBar.svelte';
@@ -50,6 +58,13 @@
 
 	/** The server answered 401 to a token this device still holds. */
 	let unknownDevice = $state(false);
+
+	/**
+	 * Whether the board on screen came from the server. Only then is there
+	 * anything to fetch, and only then does what the board no longer has mean
+	 * a photograph can be let go of.
+	 */
+	let fromNetwork = $state(false);
 
 	/** The day's pick, chosen once when the board first arrives. */
 	let pickedId = $state<string | null>(null);
@@ -85,6 +100,16 @@
 
 	/** The tiles actually rendered. The rest arrive as the last one is neared. */
 	const shown = $derived(reel.slice(0, windowed));
+
+	/**
+	 * How much of the board this device keeps for when there is no signal
+	 * (D39). Read once: it is a choice made on another screen, and coming
+	 * back from it re-enters this one.
+	 */
+	const policy = effectivePolicy(readPolicy(), detects());
+
+	/** The photographs worth having now (`aheadOf`, D39). */
+	const ahead = $derived(aheadOf(reel, windowed));
 
 	/**
 	 * A new area is a new reel, from its first tile: the window starts again
@@ -123,6 +148,31 @@
 		return () => observer.disconnect();
 	});
 
+	/**
+	 * The photographs this device keeps, fetched as the reel is swiped rather
+	 * than all at once (D39).
+	 *
+	 * It runs again every time the window grows, which is the whole point: a
+	 * morning of ten swipes costs ten photographs instead of a hundred, and
+	 * the connection is never handed the board while somebody is looking at
+	 * the first tile. Then, and only where the browser says the connection is
+	 * free, the rest of the board follows in the background — that is D24's
+	 * promise kept wherever it can be kept without spending mobile data.
+	 */
+	$effect(() => {
+		const board = dreams;
+		if (!fromNetwork || board === null || ahead.length === 0) return;
+
+		const order = sequence;
+		const near = ahead;
+		void (async () => {
+			await rememberBoard(near, board, capFor(policy));
+			if (wantsWholeBoard(policy, metered())) {
+				await rememberBoard(prefetchOrder(board, order), board);
+			}
+		})();
+	});
+
 	/** Dreams on the board, none of them left to swipe: all of them are done. */
 	const allAchieved = $derived(dreams !== null && dreams.length > 0 && reel.length === 0);
 
@@ -141,14 +191,11 @@
 					dreams = rows;
 					unknownDevice = false;
 					openWith(rows);
-					// The cache's board is the last one seen: nothing to keep,
-					// nothing to wait for.
+					// The cache's board is the last one seen: nothing to fetch
+					// and nothing to prune against, because a board from the
+					// cache is not news about what the board still has.
 					if (fromCache) return;
-					// In the order they will be met — the day's pick first — and
-					// a few at a time, because a hundred dreams is two hundred
-					// photographs and this must not take the connection over
-					// while the person is looking at the first tile (D37).
-					void rememberBoard(prefetchOrder(rows, sequence));
+					fromNetwork = true;
 					// A photograph still being resized shows as the sky; the
 					// sizes take a second, so the board asks again a few times.
 					const waiting = rows.some((d) => d.images.some((image) => !image.ready));

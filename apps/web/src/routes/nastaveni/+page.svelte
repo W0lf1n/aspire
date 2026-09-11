@@ -1,9 +1,9 @@
 <script lang="ts">
 	/**
 	 * Nastavení — the hub, and the last tab. Each row is a room of its own
-	 * with a back chevron there: Vzhled, Upozornění, Tapeta, Párování. Every
-	 * row carries a live one-line summary of what is in the room, so the hub
-	 * reads as a status page before it is a menu.
+	 * with a back chevron there: Vzhled, Upozornění, Tapeta, Stahování,
+	 * Párování. Every row carries a live one-line summary of what is in the
+	 * room, so the hub reads as a status page before it is a menu.
 	 *
 	 * The theme and the token are on the device and read at once; the nudge
 	 * is the server's and arrives a moment later, so the row starts at the
@@ -16,6 +16,7 @@
 	import type { NudgeMode } from '@aspire/contracts';
 	import { readToken } from '$lib/api/token';
 	import { current } from '$lib/push/nudge';
+	import { detects, effectivePolicy, readPolicy } from '$lib/offline/policy';
 	import Icon from '$lib/ui/Icon.svelte';
 	import TabBar from '$lib/ui/TabBar.svelte';
 	import { settingsRows } from '$lib/ui/settings';
@@ -23,7 +24,14 @@
 
 	let nudge = $state<NudgeMode>('off');
 
-	const rows = $derived(settingsRows({ theme: readTheme(), paired: readToken() !== null, nudge }));
+	const rows = $derived(
+		settingsRows({
+			theme: readTheme(),
+			paired: readToken() !== null,
+			nudge,
+			offline: effectivePolicy(readPolicy(), detects())
+		})
+	);
 
 	$effect(() => {
 		let live = true;

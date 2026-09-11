@@ -5,10 +5,11 @@
 
 import type { IconName } from './Icon.svelte';
 import { MODE_LABEL } from '$lib/push/schedule';
+import { POLICY_SUMMARY, type OfflinePolicy } from '$lib/offline/policy';
 import type { NudgeMode } from '@aspire/contracts';
 import { THEME_LABEL, type Theme } from './theme';
 
-export type SettingsPage = 'vzhled' | 'upozorneni' | 'tapeta' | 'parovani';
+export type SettingsPage = 'vzhled' | 'upozorneni' | 'tapeta' | 'stahovani' | 'parovani';
 
 export interface SettingsRow {
 	id: SettingsPage;
@@ -25,6 +26,8 @@ export interface SettingsFacts {
 	paired: boolean;
 	/** What the morning nudge is set to on this device (PLAN.md §3.6). */
 	nudge: NudgeMode;
+	/** How much of the board this device keeps for offline (D39). */
+	offline: OfflinePolicy;
 }
 
 export function settingsRows(facts: SettingsFacts): SettingsRow[] {
@@ -49,6 +52,13 @@ export function settingsRows(facts: SettingsFacts): SettingsRow[] {
 			title: 'Tapeta',
 			sub: facts.paired ? 'sny na zámek telefonu' : 'až bude spárováno',
 			icon: 'image'
+		},
+		{
+			id: 'stahovani',
+			href: '/nastaveni/stahovani',
+			title: 'Stahování',
+			sub: POLICY_SUMMARY[facts.offline],
+			icon: 'cloud-download'
 		},
 		{
 			id: 'parovani',

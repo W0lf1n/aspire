@@ -2,7 +2,7 @@
 
 Guidance for Claude Code working in this repository.
 
-**Last revised:** 2026-09-11 · M5 closed, D38 · 95 web tests · 166 API tests
+**Last revised:** 2026-09-11 · M5 closed, D38–D39 · 114 web tests · 166 API tests
 
 ---
 
@@ -29,8 +29,10 @@ fixed — D32), §14 is M4, the wallpaper, and §15 is M5, the morning nudge.
 **M0 through M5 are done**, and §16 closes the last thing M1 left behind:
 the desktop grid is dropped, not built — a grid of thumbnails is a gallery
 and this app is a queue, so there is no breakpoint at which a screen
-changes its shape (D38). What is left is §3.7's share link and D37's
-question about prefetching a hundred-dream board, neither a milestone.
+changes its shape (D38). §17 answers D37's question: the board fetches a
+window of the reel and the whole of itself only where the browser says the
+connection is free, because a hundred dreams is 20 MB (D39). What is left
+is §3.7's share link, which is not a milestone.
 
 ---
 
@@ -104,12 +106,15 @@ apps/web/src/
 │                  big it is — and format.ts.
 ├─ lib/images/     downscale.ts — the photograph to 2048 px on the device.
 ├─ lib/offline/    status.svelte.ts — the connection flag every screen reads —
-│                  and cache.ts, which fills and prunes the photo cache.
+│                  cache.ts, which fills and prunes the photo cache a window
+│                  at a time — and policy.ts, how much of the board this
+│                  device keeps and what the connection costs (D39).
 ├─ lib/push/       nudge.ts — the browser's half of the morning notification
 │                  — and schedule.ts, the time as a field shows it.
 ├─ routes/         / · /pridat · /sen/[id] · /sen/[id]/upravit · /sin-slavy
 │                  · /nastaveni · /nastaveni/vzhled · /nastaveni/upozorneni
-│                  · /nastaveni/tapeta · /nastaveni/parovani
+│                  · /nastaveni/tapeta · /nastaveni/stahovani
+│                  · /nastaveni/parovani
 │                  · /styleguide (unlinked, for review)
 └─ service-worker.ts  three caches: the shell per build, the photographs
                       cache-first, the board network-first (D24).
