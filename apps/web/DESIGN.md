@@ -563,6 +563,21 @@ luminance step.
 - **Disabled:** 50 % opacity. The caret is ember.
 - **Toggle:** 40 × 24, strong-hairline track, ember when on, an 18 px white
   knob travelling 16 px in 150 ms.
+- **Search field:** `.search` — a magnifier, the input and a 28 px round
+  clear button in one 48 px slab, 12 px radius, on `--surface` so it reads as
+  a card sitting on the ground rather than as one of a form's questions. The
+  ember ring is on the slab (`:focus-within`), not the input, and the
+  browser's own search-cancel button is turned off so there is only one way
+  to empty it.
+
+### The note
+`.note` — a wash slab for something the app noticed and the person decides
+about; today, a dream being written that is already written down (D50).
+`--signal-wash` with 13 px ink-2 text, 12 px radius, titles in 600 ink. Ember
+and never `--danger`: nothing failed, nothing is blocked, and a note that
+looks like an error is a note that gets clicked past. It lives directly under
+the field it is about, and it is a polite live region — it arrives while you
+type, so it is announced after the letter rather than interrupting it.
 
 ### Navigation
 - **Tab bar:** a frosted pill 62 px tall, glass with the glass shadow, blur 24,
@@ -616,6 +631,16 @@ height in 220 ms on `--ease-out` while the screen dims to `--overlay`, both
 with `allow-discrete` so it leaves the way it came. The dim is a plain
 element, not `::backdrop`: a backdrop does not inherit the tokens everywhere,
 and a colour outside `tokens.css` is not a colour this app owns.
+
+### The list (Seznam)
+The board as one column (D44): `.card--list` of `.row`s, newest first, each a
+number, a 40 px photograph cropped into the circle's place — or the sky where
+there is none — the title, and a line of state · area · year. The number is
+13 px 500 in ink-3, tabular, in a 2ch right-aligned column, and it is the
+dream's place in the whole list, so a searched list reads 4, 17, 38 (D48).
+The search field sits between the title row and the card from six lines up,
+with `n z m` under it in ink-2 while it is being used, and the empty answer is
+a card saying so with a quiet pill that empties the field.
 
 ### The reel (Nástěnka)
 A pager, not a list (D40). The scroll region is the reel alone —

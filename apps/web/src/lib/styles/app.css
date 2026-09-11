@@ -457,6 +457,22 @@ a {
 	text-overflow: ellipsis;
 }
 
+/**
+ * The row's number, down the left edge of a numbered list (D48). Tabular
+ * figures in a 2ch right-aligned column, so a title starts on the same
+ * vertical whether its line is 7 or 38 and the column does not shiver while
+ * it is being narrowed.
+ */
+.row__no {
+	flex: none;
+	min-width: 2ch;
+	text-align: right;
+	font-size: var(--text-sm);
+	font-weight: 500;
+	font-variant-numeric: tabular-nums;
+	color: var(--ink-3);
+}
+
 .row__end {
 	flex: none;
 	display: flex;
@@ -899,6 +915,98 @@ a {
 	font-size: var(--text-sm);
 	color: var(--ink-2);
 	line-height: var(--leading-base);
+}
+
+/**
+ * The search field: the magnifier, the input, and a way to empty it, as one
+ * slab the same height and colour as every other input. It sits on the
+ * ground rather than in a card, because it is not one of a form's questions
+ * — it is what the list below it is narrowed by (D49).
+ */
+.search {
+	display: flex;
+	align-items: center;
+	gap: var(--space-2);
+	padding: 0 var(--space-3);
+	border-radius: var(--radius-sm);
+	background: var(--surface);
+	color: var(--ink-3);
+	transition: box-shadow var(--dur-fast) var(--ease-out);
+}
+
+.search:focus-within {
+	box-shadow: 0 0 0 1.5px var(--signal);
+}
+
+.search__input {
+	flex: 1;
+	min-width: 0;
+	min-height: var(--touch-lg);
+	padding: 0;
+	border: none;
+	background: none;
+	color: var(--ink);
+	font-size: var(--text-base);
+}
+
+.search__input:focus-visible {
+	outline: none;
+}
+
+.search__input::placeholder {
+	color: var(--ink-3);
+}
+
+/* The browser's own clear button would be a second one beside ours. */
+.search__input::-webkit-search-cancel-button,
+.search__input::-webkit-search-decoration {
+	-webkit-appearance: none;
+	appearance: none;
+}
+
+.search__clear {
+	display: grid;
+	place-items: center;
+	flex: none;
+	width: 28px;
+	height: 28px;
+	border: none;
+	border-radius: var(--radius-full);
+	background: var(--surface-3);
+	color: var(--ink-2);
+}
+
+/**
+ * The note: a wash slab for something the app noticed and the person decides
+ * about — a dream being written that is already written down (D50). Ember
+ * rather than red, because it is not an error: nothing about it stops a
+ * save, and a warning that looks like a failure gets clicked past.
+ */
+.note {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-2);
+	padding: var(--space-3) var(--space-4);
+	border-radius: var(--radius-sm);
+	background: var(--signal-wash);
+	font-size: var(--text-sm);
+	line-height: var(--leading-base);
+	color: var(--ink-2);
+	text-wrap: pretty;
+}
+
+.note strong {
+	font-weight: 600;
+	color: var(--ink);
+}
+
+.note ul {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-1);
+	margin: 0;
+	padding: 0;
+	list-style: none;
 }
 
 /**

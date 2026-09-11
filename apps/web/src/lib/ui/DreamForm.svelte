@@ -10,15 +10,23 @@
 	 * The sheet on Seznam is the same form with the status left out and a way
 	 * back out beside the pill (D44): a dream written straight into a list is
 	 * one you are only just having, and „Sním“ is the state it is in.
+	 *
+	 * Where the screen hands it the board, the title is checked against it as
+	 * it is typed and a note says which dream it looks like. It is a note and
+	 * never a stop: the pill stays live and says the same word it always
+	 * said, because writing the same dream down twice is allowed — this is
+	 * his list, and all the app has is the observation (D50).
 	 */
-	import type { DreamCategory, DreamInput, DreamStatus } from '@aspire/contracts';
+	import type { Dream, DreamCategory, DreamInput, DreamStatus } from '@aspire/contracts';
 	import { DREAM_CATEGORIES, DREAM_STATUSES } from '@aspire/contracts';
+	import { similarDreams } from '$lib/dreams/duplicates';
 	import {
 		AFFIRMATION_MAX,
 		CATEGORY_LABEL,
 		STATUS_LABEL,
 		TITLE_MAX,
 		WHY_MAX,
+		listLine,
 		toFields,
 		toInput
 	} from '$lib/dreams/rules';
@@ -40,6 +48,14 @@
 		 * „sním“ — a dream being written for the first time.
 		 */
 		withStatus?: boolean;
+		/**
+		 * The dreams already written down, for the duplicate note. Empty —
+		 * the default — is a form that does not check, which is what a screen
+		 * with no board in its hands gets.
+		 */
+		existing?: Dream[];
+		/** The dream being edited, so it is not a duplicate of itself. */
+		exceptId?: string | null;
 		onsubmit: (input: DreamInput) => void;
 		/** The way out, where the form is in a sheet rather than on a screen. */
 		oncancel?: () => void;
@@ -53,6 +69,8 @@
 		error,
 		locked = '',
 		withStatus = true,
+		existing = [],
+		exceptId = null,
 		onsubmit,
 		oncancel
 	}: Props = $props();
@@ -68,6 +86,11 @@
 	let category = $state<DreamCategory | null>(start?.category ?? null);
 	let year = $state(start?.year ?? '');
 	let problem = $state('');
+
+	/** What is already written down that this looks like, as it is typed. */
+	const similar = $derived(
+		existing.length === 0 ? [] : similarDreams({ title, affirmation }, existing, exceptId)
+	);
 
 	function submit(event: SubmitEvent) {
 		event.preventDefault();
@@ -94,6 +117,25 @@
 			disabled={busy}
 		/>
 	</label>
+
+	{#if similar.length > 0}
+		<!--
+			A live region rather than an alert: it appears while the title is
+			being typed, so it has to be said politely, after the letter — and
+			it is news, not a problem. Nothing below it changes.
+		-->
+		<div class="note" role="status">
+			<p>
+				{similar.length === 1 ? 'Podobný sen už v seznamu máš:' : 'Podobné sny už v seznamu máš:'}
+			</p>
+			<ul>
+				{#each similar as dream (dream.id)}
+					<li><strong>{dream.title}</strong> · {listLine(dream)}</li>
+				{/each}
+			</ul>
+			<p>{initial ? 'Uložit ho můžeš i tak.' : 'Přidat ho můžeš i tak.'} Je to tvůj seznam.</p>
+		</div>
+	{/if}
 
 	<label class="field">
 		<span class="field__label">Proč</span>

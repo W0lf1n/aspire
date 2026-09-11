@@ -15,6 +15,8 @@
 		plus: '<path d="M12 6.4v11.2M6.4 12h11.2"/>',
 		close: '<path d="m6.6 6.6 10.8 10.8M17.4 6.6 6.6 17.4"/>',
 		check: '<path d="m5.6 12.4 4.4 4.4 8.4-9.6"/>',
+		/** Hledat — the magnifier, on the Seznam's field (Lucide). */
+		search: '<circle cx="11" cy="11" r="7.5"/><path d="m21 21-4.35-4.35"/>',
 
 		/** Nástěnka — a stack of two prints, the front one whole. */
 		board:

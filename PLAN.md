@@ -468,3 +468,37 @@ slávy, nothing shared either way.
 
 Still no signup form and still no login (D6). A board is something the
 operator makes.
+
+---
+
+## 21. The list gets a shape · 2026-09-11
+
+**Every line in the Seznam is numbered** (D48). The reel is deliberately
+placeless — one dream a screen, shuffled on every open — so the one screen
+that is the board as a whole may as well have landmarks in it. 1 is the top,
+which is the newest, and the last number is how many dreams there are, which
+is a fact the app otherwise never says. The number is the dream's place in
+the whole list rather than in what is on the screen, so a narrowed list reads
+4, 17, 38 and emptying the field is a way back to them.
+
+**And typing narrows it** (D49). From six lines up there is a field above the
+list, and it searches everything a dream says about itself: the title, the
+why, the affirmation, the state, the area and the year — the last two in the
+Czech the screen shows them in, so „splněno“ finds what is done. Diacritics
+are folded off both sides, because Czech typed at speed is Czech with half
+the marks missing, and words are an AND rather than a phrase. It runs on the
+client over the board that is already in memory, so it answers on the
+keystroke and answers offline; `dreams/search.ts` is the whole of it.
+
+**A dream that is already written down gets said out loud** (D50). While the
+title is being typed, the form compares it against the board and names what
+it looks like — „Podobný sen už v seznamu máš: Island na kole · plním“ — and
+then does nothing else. The pill stays live and says the word it always said:
+writing the same dream twice is allowed, sometimes meant, and always his
+call. The note is ember rather than red because nothing failed. The
+comparison is generous about phrasing and mean about everything else
+(`dreams/duplicates.ts`): Barcelona and Barcelona 2027 are the same dream,
+naučit se španělsky and naučit se anglicky are not.
+
+**§3.7's share link is still the only thing left in this plan.** This is not
+a milestone either: it is one column, one field and one note.

@@ -18,6 +18,17 @@
 	 * The saved dream goes straight on the top of the list rather than the
 	 * board being fetched again: the server has just said what it made, and
 	 * a list that reloads under a thumb is a list that loses its place.
+	 *
+	 * Every line is numbered and the number is the dream's place in the whole
+	 * list, so it holds while the list is being searched: three lines
+	 * numbered 4, 17 and 38 say where in the column they are, which is how
+	 * you get back to one after the field is empty again (D48).
+	 *
+	 * The field above them appears from six lines up and narrows the list
+	 * against everything a dream says about itself — `dreams/search.ts`
+	 * (D49). It runs here rather than on the server, over the board this
+	 * screen has already fetched, so it answers on the keystroke and answers
+	 * offline.
 	 */
 	import { resolve } from '$app/paths';
 	import type { Dream, DreamInput } from '@aspire/contracts';
@@ -26,6 +37,7 @@
 	import { listOrder } from '$lib/dreams/board';
 	import { photoOf } from '$lib/dreams/photos';
 	import { listLine } from '$lib/dreams/rules';
+	import { SEARCH_FROM, searchDreams } from '$lib/dreams/search';
 	import { connection } from '$lib/offline/status.svelte';
 	import DreamForm from '$lib/ui/DreamForm.svelte';
 	import Icon from '$lib/ui/Icon.svelte';
@@ -51,7 +63,19 @@
 	let busy = $state(false);
 	let error = $state('');
 
+	/** What is typed in the search field. Empty is the whole list. */
+	let query = $state('');
+
 	const rows = $derived(listOrder(dreams));
+
+	/** Which line each dream is, counted down the whole list from the top. */
+	const place = $derived(new Map(rows.map((dream, i) => [dream.id, i + 1])));
+
+	const found = $derived(searchDreams(rows, query));
+
+	/** Whether the field is worth having at all, and whether it is being used. */
+	const searchable = $derived(rows.length >= SEARCH_FROM);
+	const searching = $derived(searchable && query.trim().length > 0);
 
 	const locked = $derived(connection.online ? '' : 'Bez připojení se sen nedá přidat.');
 
@@ -121,11 +145,40 @@
 		<p class="hint">Bez připojení. Seznam je z paměti a nový sen počká na signál.</p>
 	{/if}
 
-	{#if rows.length > 0}
+	{#if searchable}
+		<label class="search">
+			<Icon name="search" size={18} />
+			<input
+				class="search__input"
+				type="search"
+				bind:value={query}
+				placeholder="Hledat mezi sny"
+				autocomplete="off"
+				aria-label="Hledat mezi sny"
+			/>
+			{#if query.length > 0}
+				<button
+					type="button"
+					class="search__clear"
+					onclick={() => (query = '')}
+					aria-label="Zrušit hledání"
+				>
+					<Icon name="close" size={14} stroke={2} />
+				</button>
+			{/if}
+		</label>
+	{/if}
+
+	{#if searching}
+		<p class="hint count" aria-live="polite">{found.length} z {rows.length}</p>
+	{/if}
+
+	{#if found.length > 0}
 		<section class="card card--list">
-			{#each rows as dream (dream.id)}
+			{#each found as dream (dream.id)}
 				{@const photo = photoOf(dream, 'dreamt')}
 				<a class="row row--press" href={resolve('/sen/[id]', { id: dream.id })}>
+					<span class="row__no">{place.get(dream.id)}</span>
 					{#if photo}
 						<img class="circle shot" src={photo.thumbUrl} alt="" loading="lazy" decoding="async" />
 					{:else}
@@ -139,6 +192,13 @@
 					<span class="card__go"><Icon name="chevron-right" size={18} /></span>
 				</a>
 			{/each}
+		</section>
+	{:else if searching}
+		<section class="card">
+			<p class="hint">Nic takového v seznamu není.</p>
+			<div class="actions actions--fill">
+				<button type="button" class="btn" onclick={() => (query = '')}>Zrušit hledání</button>
+			</div>
 		</section>
 	{:else if asked}
 		<section class="card">
@@ -162,6 +222,7 @@
 			submitLabel="Přidat"
 			accent
 			withStatus={false}
+			existing={dreams}
 			{busy}
 			{error}
 			{locked}
@@ -185,5 +246,11 @@
 	/* A photograph in the circle's place: the same 40 px disc, cropped. */
 	.shot {
 		object-fit: cover;
+	}
+
+	/* How much of the list the search left, over the list it left it of. */
+	.count {
+		margin-inline: var(--space-2);
+		font-variant-numeric: tabular-nums;
 	}
 </style>

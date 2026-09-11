@@ -2,7 +2,7 @@
 
 Guidance for Claude Code working in this repository.
 
-**Last revised:** 2026-09-11 · M5 closed, D38–D47 · 174 web tests · 177 API tests
+**Last revised:** 2026-09-11 · M5 closed, D38–D50 · 207 web tests · 177 API tests
 
 ---
 
@@ -39,8 +39,11 @@ nine (D43), and Seznam is a fourth tab where the board is one column and
 ＋ opens a sheet of the five fields a sentence can answer (D44). §20 is the
 deployment as a script the button only presses (D45), the deploy key pinned
 to one command on a user of its own (D47), and `board invite`, which is a
-second person's whole onboarding (D46). What is left is §3.7's
-share link, which is not a milestone.
+second person's whole onboarding (D46). §21 gives the list a shape: every
+line numbered with its place in the whole list (D48), a field that narrows it
+on everything a dream says about itself (D49), and a note that says when a
+dream is already written down without ever stopping it being written again
+(D50). What is left is §3.7's share link, which is not a milestone.
 
 ---
 
@@ -113,8 +116,11 @@ apps/web/src/
 │                  opens on, what order the rest and the Seznam are in,
 │                  what a tile says and whose anniversary today is —
 │                  photos.ts — which of a dream's two photographs a screen
-│                  shows — wallpaper.ts — who can be on a collage and how
-│                  big it is — and format.ts.
+│                  shows — search.ts — what typing in the Seznam looks in
+│                  and how Czech is folded before it does (D49) —
+│                  duplicates.ts — whether a dream being written is one
+│                  already written down (D50) — wallpaper.ts — who can be
+│                  on a collage and how big it is — and format.ts.
 ├─ lib/images/     downscale.ts — the photograph to 2048 px on the device.
 ├─ lib/offline/    status.svelte.ts — the connection flag every screen reads —
 │                  cache.ts, which fills and prunes the photo cache a window
@@ -190,7 +196,11 @@ scripts/             check-bundle.mjs, and invite.sh — a board and its code
     picks one by hand. `dreams/photos.ts` says which one a screen shows and
     which ones a replacement takes with it, so changing the dreamt
     photograph never takes the proof with it (D28).
-13. **The reel is a pager.** Every page is exactly the scrollport, the
+13. **A duplicate is told, never stopped.** `dreams/duplicates.ts` says when
+    a title is already on the board and the form shows a `.note` under the
+    field; the pill stays live and keeps its word. It is his list (D50), and
+    every screen that writes a title checks the same way.
+14. **The reel is a pager.** Every page is exactly the scrollport, the
     offsets are multiples of it, and `ui/pager.ts` guarantees one dream per
     gesture on top of the browser's own snapping (D40). Anything that adds
     height to that scroll region — a mark, a header, a gap — breaks the

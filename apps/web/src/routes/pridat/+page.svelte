@@ -5,11 +5,16 @@
 	 * first and the photograph sent after, so a failed upload leaves a dream
 	 * with the sky rather than nothing; a second tap then only sends the
 	 * photograph.
+	 *
+	 * The board is fetched alongside, only so the form can say when the dream
+	 * being written is already written down (D50). It is a note and not a
+	 * gate, so a fetch that fails is a form that does not mention it rather
+	 * than a screen that cannot be used.
 	 */
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
-	import type { DreamInput } from '@aspire/contracts';
-	import { createDream, updateDream, uploadImage } from '$lib/api/client';
+	import type { Dream, DreamInput } from '@aspire/contracts';
+	import { createDream, listBoard, updateDream, uploadImage } from '$lib/api/client';
 	import { describeError } from '$lib/api/errors';
 	import AppBar from '$lib/ui/AppBar.svelte';
 	import DreamForm from '$lib/ui/DreamForm.svelte';
@@ -21,6 +26,23 @@
 	let photo = $state<Blob | null>(null);
 	let busy = $state(false);
 	let error = $state('');
+
+	/** What is already on the board, for the duplicate note. Empty until it is. */
+	let existing = $state<Dream[]>([]);
+
+	$effect(() => {
+		let live = true;
+		listBoard()
+			.then(({ dreams }) => {
+				if (live) existing = dreams;
+			})
+			.catch(() => {
+				// No board to compare against, so the form simply does not check.
+			});
+		return () => {
+			live = false;
+		};
+	});
 
 	/** The dream already made by an earlier tap, if the upload failed after it. */
 	let createdId: string | null = null;
@@ -54,5 +76,5 @@
 		onpick={(picked) => (photo = picked)}
 		onproblem={(s) => (error = s)}
 	/>
-	<DreamForm submitLabel="Přidat sen" accent {busy} {error} {locked} onsubmit={add} />
+	<DreamForm submitLabel="Přidat sen" accent {existing} {busy} {error} {locked} onsubmit={add} />
 </main>

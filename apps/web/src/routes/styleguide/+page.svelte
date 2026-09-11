@@ -172,6 +172,7 @@
 	<h2 class="section">Karta a řádky</h2>
 	<section class="card card--list">
 		<a class="row row--press" href="#karta">
+			<span class="row__no">1</span>
 			<span class="circle circle--dusk"><Icon name="sparkles" size={20} stroke={1.8} /></span>
 			<span class="row__body">
 				<span class="row__title">Dům u lesa</span>
@@ -180,6 +181,7 @@
 			<span class="row__end"><span class="badge badge--dreaming">sním</span></span>
 		</a>
 		<a class="row row--press" href="#karta">
+			<span class="row__no">7</span>
 			<span class="circle circle--accent"><Icon name="camera" size={20} stroke={1.8} /></span>
 			<span class="row__body">
 				<span class="row__title">Rok v Japonsku</span>
@@ -188,6 +190,7 @@
 			<span class="row__end"><span class="badge badge--progress">na cestě</span></span>
 		</a>
 		<a class="row row--press" href="#karta">
+			<span class="row__no">38</span>
 			<span class="circle circle--sky"><Icon name="trophy" size={20} stroke={1.8} /></span>
 			<span class="row__body">
 				<span class="row__title">Vlastní firma</span>
@@ -230,6 +233,13 @@
 				placeholder="Jedna věta, kterou uvidíš každý den."></textarea>
 			<span class="field__hint">Krátce. Je to připomínka, ne esej.</span>
 		</label>
+		<div class="note">
+			<p>Podobný sen už v seznamu máš:</p>
+			<ul>
+				<li><strong>Dům u lesa</strong> · sním · 2030</li>
+			</ul>
+			<p>Přidat ho můžeš i tak. Je to tvůj seznam.</p>
+		</div>
 		<div class="actions">
 			<button type="button" class="btn" onclick={() => toast.show('Uloženo')}>Toast</button>
 			<button
@@ -241,6 +251,16 @@
 			>
 		</div>
 	</section>
+
+	<!-- The search field sits on the ground rather than in a card, as it does
+	     above the Seznam — a white slab on a white card has no edges. -->
+	<label class="search">
+		<Icon name="search" size={18} />
+		<input class="search__input" type="search" placeholder="Hledat mezi sny" />
+		<button type="button" class="search__clear" aria-label="Zrušit hledání">
+			<Icon name="close" size={14} stroke={2} />
+		</button>
+	</label>
 
 	<!-- ── the dream tile ─────────────────────────────────────────────── -->
 	<h2 class="section">Sen</h2>

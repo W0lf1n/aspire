@@ -1336,3 +1336,98 @@ one `sudo` rule.
   code as root on the box, because the box builds what it fetches. That is
   what continuous deployment is. The runbook says so next to the commands
   rather than leaving it to be discovered.
+
+---
+
+## After M5 · 2026-09-11 — the list gets numbers, a field, and a second opinion
+
+### D48 — Every line in the Seznam is numbered, and the number is the dream's place in the whole list
+
+The list has a number down its left edge, 1 at the top. It is the dream's
+place in the list as a whole, so a searched list shows 4, 17 and 38 rather
+than 1, 2, 3.
+
+- **Because a column of forty titles has no landmarks.** The reel is
+  deliberately placeless — shuffled every open, one dream a screen — and the
+  Seznam is the opposite of that: it is the board as a thing with a shape.
+  A number is the cheapest way to give it one. „Ten sedmnáctý“ is a sentence
+  you can say about a dream; „ten někde uprostřed“ is not.
+- **It is also the count.** The last number is how many dreams there are,
+  which is a fact the app otherwise never says out loud, and the one fact
+  that makes the list feel like an inventory rather than a feed.
+- **The place holds while the list is searched**, which is the whole reason
+  the number is positional rather than per-result. Three results numbered 1,
+  2, 3 say nothing; three results numbered 4, 17 and 38 say where they are,
+  so emptying the field is a way back to them rather than a new search.
+- **Newest first, so the number moves.** A number that changes when a dream
+  is added is the price of a list that puts what you just wrote at the top
+  (D44), and it is worth paying: the alternative is numbering from the first
+  dream ever written, which puts 1 at the bottom of the screen and makes the
+  top of the list a number nobody can predict. This is a place in a column,
+  not an identity — the id is the identity, and it is in the URL.
+- **Tabular figures and a 2ch column**, so a title starts on the same
+  vertical whether its line is 7 or 38, and the column does not shiver while
+  it is being narrowed.
+
+### D49 — The Seznam searches everything a dream says, from six lines up
+
+The field appears above the list once there are `SEARCH_FROM` (6) lines, and
+narrows on the title, the why, the affirmation, the state, the area and the
+year — `dreams/search.ts`.
+
+- **Everything, because the word you remember is not always the title.** A
+  dream is a title, a reason and a sentence you say to yourself; the word
+  that comes back three weeks later is as likely to be in the why. The state
+  and the area are searched in the Czech the screen shows them in, so
+  „splněno“ finds what is done and „být“ finds that area — what is searched
+  is what is read.
+- **Diacritics are folded off both sides.** Czech typed at speed on a phone
+  is Czech with half the marks missing, so „stesti“ finds *Štěstí* and
+  „drevena zahrad“ finds *Dřevěná dílna na zahradě*. A search that insists
+  on a caron is a search that answers „nic“ to a word that is on the screen.
+- **Words are an AND, not a phrase.** A person types the two words they
+  remember, not the words in the order they were written.
+- **From six lines**, because below that the whole list is already on one
+  screen and a field for narrowing five lines is one more thing to read on
+  the screen whose job is to be the list.
+- **On the client, over the board it already has.** The board is in memory
+  and in the cache (D24, D39); a search endpoint would mean a round trip, a
+  spinner, and nothing at all offline, for a list this app hopes stays in the
+  low hundreds.
+
+### D50 — A dream that is already written down is said out loud, never stopped
+
+While a title is being typed, the form compares it against the board and
+names what it looks like: „Podobný sen už v seznamu máš: **Island na kole** ·
+plním.“ The pill stays live, says the same word it always said, and saving
+takes one press.
+
+- **Because it is his list.** The same dream written twice is sometimes
+  exactly what somebody means — a second run at it, a different year, the
+  same wish said better. The app has an observation, not a veto, and a
+  confirm step would turn the observation into an accusation.
+- **So the note is ember, not red** (`.note` on `--signal-wash`). It is not
+  an error: nothing failed, nothing is blocked, and a warning that looks
+  like a failure is a warning that gets clicked past.
+- **It is live rather than on submit**, under the title as it is typed, in a
+  polite live region. A warning that arrives after the press is a warning
+  about something you have already decided.
+- **Generous about phrasing, mean about everything else.** The comparison is
+  on a folded, punctuation-less key: equal keys, one title standing whole
+  inside another as words, or a Sørensen–Dice bigram score over 0.72.
+  „Barcelona“ and „Barcelona 2027“ are the same dream; „Naučit se
+  španělsky“ and „Naučit se anglicky“ are not, and a check that cannot tell
+  those apart is a check that gets ignored. Containment needs three letters,
+  not four, because dům, byt, pes and auto are whole dreams in Czech and the
+  match is word for word rather than letter for letter.
+- **The affirmation counts, and only word for word.** It is a sentence a
+  person says to themselves; the same sentence under two titles is one dream
+  with two names.
+- **Dice rather than an edit distance**, because this runs on every keystroke
+  against the whole board and bigrams are linear.
+- **Upravit checks too, minus itself.** A title is a title whether it is
+  being written or rewritten, so the edit screen passes the dream's own id
+  and is left out of its own answer.
+- **The screens that have no board do not check.** Přidat and Upravit fetch
+  it alongside their own work and a fetch that fails is a form that says
+  nothing, never a form that cannot be used.
