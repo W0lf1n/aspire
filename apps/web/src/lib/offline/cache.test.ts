@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { Dream, DreamImage, DreamImageKind } from '@aspire/contracts';
-import { screenUrls, stale } from './cache';
+import { PREFETCH_AT_ONCE, pooled, prefetchOrder, screenUrls, stale } from './cache';
 
 function image(id: string, ready: boolean, kind: DreamImageKind = 'dreamt'): DreamImage {
 	return {
@@ -16,7 +16,7 @@ function image(id: string, ready: boolean, kind: DreamImageKind = 'dreamt'): Dre
 	};
 }
 
-function dream(id: string, images: DreamImage[]): Dream {
+function dream(id: string, images: DreamImage[], over: Partial<Dream> = {}): Dream {
 	return {
 		id,
 		title: id,
@@ -30,8 +30,18 @@ function dream(id: string, images: DreamImage[]): Dream {
 		achievedAt: null,
 		lastShownAt: null,
 		createdAt: '2026-09-10T00:00:00Z',
-		images
+		images,
+		...over
 	};
+}
+
+/** A promise somebody else decides when to settle. */
+function deferred() {
+	let settle!: () => void;
+	const promise = new Promise<void>((resolve) => {
+		settle = resolve;
+	});
+	return { promise, settle };
 }
 
 describe('screenUrls', () => {
@@ -58,6 +68,113 @@ describe('screenUrls', () => {
 			'/media/d/a2/screen.webp',
 			'/media/d/b1/screen.webp'
 		]);
+	});
+});
+
+describe('prefetchOrder', () => {
+	it('is the reel as it will be swiped, and then the wall', () => {
+		const rows = [
+			dream('a', []),
+			dream('done', [], { status: 'achieved', achievedAt: '2026-09-01T00:00:00Z' }),
+			dream('b', []),
+			dream('c', [])
+		];
+
+		// The sequence is the shuffle the board opened with (D30); the
+		// achieved dream is not in it and goes on the end.
+		expect(prefetchOrder(rows, ['c', 'a', 'b']).map((d) => d.id)).toEqual(['c', 'a', 'b', 'done']);
+	});
+
+	it('keeps every dream exactly once, however the reel was shuffled', () => {
+		const rows = [
+			dream('a', []),
+			dream('b', []),
+			dream('old', [], { status: 'achieved', achievedAt: '2026-08-01T00:00:00Z' }),
+			dream('new', [], { status: 'achieved', achievedAt: '2026-09-01T00:00:00Z' })
+		];
+
+		const ordered = prefetchOrder(rows, ['b', 'a']).map((d) => d.id);
+
+		expect(ordered).toHaveLength(rows.length);
+		expect([...ordered].sort()).toEqual(['a', 'b', 'new', 'old']);
+	});
+
+	it('is board order when the board has not been shuffled yet', () => {
+		const rows = [dream('a', []), dream('b', [])];
+
+		expect(prefetchOrder(rows, []).map((d) => d.id)).toEqual(['a', 'b']);
+	});
+});
+
+describe('pooled', () => {
+	it('runs every task, in the order it was given', async () => {
+		const started: number[] = [];
+		const tasks = Array.from({ length: 10 }, (_, i) => async () => {
+			started.push(i);
+		});
+
+		await pooled(tasks, 3);
+
+		expect(started).toEqual([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
+	});
+
+	it('never has more than the limit in flight', async () => {
+		let running = 0;
+		let most = 0;
+		const gates = Array.from({ length: 9 }, () => deferred());
+		const tasks = gates.map((gate) => async () => {
+			running++;
+			most = Math.max(most, running);
+			await gate.promise;
+			running--;
+		});
+
+		const all = pooled(tasks, 3);
+
+		// Three are in flight and the other six are waiting their turn.
+		await Promise.resolve();
+		expect(most).toBe(3);
+
+		for (const gate of gates) gate.settle();
+		await all;
+
+		expect(most).toBe(3);
+		expect(running).toBe(0);
+	});
+
+	it('does not let one failure stop the rest', async () => {
+		const done: string[] = [];
+		const tasks = [
+			async () => {
+				done.push('first');
+			},
+			async () => {
+				throw new Error('this photograph will not come');
+			},
+			async () => {
+				done.push('third');
+			}
+		];
+
+		await expect(pooled(tasks, 2)).resolves.toBeUndefined();
+		expect(done).toEqual(['first', 'third']);
+	});
+
+	it('has nothing to do with an empty list, and does not hang on one', async () => {
+		await expect(pooled([], PREFETCH_AT_ONCE)).resolves.toBeUndefined();
+	});
+
+	it('runs fewer workers than the limit when there is less to do', async () => {
+		const done: number[] = [];
+		const tasks = [
+			async () => {
+				done.push(1);
+			}
+		];
+
+		await pooled(tasks, PREFETCH_AT_ONCE);
+
+		expect(done).toEqual([1]);
 	});
 });
 

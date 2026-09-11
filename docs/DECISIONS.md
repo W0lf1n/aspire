@@ -785,3 +785,41 @@ RFCs instead, on `System.Security.Cryptography`.
 - **The service worker shows the notification**, because a push arrives when
   no page of the app is running. Tapping it opens that dream in the tab that
   is already there rather than a second copy of the app.
+
+---
+
+## After M5 · 2026-09-11 — the photographs a board keeps
+
+### D37 — The offline prefetch is four at a time, in the order the board will be swiped
+
+`rememberBoard` fetched every uncached photograph in one unbounded
+`Promise.all`. That was right when a board had a handful of dreams. It is
+not right now: PLAN.md aims at around a hundred (D30) and an achieved dream
+has two photographs (D28), so a first load could start two hundred
+screen-size requests in the same millisecond, on whatever connection the
+phone happens to be on.
+
+- **Four at a time** (`pooled`, `PREFETCH_AT_ONCE`). Nothing about what ends
+  up cached changes — only how many are in flight. Four is about a browser's
+  own per-host limit, enough that the first screenful is there in a moment
+  and few enough that the connection is not handed the whole board to sort
+  out while somebody is looking at the first tile.
+- **A failure does not take the pool with it.** One photograph the server
+  will not give up is not a reason to stop fetching the rest.
+- **In the order they will be met** (`prefetchOrder`): the reel as it will
+  actually be swiped — the day's pick first (D30) — and then the wall. This
+  also changes nothing about what is cached; with four in flight it is the
+  difference between the tile under the thumb being ready at once and being
+  the hundredth request in the queue. It is composed from `reelOrder` and
+  `achievedDreams`, so there is no second definition of the reel's order.
+- **`have` became a `Set`.** It was an array being `includes`-d once per
+  wanted URL: fine at ten photographs, two hundred × two hundred at the size
+  this is now for.
+
+**Still open, and not decided here: whether every dream's photograph should
+be prefetched at all.** Four at a time fixes the thundering herd; it does
+not change that a hundred-dream board still pulls tens of megabytes down on
+a first load, which may be mobile data. The alternative is caching a window
+ahead of the thumb rather than the whole board — but D24 promises the board
+is readable without a signal, and narrowing that promise is a product
+decision, not a performance one. It is Petr's to make.

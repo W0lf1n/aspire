@@ -40,7 +40,7 @@
 	import { formatAnniversary } from '$lib/dreams/format';
 	import { photoOf } from '$lib/dreams/photos';
 	import { CATEGORY_LABEL, STATUS_BADGE } from '$lib/dreams/rules';
-	import { rememberBoard } from '$lib/offline/cache';
+	import { prefetchOrder, rememberBoard } from '$lib/offline/cache';
 	import { connection } from '$lib/offline/status.svelte';
 	import Icon from '$lib/ui/Icon.svelte';
 	import TabBar from '$lib/ui/TabBar.svelte';
@@ -144,7 +144,11 @@
 					// The cache's board is the last one seen: nothing to keep,
 					// nothing to wait for.
 					if (fromCache) return;
-					void rememberBoard(rows);
+					// In the order they will be met — the day's pick first — and
+					// a few at a time, because a hundred dreams is two hundred
+					// photographs and this must not take the connection over
+					// while the person is looking at the first tile (D37).
+					void rememberBoard(prefetchOrder(rows, sequence));
 					// A photograph still being resized shows as the sky; the
 					// sizes take a second, so the board asks again a few times.
 					const waiting = rows.some((d) => d.images.some((image) => !image.ready));

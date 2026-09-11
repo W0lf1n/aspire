@@ -81,6 +81,7 @@ filter, the tile's line, the anniversary), `dreams/format.test.ts`,
 `dreams/photos.test.ts` (which of a dream's two photographs a screen shows),
 `dreams/wallpaper.test.ts` (who can be on a collage, and how big it is),
 `push/schedule.test.ts` (the nudge's time, both ways),
-`images/downscale.test.ts` and
-`offline/cache.test.ts`; a new rule gets a test before it gets a screen, and
-it lives in a `.ts` module the component imports, never in the component.
+`images/downscale.test.ts` and `offline/cache.test.ts` (what is kept, in
+what order, and a few at a time); a new rule gets a test before it gets a
+screen, and it lives in a `.ts` module the component imports, never in the
+component.
