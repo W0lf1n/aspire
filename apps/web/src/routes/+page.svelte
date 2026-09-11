@@ -2,6 +2,12 @@
 	/**
 	 * Nástěnka — the board, and the launch route.
 	 *
+	 * The board is the reel and nothing else: one dream fills the screen, the
+	 * next one is a swipe away, and the chrome — the areas, the anniversary,
+	 * whatever the connection has to say — floats on the photograph rather
+	 * than taking a strip of it off the top (D40). A swipe is worth exactly
+	 * one dream however long it is, which `lib/ui/pager.ts` is the whole of.
+	 *
 	 * The reel is what is still ahead: a dream marked splněno leaves it for
 	 * the Síň slávy, and the tile the reel opens on is the day's pick — the
 	 * dream shown least recently, so the board is a different one each
@@ -11,14 +17,16 @@
 	 * full-screen tiles is a first paint you can feel (D30).
 	 *
 	 * On the one morning a year a dream has an anniversary, the wall reaches
-	 * the board: one line above the reel, the way back to the dream itself
+	 * the board: one line over the reel, the way back to the dream itself
 	 * (D29). It is not a card and not a tile — the photograph stays the hero.
 	 *
 	 * Empty, it has one state worth designing. The empty state is not an
 	 * illustration with a caption; it is the first dream's own tile, with the
 	 * sky where the photograph will be and the words where the words will be,
-	 * so the board already looks like the board before there is anything on it.
+	 * so the board already looks like the board before there is anything on
+	 * it. That screen is a page rather than a reel: there is nothing to swipe.
 	 */
+	import { untrack } from 'svelte';
 	import { resolve } from '$app/paths';
 	import type { Dream } from '@aspire/contracts';
 	import { DREAM_CATEGORIES } from '@aspire/contracts';
@@ -52,6 +60,7 @@
 	import { connection } from '$lib/offline/status.svelte';
 	import Icon from '$lib/ui/Icon.svelte';
 	import TabBar from '$lib/ui/TabBar.svelte';
+	import { pager, type Pager } from '$lib/ui/pager';
 	import { toast } from '$lib/ui/toast.svelte';
 
 	let dreams = $state<Dream[] | null>(null);
@@ -95,7 +104,7 @@
 	/** What the reel shows: the dreams still ahead, in that order, in that area. */
 	const reel = $derived(dreams === null ? [] : byCategory(reelOrder(dreams, sequence), asking));
 
-	/** How many of them are in the document; it grows as the reel is scrolled. */
+	/** How many of them are in the document; it grows as the reel is swiped. */
 	let windowed = $state(REEL_WINDOW);
 
 	/** The tiles actually rendered. The rest arrive as the last one is neared. */
@@ -119,33 +128,60 @@
 	function ask(area: BoardFilter) {
 		filter = area;
 		windowed = REEL_WINDOW;
-		page?.scrollTo({ top: 0 });
+		at = 0;
+		drive?.to(0);
 	}
 
-	/** The scroll region, and the mark at the end of what is rendered. */
-	let page = $state<HTMLElement | null>(null);
-	let sentinel = $state<HTMLElement | null>(null);
+	/** The reel's scroll region; `pager.ts` drives it. */
+	let region = $state<HTMLElement | null>(null);
+
+	/** The pager, while the reel is on the screen. */
+	let drive: Pager | null = null;
+
+	/** The dream on the screen, which the pager is the only writer of. */
+	let at = $state(0);
+
+	/** How tall the floating chrome is, so a tile's badge can clear it. */
+	let band = $state(0);
 
 	/**
-	 * The window grows when the end of it comes into view — one more screenful
-	 * of tiles, not the whole board. Nothing is ever removed from the top:
-	 * taking a tile out of a snapping scroll region moves the one under the
-	 * thumb, and a reel that jumps is worse than a reel that is long.
+	 * One dream per gesture, however long the gesture. The browser's own
+	 * snapping is still what the reel rests on; this is the fence around it,
+	 * and the wheel and the arrow keys.
 	 */
 	$effect(() => {
-		if (!sentinel || !page || windowed >= reel.length) return;
+		const el = region;
+		if (!el) return;
 
-		const observer = new IntersectionObserver(
-			(entries) => {
-				if (entries.some((entry) => entry.isIntersecting)) {
-					windowed = Math.min(windowed + REEL_WINDOW, reel.length);
-				}
-			},
-			// A screenful of slack, so the next tiles exist before they are reached.
-			{ root: page, rootMargin: '100% 0px' }
-		);
-		observer.observe(sentinel);
-		return () => observer.disconnect();
+		drive = pager(el, {
+			pages: () => shown.length,
+			onPage: (index) => {
+				at = index;
+			}
+		});
+
+		return () => {
+			drive?.destroy();
+			drive = null;
+		};
+	});
+
+	/**
+	 * The window grows from the dream on the screen rather than from a mark
+	 * in the document: the pager already knows where the thumb is, and two
+	 * dreams of slack is more than one swipe can spend. Nothing is ever
+	 * removed from the top — taking a tile out of a snapping scroll region
+	 * moves the one under the thumb, and a reel that jumps is worse than a
+	 * reel that is long (D30).
+	 */
+	$effect(() => {
+		const here = at;
+		const total = reel.length;
+		untrack(() => {
+			if (windowed < total && here >= windowed - 2) {
+				windowed = Math.min(windowed + REEL_WINDOW, total);
+			}
+		});
 	});
 
 	/**
@@ -255,78 +291,32 @@
 	<title>Aspire</title>
 </svelte:head>
 
-<main class="page" class:page--reel={reel.length > 0} bind:this={page}>
-	<h1 class="wordmark">Aspire</h1>
+{#if reel.length > 0}
+	<main class="board">
+		<!-- The name is the tab bar's job now; the screen is the photograph. -->
+		<h1 class="visually-hidden">Aspire</h1>
 
-	{#if !connection.online}
-		<p class="hint how">
-			Bez připojení. Nástěnka je z paměti; srdíčka a přidávání počkají, až bude signál.
-		</p>
-	{:else if unknownDevice}
-		<p class="hint how">
-			Server tohle zařízení nezná.
-			<a class="link" href={resolve('/nastaveni/parovani')}>Spáruj ho znovu.</a>
-		</p>
-	{/if}
-
-	{#if anniversary}
-		<a
-			class="anniversary"
-			href={resolve('/sen/[id]', { id: anniversary.dream.id })}
-			aria-label={formatAnniversary(anniversary.years, anniversary.dream.title)}
-		>
-			<span class="circle circle--sm circle--dusk" aria-hidden="true">
-				<Icon name="trophy" size={16} stroke={1.8} />
-			</span>
-			<span aria-hidden="true">{formatAnniversary(anniversary.years, anniversary.dream.title)}</span
-			>
-		</a>
-	{/if}
-
-	{#if areas.length > 0}
 		<!--
-			The areas this board has something in, and „Vše“ in front of them.
-			A rail rather than a wrap: above a reel it has to cost one line,
-			and the nine are a set you swipe past, not a form you read (D32).
+			The reel: one dream the size of the screen, edge to edge, the day's
+			pick first. The whole picture opens the dream; the heart on it is
+			the one control, above the link, so a tap on it is a like and a tap
+			anywhere else is the dream.
 		-->
-		<div class="areas" role="group" aria-label="Oblast">
-			<button
-				type="button"
-				class="chip"
-				class:chip--on={asking === 'all'}
-				aria-pressed={asking === 'all'}
-				onclick={() => ask('all')}>Vše</button
-			>
-			{#each areas as area (area)}
-				<button
-					type="button"
-					class="chip"
-					class:chip--on={asking === area}
-					aria-pressed={asking === area}
-					onclick={() => ask(area)}>{CATEGORY_LABEL[area]}</button
-				>
-			{/each}
-		</div>
-	{/if}
-
-	{#if reel.length > 0}
-		<!--
-			The reel: one tile the height of the screen per dream, snapping as
-			they scroll, the day's pick first. The whole picture opens the
-			dream; the heart on it is the one control, above the link, so a tap
-			on it is a like and a tap anywhere else is the dream.
-		-->
-		<section class="reel">
+		<section class="reel" style:--band="{band}px" bind:this={region} aria-label="Sny">
 			{#each shown as dream, index (dream.id)}
 				{@const photo = photoOf(dream, 'dreamt')}
 				{@const line = tileLine(dream)}
 				<article class="dream reel__tile" class:dream--sky={!photo}>
 					{#if photo}
+						<!-- The dream on the screen and its two neighbours are
+						     fetched and decoded before they are reached; a
+						     photograph that decodes mid-swipe is the one thing
+						     that can make a reel stutter. -->
 						<img
 							class="dream__img"
 							src={photo.screenUrl}
 							alt=""
-							loading={index === 0 ? 'eager' : 'lazy'}
+							loading={Math.abs(index - at) <= 1 ? 'eager' : 'lazy'}
 							decoding="async"
 						/>
 					{/if}
@@ -358,13 +348,100 @@
 					</div>
 				</article>
 			{/each}
-
-			{#if windowed < reel.length}
-				<!-- The end of what is rendered; seeing it brings the next few. -->
-				<div class="reel__more" bind:this={sentinel} aria-hidden="true"></div>
-			{/if}
 		</section>
-	{:else}
+
+		<!--
+			The chrome, over the photograph rather than above it: the areas,
+			the anniversary, and whatever the connection has to say. Only the
+			pills take a tap — everything between them falls through to the
+			dream underneath, which is also what keeps the whole top of the
+			screen somewhere the reel can be dragged from.
+		-->
+		<div class="board__top" bind:clientHeight={band}>
+			{#if areas.length > 0}
+				<!--
+					The areas this board has something in, and „Vše“ in front of
+					them. A rail rather than a wrap: over a reel it has to cost
+					one line, and the nine are a set you swipe past, not a form
+					you read (D32).
+				-->
+				<div class="areas" role="group" aria-label="Oblast">
+					<button
+						type="button"
+						class="chip"
+						class:chip--on={asking === 'all'}
+						aria-pressed={asking === 'all'}
+						onclick={() => ask('all')}>Vše</button
+					>
+					{#each areas as area (area)}
+						<button
+							type="button"
+							class="chip"
+							class:chip--on={asking === area}
+							aria-pressed={asking === area}
+							onclick={() => ask(area)}>{CATEGORY_LABEL[area]}</button
+						>
+					{/each}
+				</div>
+			{/if}
+
+			{#if anniversary}
+				<a
+					class="anniversary glass"
+					href={resolve('/sen/[id]', { id: anniversary.dream.id })}
+					aria-label={formatAnniversary(anniversary.years, anniversary.dream.title)}
+				>
+					<span class="circle circle--sm circle--dusk" aria-hidden="true">
+						<Icon name="trophy" size={16} stroke={1.8} />
+					</span>
+					<span aria-hidden="true"
+						>{formatAnniversary(anniversary.years, anniversary.dream.title)}</span
+					>
+				</a>
+			{/if}
+
+			{#if !connection.online}
+				<p class="hint glass board__note">
+					Bez připojení. Nástěnka je z paměti; srdíčka a přidávání počkají, až bude signál.
+				</p>
+			{:else if unknownDevice}
+				<p class="hint glass board__note">
+					Server tohle zařízení nezná.
+					<a class="link" href={resolve('/nastaveni/parovani')}>Spáruj ho znovu.</a>
+				</p>
+			{/if}
+		</div>
+	</main>
+{:else}
+	<main class="page">
+		<h1 class="wordmark">Aspire</h1>
+
+		{#if !connection.online}
+			<p class="hint how">
+				Bez připojení. Nástěnka je z paměti; srdíčka a přidávání počkají, až bude signál.
+			</p>
+		{:else if unknownDevice}
+			<p class="hint how">
+				Server tohle zařízení nezná.
+				<a class="link" href={resolve('/nastaveni/parovani')}>Spáruj ho znovu.</a>
+			</p>
+		{/if}
+
+		{#if anniversary}
+			<a
+				class="anniversary anniversary--flow"
+				href={resolve('/sen/[id]', { id: anniversary.dream.id })}
+				aria-label={formatAnniversary(anniversary.years, anniversary.dream.title)}
+			>
+				<span class="circle circle--sm circle--dusk" aria-hidden="true">
+					<Icon name="trophy" size={16} stroke={1.8} />
+				</span>
+				<span aria-hidden="true"
+					>{formatAnniversary(anniversary.years, anniversary.dream.title)}</span
+				>
+			</a>
+		{/if}
+
 		<article class="dream dream--sky first" aria-labelledby="first-title">
 			<span class="sky" aria-hidden="true"></span>
 			<div class="dream__body">
@@ -396,16 +473,132 @@
 				obrazovku.
 			</p>
 		{/if}
-	{/if}
-</main>
+	</main>
+{/if}
 
 <TabBar />
 
 <style>
-	/* The areas, as a rail: one line above the reel, running to both edges of
-	   the screen so a chip is never cut off mid-word by the page's padding.
-	   The bar it is scrolled with is not shown; the chips say there is more. */
+	/* ── the reel ──────────────────────────────────────────────────────── */
+
+	/**
+	 * The board, when there is one: the frame the reel scrolls inside and the
+	 * chrome is hung from. It has no padding of its own — a photograph that
+	 * stops short of the edge is a card, and this screen has no cards on it.
+	 */
+	.board {
+		position: relative;
+		display: flex;
+		flex-direction: column;
+		flex: 1;
+		min-height: 0;
+	}
+
+	/**
+	 * The scroll region. Snapping is mandatory and every dream stops it,
+	 * which is the standard's own way of saying one dream per swipe;
+	 * `pager.ts` puts a fence around the gesture where a browser keeps that
+	 * unevenly, and owns the wheel and the arrow keys outright. Nothing sets
+	 * `scroll-behavior`: the pager animates the offset itself, on the house
+	 * curve, and a second opinion from CSS would fight it.
+	 */
+	.reel {
+		flex: 1;
+		min-height: 0;
+		overflow-y: auto;
+		overscroll-behavior-y: contain;
+		scroll-snap-type: y mandatory;
+		/* Vertical only, so a sideways drag is never half a page turn — with
+		   pinch kept, because that is somebody's way of reading. */
+		touch-action: pan-y pinch-zoom;
+	}
+
+	/**
+	 * A page: the screen, edge to edge. The print's ratio, radius and shadow
+	 * all go, and so does the gap that used to be between two of them — a
+	 * reel has no ground to show a dream against, and a seam of it passing by
+	 * mid-swipe is the tell that this is a list rather than a reel.
+	 */
+	.reel__tile {
+		aspect-ratio: auto;
+		height: 100%;
+		border-radius: 0;
+		box-shadow: none;
+		scroll-snap-align: start;
+		scroll-snap-stop: always;
+	}
+
+	/* A screen's worth of photograph needs the longer ramp: the words sit
+	   clear of the bar, a sixth of the way up, where `--scrim` has barely
+	   begun (tokens.css). */
+	.reel__tile::after {
+		background: var(--scrim-tall);
+	}
+
+	/* The status stands under the floating chrome rather than behind it. The
+	   chrome measures itself and says how tall it is; the fallback is what it
+	   measures when it is only the rail, so the first frame is already right
+	   on the board that has no anniversary — which is every board but one. */
+	.reel__tile .dream__tag {
+		top: calc(var(--band, 4.25rem) + var(--space-2));
+	}
+
+	.reel__open {
+		position: absolute;
+		inset: 0;
+		z-index: 1;
+	}
+
+	/* The words let the tap through to the link; only the heart takes it.
+	   Their foot clears the floating bar, by the distance every page's last
+	   row clears it. */
+	.reel__body {
+		z-index: 2;
+		padding-bottom: var(--page-end);
+		pointer-events: none;
+	}
+
+	.reel__heart {
+		margin-top: var(--space-2);
+		pointer-events: auto;
+	}
+
+	/* ── the chrome, floating ──────────────────────────────────────────── */
+
+	.board__top {
+		position: absolute;
+		top: 0;
+		left: 0;
+		right: 0;
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
+		gap: var(--space-2);
+		padding: calc(var(--space-3) + env(safe-area-inset-top, 0px)) var(--space-4) var(--space-4);
+		pointer-events: none;
+	}
+
+	/* The top scrim: the one the tokens have kept for exactly this, so a
+	   white chip on a white sky still has an edge. */
+	.board__top::before {
+		content: '';
+		position: absolute;
+		inset: 0;
+		background: var(--scrim-top);
+		pointer-events: none;
+	}
+
+	.board__top > * {
+		position: relative;
+		max-width: 100%;
+		pointer-events: auto;
+	}
+
+	/* The areas, as a rail: one line over the reel, running to both edges of
+	   the screen so a chip is never cut off mid-word by the padding. The bar
+	   it is scrolled with is not shown; the chips say there is more. */
 	.areas {
+		align-self: stretch;
 		display: flex;
 		gap: var(--space-2);
 		margin-inline: calc(var(--space-4) * -1);
@@ -418,18 +611,24 @@
 		display: none;
 	}
 
-	/* The one morning a year the wall has something to say to the board: a
-	   line, a dusk circle, and the way back to the dream. Dusk because this
-	   marks rather than acts (tokens.css), and a line rather than a card
-	   because the tile under it is the point of the screen. */
+	/**
+	 * The one morning a year the wall has something to say to the board: a
+	 * line, a dusk circle, and the way back to the dream. Dusk because this
+	 * marks rather than acts (tokens.css), and a line rather than a card
+	 * because the tile under it is the point of the screen.
+	 *
+	 * Over a photograph it cannot be a wash of dusk on the ground — there is
+	 * no ground — so it is `.glass`, like everything else that floats, with
+	 * the dusk kept on the circle where it still reads. On the empty board
+	 * there is a ground, and `--flow` is the wash again.
+	 */
 	.anniversary {
 		display: flex;
 		align-items: center;
 		gap: var(--space-2);
-		margin-bottom: var(--space-2);
 		padding: var(--space-2);
-		border-radius: var(--radius-sm);
-		background: var(--dusk-wash);
+		padding-right: var(--space-3);
+		border-radius: var(--radius-full);
 		color: var(--ink);
 		font-size: var(--text-sm);
 		line-height: var(--leading-base);
@@ -437,19 +636,30 @@
 		text-wrap: pretty;
 	}
 
+	.anniversary--flow {
+		margin-bottom: var(--space-2);
+		padding-right: var(--space-2);
+		border-radius: var(--radius-sm);
+		background: var(--dusk-wash);
+	}
+
 	.anniversary:active {
 		transform: scale(0.99);
 	}
 
-	/* The name, in the flow, at the hero size: it is the only title the board
-	   has, and it scrolls away with the tile.
+	/* What the connection has to say, in the same glass as the chips beside
+	   it, because over a photograph the ground it used to sit on is gone. */
+	.board__note {
+		padding: var(--space-2) var(--space-3);
+		border-radius: var(--radius-lg);
+	}
 
-	   It is also the reel's first snap point. Without one the snapping runs
-	   straight past everything above the first tile — the areas included —
-	   and a swipe up lands back on the tile it came from, which makes a
-	   filter you cannot reach. The top of the board is a place to stop. */
+	/* ── the empty board ───────────────────────────────────────────────── */
+
+	/* The name, in the flow rather than in a bar: it scrolls away. Only the
+	   empty board has one — where there is a reel, the photograph is the
+	   screen and the bar says which one it is. */
 	.wordmark {
-		scroll-snap-align: start;
 		margin: var(--space-3) 0 var(--space-2);
 		font-size: var(--text-hero);
 		font-weight: 600;
@@ -458,9 +668,8 @@
 		color: var(--ink);
 	}
 
-	/* The sky drifts: two lights moving over the gradient at the pace of a
-	   slow breath — felt, not seen. `prefers-reduced-motion` stops it in
-	   app.css. The tile is the one authored motion on the screen. */
+	/* The first dream's tile, in the flow of a page rather than a page of a
+	   reel: it keeps the 4:5 ratio the primitive gives it. */
 	.first {
 		flex: none;
 	}
@@ -475,6 +684,9 @@
 		}
 	}
 
+	/* The sky drifts: two lights moving over the gradient at the pace of a
+	   slow breath — felt, not seen. `prefers-reduced-motion` stops it in
+	   app.css. It is the one authored motion on the empty screen. */
 	.sky {
 		position: absolute;
 		inset: -20%;
@@ -500,54 +712,5 @@
 
 	.how {
 		padding-inline: var(--space-2);
-	}
-
-	/* ── the reel ──────────────────────────────────────────────────────── */
-
-	/* Snapping is the page's, because the page is the scroll region; a
-	   flick lands on a tile, a slow drag can stop between two. */
-	.page--reel {
-		scroll-snap-type: y proximity;
-	}
-
-	.reel {
-		display: flex;
-		flex-direction: column;
-		gap: var(--space-3);
-	}
-
-	/* One screen each: what the page shows between its own padding and the
-	   bar. The ratio gives way to the height; the image covers whatever is
-	   left. */
-	.reel__tile {
-		flex: none;
-		aspect-ratio: auto;
-		height: calc(100dvh - var(--space-3) - env(safe-area-inset-top, 0px) - var(--page-end, 0px));
-		scroll-snap-align: start;
-		scroll-snap-stop: always;
-	}
-
-	/* Not a tile and not a gap: a mark the observer can watch, outside the
-	   snapping so it never becomes somewhere the reel can stop. */
-	.reel__more {
-		height: 1px;
-		scroll-snap-align: none;
-	}
-
-	.reel__open {
-		position: absolute;
-		inset: 0;
-		z-index: 1;
-	}
-
-	/* The words let the tap through to the link; only the heart takes it. */
-	.reel__body {
-		z-index: 2;
-		pointer-events: none;
-	}
-
-	.reel__heart {
-		margin-top: var(--space-2);
-		pointer-events: auto;
 	}
 </style>

@@ -4,7 +4,7 @@ Every answered question and every deviation from `PLAN.md`, with the reason.
 Prosper keeps a file like this and it is the most useful file in that
 repository; this one starts on the same day the code does.
 
-**Revised:** 2026-09-10
+**Revised:** 2026-09-11
 
 ---
 
@@ -937,3 +937,91 @@ where nothing can be detected is the window.
 **The screen also answers the question that prompted all this** — how much
 room the app takes — with `navigator.storage.estimate()` and a button that
 forgets it. The photographs are a copy; the dreams are on the server.
+
+### D40 — A swipe is worth one dream, and the board's chrome floats on the photograph
+
+The reel was a list of prints that happened to snap. It is a pager now. Two
+changes, written down as one, because neither of them works without the
+other.
+
+**What was wrong.** `scroll-snap-stop: always` is the standard's own promise
+that a scroll will not pass over a snap position, and it was already on every
+tile — but there was nothing underneath it for the promise to hold on to. The
+snapping was `proximity`, the tiles had a 12 px gap between them and a 20 px
+radius, each one was the screen *less* the bar rather than the screen, and
+they shared a scroll region with the wordmark, the areas rail and the
+anniversary. So the snap offsets were not multiples of anything, the top of
+the board was a page of a different height, and a long drag carried exactly as
+far as the finger did. On a trackpad it was worse: a flick is dozens of wheel
+events, every one of them its own scrolling operation, so the promise was kept
+four times and the reel had gone past four dreams.
+
+**Every page is the screen.** Full-bleed — no gap, no radius, no shadow, the
+photograph to all four edges — the scroll region is the reel and nothing else,
+and snapping is `mandatory`. The offsets are then exact multiples of the
+scrollport, which is what makes the arithmetic below true rather than nearly
+true. A reel has no ground to show a dream against, and a seam of it passing
+by mid-swipe is the tell that this is a list.
+
+**And a fence, not a rewrite.** The obvious way to guarantee one dream per
+gesture is to take the gesture: follow the finger with a transform and animate
+to the next page on release. That throws away the platform's momentum, its
+rubber band at the ends, its handoff between touch and scrollbar and keyboard,
+and it fights `touch-action` for the rest of its life. `lib/ui/pager.ts` keeps
+all of that and adds the one missing guarantee:
+
+- **A touch may travel one page from where it began, and no further.** The
+  fence is checked on every scroll event, and setting `scrollTop` is what ends
+  a fling, so a swipe the length of the screen lands on the next dream and
+  stops there. The length of the swipe decides nothing — which is the whole
+  ask.
+- **A wheel gesture is answered once**, and then nothing is heard until the
+  wheel has been quiet for 150 ms, so a trackpad's momentum tail is not a
+  second swipe. Firefox reports wheels in lines rather than pixels, so the
+  travel is converted before it is counted.
+- **The arrow and page keys move one dream**, Home and End the ends.
+
+The glide those last two land with is written out in JavaScript, because a
+scroll offset is not a property CSS can animate for us. It is `--ease-out`'s
+own curve — cubic-bezier(0.16, 1, 0.3, 1) is easeOutExpo — over `--dur-slow`,
+read from the stylesheet rather than copied, and snapping is off for the
+length of it because every frame of a tween is a place the reel is not allowed
+to rest. Under `prefers-reduced-motion` there is no glide, only the landing.
+
+**The chrome floats because the paging is arithmetic.** With the wordmark, the
+rail and the anniversary in the scroll region, the first page is a different
+height from every other one and none of the above is true any more. They move
+over the photograph instead: the rail as the glass chips it already was, the
+anniversary as glass with its dusk kept on the circle, the connection's
+sentence in the same glass beside them, all of it on `--scrim-top` — a token
+that has been sitting in `tokens.css` unused since the first edition, and this
+is what it was for. Only the pills take a tap; everything between them falls
+through to the dream, which is also what keeps the top of the screen somewhere
+the reel can be dragged from. The wordmark is dropped rather than moved: the
+bar already says which screen this is, and „Aspire" set over somebody's
+photograph is the interface refusing to step back (§4's rule). It survives on
+the empty board, which is a page and not a reel.
+
+A screen-tall photograph also needs a longer ramp than a 4:5 print does — the
+words sit clear of the floating bar, a sixth of the way up, where `--scrim`
+has barely begun — so `--scrim-tall` joins it in the bank.
+
+**D30's one-pixel mark is gone.** The window used to grow when an
+`IntersectionObserver` saw a mark at the end of what was rendered. The pager
+already knows which dream is on the screen, so the window grows from that
+instead, two dreams of slack ahead of the thumb. That is one moving part
+fewer, and it also removes an element with no snap position from the middle of
+a mandatory snapping region, which was a thing that had to be explained. The
+rest of D30 stands: five at a time, nothing ever removed from the top.
+
+**The cost, stated plainly.** A drag longer than a screen now stops dead at
+the fence while the finger keeps going. That is what a pager is, and it is
+what was asked for. D38 is untouched — the reel is the same shape at every
+width, a full-bleed tile inside the same 34 rem column.
+
+**And it cannot be watched in the Browser pane.** A scroll event is dispatched
+by the frame loop, and a hidden pane has no frames (`apps/web/CLAUDE.md`), so
+a fence checked on scroll never fires there — the first attempt to verify it
+looked exactly like a bug. `pager.wiring.test.ts` drives a fake scroll region
+and a frame queue the test turns by hand instead, which is the check that
+lasts anyway.

@@ -350,7 +350,11 @@ and the photographs themselves.
   white by day, warm white on charcoal by night; the one pair that inverts.
 - **Photo-ink / photo-ink-2** over **scrim**: type on a photograph is white,
   and 78 % white for the why, over a bottom scrim (transparent to 58 % black
-  from 38 % down). Both themes, always.
+  from 38 % down). Both themes, always. Two longer ramps join it:
+  **scrim-tall** for a photograph the height of a screen, where the words sit
+  a sixth of the way up and `--scrim` has barely begun, and **scrim-top**,
+  the only scrim that runs the other way — 32 % black fading out by a third —
+  under chrome that floats on a photograph rather than above it.
 - **Glass / glass-edge**: the frosted surface and its 1 px edge. Light: white
   at 72 %; dark: graphite at 72 %. The bar adds a rim gradient (`--glass-shine`,
   `--glass-rim`) and a lens (`--glass-lens`) under the current tab.
@@ -365,7 +369,9 @@ photograph and is allowed at scale only where a photograph would be; it does
 not tint chrome, cards or backgrounds.
 
 **The Scrim Rule.** Type on an image is `--photo-ink` over `--scrim`, bottom
-only, in both themes. The top of a photograph stays a photograph.
+only, in both themes. The top of a photograph stays a photograph — with one
+named exception, the reel, where the chrome has nowhere else to be and wears
+`--scrim-top` for it (D40). A card, a pair or a tile in a list never does.
 
 **The One Hex Rule.** Every colour lives in `tokens.css`. The single
 exception is the ground, written once more in `app.html`'s `theme-color` and
@@ -596,16 +602,34 @@ sideways with the bar hidden and bled to both screen edges with a negative
 inline margin so a chip is never cut mid-word by the page's padding.
 
 ### The reel (Nástěnka)
-The scroll region is `.page` itself, `scroll-snap-type: y proximity`, and a
-tile is `100dvh` less the bar with `scroll-snap-stop: always`, so a swipe
-lands on one dream and stops there. The wordmark is a snap point too, so
-the top of the board — the areas rail, the anniversary — is somewhere a
-swipe up can stop rather than something the snapping runs past. The order is the day's pick and then a
-shuffle, new on every open (D30); five tiles are in the document at a time
-and five more arrive when a one-pixel mark at the end of them comes into
-view, with a screenful of `rootMargin` so they exist before they are
-reached. Nothing is removed from the top: taking a tile out of a snapping
-region moves the one under the thumb.
+A pager, not a list (D40). The scroll region is the reel alone —
+`scroll-snap-type: y mandatory`, `touch-action: pan-y pinch-zoom` — and a
+page is the screen: full-bleed, no gap, no radius, no shadow, `height: 100%`
+of the scrollport with `scroll-snap-align: start` and `scroll-snap-stop:
+always`. The offsets are then exact multiples of the scrollport, which is
+what `lib/ui/pager.ts` stands on: it leaves the browser its momentum and
+fences a gesture to one page either side of where it began, answers a wheel
+gesture once and ignores its momentum tail for 150 ms, and moves the arrow
+and page keys one dream (Home and End the ends). Those last two glide on
+`--ease-out`'s own curve over `--dur-slow`, written out in JS because a
+scroll offset is not a property CSS can animate, with snapping off for the
+length of it; under reduced motion there is only the landing. A tile's
+photograph wears `--scrim-tall` rather than `--scrim` — a screen is a longer
+ramp than a 4:5 print — and its foot clears the bar by `--page-end`.
+
+The chrome floats over the photograph on `--scrim-top`: the areas rail, the
+anniversary as `.glass` with its dusk kept on the circle, the connection's
+sentence in the same glass. Only the pills take a tap; everything between
+them falls through to the dream. There is no wordmark — the bar says which
+screen this is — and the band measures itself into `--band` so a tile's
+status badge clears it. The order is the day's pick and then a shuffle, new
+on every open (D30); five tiles are in the document at a time and five more
+arrive when the reel is two dreams from the end of them, counted from the
+pager's own index. Nothing is removed from the top: taking a tile out of a
+snapping region moves the one under the thumb.
+
+Empty, the board is a `.page` again, with the wordmark, the 4:5 sky tile and
+the anniversary back in the flow on `--dusk-wash`. There is nothing to swipe.
 
 ### The pair (Síň slávy)
 A dream with both photographs stands them side by side: two 4:5 halves in a

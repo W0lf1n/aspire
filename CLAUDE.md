@@ -2,7 +2,7 @@
 
 Guidance for Claude Code working in this repository.
 
-**Last revised:** 2026-09-11 · M5 closed, D38–D39 · 114 web tests · 166 API tests
+**Last revised:** 2026-09-11 · M5 closed, D38–D40 · 161 web tests · 166 API tests
 
 ---
 
@@ -31,7 +31,9 @@ the desktop grid is dropped, not built — a grid of thumbnails is a gallery
 and this app is a queue, so there is no breakpoint at which a screen
 changes its shape (D38). §17 answers D37's question: the board fetches a
 window of the reel and the whole of itself only where the browser says the
-connection is free, because a hundred dreams is 20 MB (D39). What is left
+connection is free, because a hundred dreams is 20 MB (D39). §18 makes the
+reel a reel: every page is the screen, a swipe is worth one dream however
+long it is, and the chrome floats on the photograph (D40). What is left
 is §3.7's share link, which is not a milestone.
 
 ---
@@ -95,7 +97,8 @@ apps/web/src/
 ├─ lib/styles/     tokens.css — the only place a colour exists — and app.css,
 │                  which owns the primitives: page, card, row, circle, badge,
 │                  seg, chip, toggle, facts, well, field, btn, dream.
-├─ lib/ui/         Hand-rolled components. No component library.
+├─ lib/ui/         Hand-rolled components. No component library, and
+│                  pager.ts — one dream per swipe, however long the swipe.
 ├─ lib/api/        client.ts (fetch + bearer), token.ts (localStorage),
 │                  pairing.ts (the flow) and errors.ts (the sentences).
 ├─ lib/dreams/     rules.ts — what a dream may be — board.ts — what the reel
@@ -166,6 +169,11 @@ deploy/              compose, nginx, the host vhost, backup.sh
     picks one by hand. `dreams/photos.ts` says which one a screen shows and
     which ones a replacement takes with it, so changing the dreamt
     photograph never takes the proof with it (D28).
+12. **The reel is a pager.** Every page is exactly the scrollport, the
+    offsets are multiples of it, and `ui/pager.ts` guarantees one dream per
+    gesture on top of the browser's own snapping (D40). Anything that adds
+    height to that scroll region — a mark, a header, a gap — breaks the
+    arithmetic, and the guarantee with it.
 
 ---
 
@@ -181,6 +189,13 @@ old file answers "no such column". Delete it and start the API again.
 
 **A Bash heredoc over about 8 kB is cut short on this machine** and fails
 with an unmatched quote. Write large files with the Write tool.
+
+**The Browser pane produces no frames while it is hidden**, and a scroll
+event is dispatched by the frame loop — so a `scrollTop` set from the console
+fires no `scroll`, no `IntersectionObserver` and no `requestAnimationFrame`,
+and anything checked on one of those looks broken when it is fine.
+`visibilityState` says `visible` throughout. Layout and screenshots do work.
+`apps/web/CLAUDE.md` has the long version.
 
 **A control character can hide inside a string literal.** `WebPushCrypto`'s
 HKDF labels ended up holding a raw `0x01` byte rather than the two

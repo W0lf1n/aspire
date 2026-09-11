@@ -55,30 +55,39 @@ Two accents, `--signal` (ember, acts) and `--dusk` (marks), one gradient
 
 ## Routes
 
-| Route                   | Screen                                                                                              |
-| ----------------------- | --------------------------------------------------------------------------------------------------- |
-| `/`                     | Nástěnka. The reel: a tile a screen, the day's pick then a shuffle, five at a time; the anniversary |
-| `/pridat`               | Přidat sen. The dream's form (`DreamForm`) with an ember pill                                       |
-| `/sen/[id]`             | One dream: the tile, the facts, the heart, Upravit and Smazat                                       |
-| `/sen/[id]/upravit`     | The same form with the saved values; back is the dream                                              |
-| `/sin-slavy`            | Síň slávy. The achieved dreams, the most recent first; the pair                                     |
-| `/nastaveni`            | The hub: Vzhled, Upozornění, Tapeta, Stahování, Párování, the version                               |
-| `/nastaveni/upozorneni` | Upozornění. Off / daily / weekdays, and the hour                                                    |
-| `/nastaveni/tapeta`     | Tapeta. Up to six dreams onto a lock-screen collage                                                 |
-| `/nastaveni/vzhled`     | systém / světlý / tmavý                                                                             |
-| `/nastaveni/stahovani`  | How much of the board is kept offline: co prolistuješ / na wifi / vždy celá, and what it takes up   |
-| `/nastaveni/parovani`   | The code and a device name; paired, Odpojit                                                         |
-| `/styleguide`           | Tokens and components, both themes. Unlinked                                                        |
+| Route                   | Screen                                                                                                     |
+| ----------------------- | ---------------------------------------------------------------------------------------------------------- |
+| `/`                     | Nástěnka. The reel, a pager: one full-bleed dream per swipe, the day's pick then a shuffle, five at a time |
+| `/pridat`               | Přidat sen. The dream's form (`DreamForm`) with an ember pill                                              |
+| `/sen/[id]`             | One dream: the tile, the facts, the heart, Upravit and Smazat                                              |
+| `/sen/[id]/upravit`     | The same form with the saved values; back is the dream                                                     |
+| `/sin-slavy`            | Síň slávy. The achieved dreams, the most recent first; the pair                                            |
+| `/nastaveni`            | The hub: Vzhled, Upozornění, Tapeta, Stahování, Párování, the version                                      |
+| `/nastaveni/upozorneni` | Upozornění. Off / daily / weekdays, and the hour                                                           |
+| `/nastaveni/tapeta`     | Tapeta. Up to six dreams onto a lock-screen collage                                                        |
+| `/nastaveni/vzhled`     | systém / světlý / tmavý                                                                                    |
+| `/nastaveni/stahovani`  | How much of the board is kept offline: co prolistuješ / na wifi / vždy celá, and what it takes up          |
+| `/nastaveni/parovani`   | The code and a device name; paired, Odpojit                                                                |
+| `/styleguide`           | Tokens and components, both themes. Unlinked                                                               |
 
 The bar is four slots: Nástěnka · ⊕ · Síň slávy · Nastavení. `lib/ui/nav.ts`
 decides which one a path lights and has the test.
+
+`lib/ui/pager.ts` is the reel's paging (D40): CSS does the snapping and the
+momentum, and the pager fences a gesture to one page either side of where it
+began, answers a wheel gesture once, and moves the arrow and page keys one
+dream. The board reads the dream on the screen back from it — that is what
+grows the window and what keeps the neighbouring photographs eager.
 
 ## Testing
 
 Vitest, node environment, `requireAssertions: true`. `nav.test.ts`,
 `settings.test.ts`, `api/pairing.test.ts`, `dreams/rules.test.ts`,
 `dreams/board.test.ts` (the reel and its shuffle, the daily pick, the area
-filter, the tile's line, the anniversary), `dreams/format.test.ts`,
+filter, the tile's line, the anniversary), `ui/pager.test.ts` (the paging
+arithmetic: the fence, the wheel's reach in three delta modes, the keys, the
+glide's curve) and `ui/pager.wiring.test.ts` (the pager itself, on a fake
+scroll region and a frame queue the test turns by hand), `dreams/format.test.ts`,
 `dreams/photos.test.ts` (which of a dream's two photographs a screen shows),
 `dreams/wallpaper.test.ts` (who can be on a collage, and how big it is),
 `push/schedule.test.ts` (the nudge's time, both ways),
@@ -91,9 +100,18 @@ component.
 
 **The hidden Browser pane produces no frames.** Verifying the reel's
 windowing there failed and looked like a bug: with the pane hidden
-`document.visibilityState` is `hidden`, `requestAnimationFrame` never fires,
-and so no `IntersectionObserver` fires either — a fresh observer on an
-element plainly in view reported nothing. Emulating a phone viewport gives
-the page a real height but not a rendering loop. Anything that depends on an
-observer or an animation frame needs the pane visible, or a unit test on the
-arithmetic instead (`aheadOf`).
+`requestAnimationFrame` never fires, and so no `IntersectionObserver` fires
+either — a fresh observer on an element plainly in view reported nothing.
+Emulating a phone viewport gives the page a real height but not a rendering
+loop. Anything that depends on an observer or an animation frame needs the
+pane visible, or a unit test on the arithmetic instead (`aheadOf`).
+
+**Scroll events are part of that**, which is the same trap one turn further
+on. The pager's fence is checked on `scroll`, and with no frames a `scrollTop`
+set from the console dispatches nothing at all, so a fence that works looks
+exactly like a fence that does not. `document.visibilityState` says `visible`
+the whole time and is no help. `pager.wiring.test.ts` is the answer: a fake
+element that moves the way a browser moves one, with the frames as an array.
+Layout _is_ readable there — `getBoundingClientRect`, `offsetTop`,
+`getComputedStyle` and a screenshot all work — so geometry can be checked in
+the pane and behaviour cannot.

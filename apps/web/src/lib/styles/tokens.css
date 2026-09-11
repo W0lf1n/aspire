@@ -81,6 +81,16 @@
 	--photo-ink-2: rgb(255 255 255 / 78%);
 	--scrim: linear-gradient(180deg, rgb(0 0 0 / 0%) 38%, rgb(0 0 0 / 58%) 100%);
 	--scrim-top: linear-gradient(180deg, rgb(0 0 0 / 32%) 0%, rgb(0 0 0 / 0%) 32%);
+	/* A photograph the height of a screen needs a longer ramp than a print
+	   does: the words sit clear of the floating bar, a sixth of the way up,
+	   where --scrim has barely begun. */
+	--scrim-tall: linear-gradient(
+		180deg,
+		rgb(0 0 0 / 0%) 26%,
+		rgb(0 0 0 / 34%) 62%,
+		rgb(0 0 0 / 64%) 88%,
+		rgb(0 0 0 / 64%) 100%
+	);
 
 	/* The toggle knob: white in both themes, like the glyph on a circle. */
 	--knob: #ffffff;

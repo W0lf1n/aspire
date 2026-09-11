@@ -385,3 +385,29 @@ And because a window narrows D24's promise that the board reads without a
 signal, it is a choice rather than a default, in Nastavení · Stahování: *co
 prolistuješ · na wifi · vždy celá*. Safari cannot tell wifi from mobile data,
 so on an iPhone the middle one is not offered and the screen says why.
+
+---
+
+## 18. The reel swipes like a reel · 2026-09-11
+
+§2 asked for a full-screen image per dream, swiped like a reel. It was built
+as a snapping list of 4:5 prints, and at a hundred dreams the difference
+shows: a long drag ran past four of them, a trackpad flick past more, and
+between two tiles there was always a strip of ground. It is a pager now
+(D40), and nothing in §3 changed to make it one.
+
+**Every page is the screen** — full-bleed, no gap, no radius, the scroll
+region the reel and nothing else — so the snap offsets are exact multiples of
+it. **A swipe is then worth one dream however long it is:** `lib/ui/pager.ts`
+leaves the browser its own momentum and puts a fence one page either side of
+wherever the gesture began, answers a wheel gesture once and ignores its
+momentum tail, and moves the arrow and page keys a dream at a time.
+
+**The chrome floats on the photograph** — the areas rail, the anniversary,
+whatever the connection has to say — because a page of chrome at the top of
+the scroll region is a page of a different height, and the paging is
+arithmetic. The wordmark is dropped: the bar already says which screen this
+is. The empty board is still a page rather than a reel, and keeps it.
+
+**Nothing is left in the plan but §3.7's share link**, which was already true
+after §16 and is still not a milestone.
