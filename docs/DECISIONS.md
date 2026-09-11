@@ -1195,10 +1195,12 @@ recently written first, with ＋ in the corner opening a sheet of five fields
   and `oncancel` — rather than a second form: the fields, their checks and
   their sentences are the same fields, and a copy of them is a copy that
   drifts.
-- **The bar goes to five slots.** Nástěnka · ⊕ · Seznam · Síň slávy ·
-  Nastavení. The disc keeps the second slot, the lens now slides across
-  five, and `--slots` on `.tabbar` is the one number the columns, the lens's
-  width and its travel are all worked out from. Four labels at 10 px fit a
+- **The bar goes to five slots.** Nástěnka · Seznam · ⊕ · Síň slávy ·
+  Nastavení. The disc moves to the middle one — five slots have a middle,
+  four did not, and the one accent-coloured thing on the bar belongs where
+  the bar is symmetrical about it, two tabs either side. The lens now slides
+  across five, and `--slots` on `.tabbar` is the one number the columns, the
+  lens's width and its travel are all worked out from. Four labels at 10 px fit a
   360 px screen with room; a sixth slot would not, and that is the bar's
   limit rather than a rule about tabs.
 - **The sheet is a primitive.** `.sheet` in `app.css`, spending

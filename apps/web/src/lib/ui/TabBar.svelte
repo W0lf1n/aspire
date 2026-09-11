@@ -1,11 +1,12 @@
 <script lang="ts">
 	/**
-	 * The bottom navigation: Nástěnka · ⊕ · Seznam · Síň slávy · Nastavení.
+	 * The bottom navigation: Nástěnka · Seznam · ⊕ · Síň slávy · Nastavení.
 	 *
-	 * Five slots, in the order the brief gave them. The disc in the second
-	 * slot is the one accent-coloured thing on the bar and it opens Přidat —
-	 * the screen with the photograph on it; the four tabs are peers. Anything
-	 * under `/nastaveni` keeps Nastavení lit, which is how its pages count.
+	 * Five slots, and the disc takes the middle one: it is the one
+	 * accent-coloured thing on the bar and it opens Přidat — the screen with
+	 * the photograph on it — so it sits where the bar is symmetrical about it,
+	 * two tabs either side. The four tabs are peers. Anything under
+	 * `/nastaveni` keeps Nastavení lit, which is how its pages count.
 	 *
 	 * A frosted pill floating over the page's bottom edge — the page scrolls
 	 * under it. 62 px tall, 16 px in from each side, 24 px off the bottom (or
@@ -24,8 +25,8 @@
 	const here = $derived(page.url.pathname);
 	const active = $derived(activeTab(here));
 
-	/** The slot the lens sits in — the disc takes the second one. */
-	const SLOT: Record<string, number> = { board: 0, list: 2, hall: 3, settings: 4 };
+	/** The slot the lens sits in — the disc takes the middle one. */
+	const SLOT: Record<string, number> = { board: 0, list: 1, hall: 3, settings: 4 };
 	const lensSlot = $derived(active ? SLOT[active] : null);
 </script>
 
@@ -34,7 +35,7 @@
 		<span class="lens" style:--slot={lensSlot} aria-hidden="true"></span>
 	{/if}
 
-	{#each TABS.slice(0, 1) as tab (tab.id)}
+	{#each TABS.slice(0, 2) as tab (tab.id)}
 		<a
 			class="tab"
 			class:tab--on={active === tab.id}
@@ -57,7 +58,7 @@
 		<span class="add__disc"><Icon name="plus" size={26} stroke={2.2} /></span>
 	</a>
 
-	{#each TABS.slice(1) as tab (tab.id)}
+	{#each TABS.slice(2) as tab (tab.id)}
 		<a
 			class="tab"
 			class:tab--on={active === tab.id}

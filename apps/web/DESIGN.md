@@ -569,15 +569,15 @@ luminance step.
   a 1 px rim gradient lit from the top-left (`--glass-shine` to
   `--glass-rim`), a highlight entering along the top edge, and a lens
   (`--glass-lens`, its own rim) in the current tab's slot that springs to the
-  chosen one in 360 ms on `--ease-spring`. Five equal slots: Nástěnka, the
-  disc, Seznam, Síň slávy, Nastavení — `--slots` on `.tabbar` is the one
+  chosen one in 360 ms on `--ease-spring`. Five equal slots: Nástěnka,
+  Seznam, the disc, Síň slávy, Nastavení — `--slots` on `.tabbar` is the one
   number the columns, the lens's width and its travel are worked out from. Tabs are a 24 px icon over an 11 px 600 label
   in ink-3, ink when current, ink-2 on hover. It does not bend what scrolls
   under it (Prosper's displacement map is not carried over; a photograph
   does not need it).
-- **The add disc:** a 48 px ember circle with a white plus in the second
-  slot, the one accent-coloured thing on the bar. It opens Přidat, which
-  carries no bar of its own.
+- **The add disc:** a 48 px ember circle with a white plus in the middle
+  slot, the one accent-coloured thing on the bar and the only thing on it
+  that is not a tab. It opens Přidat, which carries no bar of its own.
 - **Back header:** on a detail screen only; a 40 px round glass chevron and
   the title at 17 px, in the scroll column.
 

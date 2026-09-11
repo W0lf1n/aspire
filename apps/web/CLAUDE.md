@@ -74,7 +74,7 @@ Two accents, `--signal` (ember, acts) and `--dusk` (marks), one gradient
 | `/nastaveni/parovani`   | The code and a device name; paired, Odpojit                                                                |
 | `/styleguide`           | Tokens and components, both themes. Unlinked                                                               |
 
-The bar is five slots: Nástěnka · ⊕ · Seznam · Síň slávy · Nastavení, and
+The bar is five slots: Nástěnka · Seznam · ⊕ · Síň slávy · Nastavení, and
 `--slots` on `.tabbar` is the one number they are worked out from.
 `lib/ui/nav.ts` decides which one a path lights and has the test — a dream's
 own screens light Nástěnka whichever list was used to reach them.
