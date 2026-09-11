@@ -1,10 +1,12 @@
 /**
- * The nudge's time, as the screen reads and writes it (PLAN.md §3.6).
+ * The nudge's time, as the screen reads and writes it, and whether there is
+ * anything to offer at all (PLAN.md §3.6).
  *
- * The server keeps it as minutes past local midnight, because that is what
- * a schedule with no timezone database can hold (D34); an `<input
- * type="time">` speaks `HH:MM`. These two turn one into the other, and they
- * have the test — a rule gets one before it gets a screen.
+ * The server keeps the time as minutes past local midnight, because that is
+ * what a schedule with no timezone database can hold (D34); an `<input
+ * type="time">` speaks `HH:MM`. These turn one into the other, and they have
+ * the test — a rule gets one before it gets a screen. `nudge.ts` beside this
+ * is the half that has to talk to `Notification`, `PushManager` and the API.
  */
 
 import type { NudgeMode } from '@aspire/contracts';
@@ -51,4 +53,49 @@ function clamp(minutes: number): number {
 
 function pad(value: number): string {
 	return String(value).padStart(2, '0');
+}
+
+/** What a device has found out about whether the nudge can be offered. */
+export interface NudgeReach {
+	/** `Notification`, a service worker and a `PushManager`, all three. */
+	browser: boolean;
+	/** What this origin has already been asked, or `default` when it has not. */
+	permission: NotificationPermission;
+	/**
+	 * Whether the server has a VAPID pair to send with — `null` when nobody
+	 * could ask it, which is not the same answer as no.
+	 */
+	sends: boolean | null;
+}
+
+/**
+ * Why the morning nudge cannot be offered here, or null when it can.
+ *
+ * The screen asks this before it draws a switch, the way Stahování asks
+ * before it offers „na wifi“ (D39): a control that cannot work is worse than
+ * no control, and it is worse again when tapping it spends the one
+ * notification prompt a browser will ever give you. Without this the server
+ * half only ever surfaced as a toast — after permission had been asked for,
+ * for a server that had nothing to send.
+ *
+ * In that order, because each one makes the next beside the point: a browser
+ * that cannot do notifications makes the server's keys irrelevant, and a
+ * server with no keys makes a permission the person could fix irrelevant
+ * too. A server nobody could reach is not an answer, so it is not a reason:
+ * offline is a state this screen already has a sentence for.
+ */
+export function outOfReach(reach: NudgeReach): string | null {
+	if (!reach.browser) {
+		return 'Tenhle prohlížeč upozornění neumí. Na iPhonu je přidej na plochu.';
+	}
+
+	if (reach.sends === false) {
+		return 'Server zatím upozornění posílat neumí.';
+	}
+
+	if (reach.permission === 'denied') {
+		return 'Upozornění máš pro tuhle stránku zakázaná v nastavení prohlížeče.';
+	}
+
+	return null;
 }

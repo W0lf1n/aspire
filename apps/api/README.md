@@ -129,6 +129,41 @@ Aspire.Api.dll board …` (`vapid` wants `run --rm` rather than `exec`, since
 it may be needed before anything is up — `docs/DEPLOYMENT.md`). A code is digits only, six
 at least, twelve in production.
 
+### The laptop's key pair goes in user secrets, not in git
+
+`appsettings.Development.json` is in the repository and should stay readable
+— the pairing code in it is `000000` on purpose. The VAPID private key is not
+that kind of value, so on a laptop it lives in the .NET user secrets store
+(`UserSecretsId` in `Aspire.Api.csproj`, the file itself outside the
+checkout). Production reads the same three settings from the environment and
+never sees it.
+
+```bash
+cd apps/api && dotnet run --project src/Aspire.Api -- vapid
+```
+
+```bash
+cd apps/api && dotnet user-secrets set "Push:PublicKey" "<the public half>" --project src/Aspire.Api
+```
+
+```bash
+cd apps/api && dotnet user-secrets set "Push:PrivateKey" "<the private half>" --project src/Aspire.Api
+```
+
+```bash
+cd apps/api && dotnet user-secrets set "Push:Subject" "mailto:you@example.com" --project src/Aspire.Api
+```
+
+`dotnet user-secrets list` says what is set; `dotnet user-secrets clear` puts
+the laptop back to a server that does not do notifications, which is the
+state the Upozornění screen has a sentence for. With a pair in place `pnpm
+api` starts the nudge worker — it is off, and says so once, when there is
+none.
+
+A laptop's pair is its own. It is not the VPS's, and copying one to the other
+is the mistake D34 warns about from the other direction: whichever server a
+browser subscribed through is the only one whose key can reach it again.
+
 ---
 
 ## The photographs

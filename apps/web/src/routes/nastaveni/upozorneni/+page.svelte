@@ -20,18 +20,31 @@
 	let mode = $state<NudgeMode>('off');
 	let clock = $state(toClock(DEFAULT_AT_MINUTES));
 	let busy = $state(false);
+
+	/**
+	 * Whether the screen knows yet. Until it does the controls are drawn and
+	 * disabled rather than withheld: the shape of the screen is the same
+	 * either way, and a switch that cannot be tapped for half a second is
+	 * quieter than a sentence that appears and goes.
+	 */
 	let loaded = $state(false);
 
-	/** Why this browser cannot do it at all, or nothing. */
-	const blocked = $derived(loaded ? unavailable() : null);
+	/**
+	 * Why there is nothing to offer here, or nothing — this browser, this
+	 * server, and what the browser has already been asked. Answered before
+	 * the switch is drawn rather than after it is tapped, because tapping it
+	 * spends the one notification prompt a browser will ever give.
+	 */
+	let blocked = $state<string | null>(null);
 
 	$effect(() => {
 		let live = true;
-		current()
-			.then((settings) => {
+		Promise.all([current(), unavailable()])
+			.then(([settings, why]) => {
 				if (!live) return;
 				mode = settings.mode;
 				clock = toClock(settings.atMinutes);
+				blocked = why;
 			})
 			.catch(() => undefined)
 			.finally(() => {
@@ -74,6 +87,10 @@
 						? 'Server zatím upozornění posílat neumí.'
 						: describeError(e)
 			);
+			// A refusal is a new fact about this browser: a second tap would
+			// not even raise the prompt, so the switch gives way to the
+			// sentence that says where to change it.
+			blocked = await unavailable();
 		} finally {
 			busy = false;
 		}
@@ -97,7 +114,7 @@
 						type="button"
 						class="seg__item"
 						aria-pressed={mode === value}
-						disabled={busy || !connection.online}
+						disabled={busy || !loaded || !connection.online}
 						onclick={() => choose(value)}
 					>
 						{MODE_LABEL[value]}
@@ -111,7 +128,7 @@
 					class="field__input"
 					type="time"
 					value={clock}
-					disabled={busy || !connection.online}
+					disabled={busy || !loaded || !connection.online}
 					onchange={(event) => retime(event.currentTarget.value)}
 				/>
 				<span class="field__hint">

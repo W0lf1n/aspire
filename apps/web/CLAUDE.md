@@ -90,7 +90,8 @@ glide's curve) and `ui/pager.wiring.test.ts` (the pager itself, on a fake
 scroll region and a frame queue the test turns by hand), `dreams/format.test.ts`,
 `dreams/photos.test.ts` (which of a dream's two photographs a screen shows),
 `dreams/wallpaper.test.ts` (who can be on a collage, and how big it is),
-`push/schedule.test.ts` (the nudge's time, both ways),
+`push/schedule.test.ts` (the nudge's time both ways, and why the nudge
+cannot be offered here — browser, server, permission, in that order),
 `images/downscale.test.ts`, `offline/cache.test.ts` (what is kept, in what
 order, a few at a time, the window ahead of the thumb and the ceiling) and
 `offline/policy.test.ts` (how much of the board a device keeps, and what an

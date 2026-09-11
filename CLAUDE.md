@@ -2,7 +2,7 @@
 
 Guidance for Claude Code working in this repository.
 
-**Last revised:** 2026-09-11 · M5 closed, D38–D40 · 161 web tests · 166 API tests
+**Last revised:** 2026-09-11 · M5 closed, D38–D41 · 167 web tests · 166 API tests
 
 ---
 

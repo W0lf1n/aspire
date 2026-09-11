@@ -1025,3 +1025,48 @@ a fence checked on scroll never fires there — the first attempt to verify it
 looked exactly like a bug. `pager.wiring.test.ts` drives a fake scroll region
 and a frame queue the test turns by hand instead, which is the check that
 lasts anyway.
+
+### D41 — The nudge screen asks whether the server can send before it offers a switch, and the laptop's key pair lives in user secrets
+
+M5 built the morning nudge and left one thing half-true. `DEPLOYMENT.md` said
+that without a VAPID pair "the Upozornění screen tells the person the server
+cannot send"; it did not. `unavailable()` knew two reasons — a browser that
+cannot do notifications, and an origin that has already refused — and the
+server's half only ever surfaced as a toast, **after** the browser had been
+asked for permission, for a server that had nothing to send.
+
+That is the worst order those two things can happen in. A browser gives an
+origin one notification prompt, near enough: refuse it and the switch can
+never work again without a trip into browser settings. Spending it on a
+server with no keys is spending it on nothing.
+
+So the screen asks first, the way Stahování asks before it offers „na wifi“
+(D39). `outOfReach` in `push/schedule.ts` takes the three facts — browser,
+server, permission — and answers with one sentence or none; `nudge.ts`
+gathers them. In that order, because each makes the next beside the point: a
+browser that cannot do notifications makes the server's keys irrelevant, and
+a server with no keys makes a permission the person could fix irrelevant too.
+
+**A server that will not answer is not a reason.** Offline is a state this
+screen already says in its own words, and „cannot send“ would hide a switch
+that works perfectly well the moment there is signal. So `sends` is
+`true | false | null`, and only `false` blocks. Until all three are known the
+controls are drawn and disabled rather than withheld — the shape of the
+screen is the same either way, and a switch that cannot be tapped for half a
+second is quieter than a sentence that appears and goes.
+
+**And the laptop now has a key pair, in the user secrets store.**
+`appsettings.Development.json` is in the repository and should stay readable —
+the pairing code in it is `000000` on purpose — but a VAPID private key is
+not that kind of value. `UserSecretsId` in `Aspire.Api.csproj`, the file
+itself outside the checkout, the same three settings production reads from
+the environment. A laptop's pair is its own and must never be the VPS's:
+whichever server a browser subscribed through is the only one whose key can
+reach it again, which is D34 from the other direction.
+
+**Verified against a standing-in push service**, because a browser was not
+available to be one. A local listener with a real P-256 point and a
+subscription due that minute: the worker woke, chose a dream, and posted
+336 bytes of `aes128gcm` under a VAPID `Authorization`, TTL 14400. Everything
+but the browser decrypting it and calling `showNotification`, which needs a
+phone.

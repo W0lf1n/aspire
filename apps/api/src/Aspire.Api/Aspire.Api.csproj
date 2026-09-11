@@ -7,6 +7,14 @@
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <InvariantGlobalization>true</InvariantGlobalization>
     <RootNamespace>Aspire.Api</RootNamespace>
+    <!--
+      The laptop's secrets. Development configuration is in git and should
+      stay readable — the pairing code there is 000000 on purpose — but the
+      VAPID private key is a real key, so it lives in the user secrets store
+      outside the repository instead (apps/api/README.md). Production reads
+      the same settings from the environment and never sees this.
+    -->
+    <UserSecretsId>aspire-api-ee57559a-06a7-4b81-8372-a81b07dcd7c0</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>

@@ -9,6 +9,7 @@
 
 import type { NudgeInput, NudgeMode, NudgeSettings } from '@aspire/contracts';
 import { nudgeKey, readNudge, saveNudge } from '$lib/api/client';
+import { outOfReach } from './schedule';
 
 /** Whether this browser can do notifications at all. */
 export function supported(): boolean {
@@ -21,22 +22,37 @@ export function supported(): boolean {
 }
 
 /**
- * Why the nudge cannot be offered here, or nothing when it can.
+ * Why the nudge cannot be offered here, or nothing when it can — the three
+ * facts gathered, and `outOfReach` deciding (`schedule.ts`, where it has a
+ * test).
  *
  * On iOS a web app can only ask for notifications once it has been added to
- * the home screen (PLAN.md §7), and the sentence says so rather than
- * letting the person tap a switch that silently does nothing.
+ * the home screen (PLAN.md §7), and the sentence says so rather than letting
+ * the person tap a switch that silently does nothing. The server's half is
+ * the same argument: a board whose server has no VAPID pair cannot be sent
+ * anything, and asking the browser for permission first would spend the one
+ * prompt it will ever give for a notification that could never arrive.
+ *
+ * A server that will not answer is left out of it. That is offline, which
+ * this screen says in its own words, and treating it as „cannot send“ would
+ * hide a switch that works perfectly well the moment there is signal.
  */
-export function unavailable(): string | null {
-	if (!supported()) {
-		return 'Tenhle prohlížeč upozornění neumí. Na iPhonu je přidej na plochu.';
-	}
+export async function unavailable(): Promise<string | null> {
+	const browser = supported();
+	return outOfReach({
+		browser,
+		permission: browser ? Notification.permission : 'default',
+		sends: await sends()
+	});
+}
 
-	if (Notification.permission === 'denied') {
-		return 'Upozornění máš pro tuhle stránku zakázaná v nastavení prohlížeče.';
+/** Whether the server has a key to send with, or null when it did not say. */
+async function sends(): Promise<boolean | null> {
+	try {
+		return (await nudgeKey()).publicKey.length > 0;
+	} catch {
+		return null;
 	}
-
-	return null;
 }
 
 /** This device's subscription, or null when it has none. */
