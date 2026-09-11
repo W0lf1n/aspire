@@ -643,7 +643,10 @@ which and nothing sits between them (D28). With one photograph it is the
 ### Toast
 One glass pill in the ink, centred 16 px above the bar, at most 26 rem
 wide, 48 px tall, 14 px 600, rising 12 px in 220 ms on `--ease-out`. An
-action rides on the right as a small primary pill.
+action rides on the right as a small primary pill. 2.6 s plain, 6 s with an
+action, and `ms: 0` for one that stays until it is tapped — that last is for
+the message whose action cannot be got back to once it has gone, which is a
+new build being ready, and for nothing else (D42).
 
 ### Motion
 Three durations: 150 ms for state (colour, the knob), 220 ms for entrances

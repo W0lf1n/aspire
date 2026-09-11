@@ -6,15 +6,57 @@
  * looks on a navigation into the worker's scope and at most once a day
  * otherwise — and an installed app brought back from the background performs
  * no navigation. So the app asks itself: every time it comes back into view,
- * and every time the network comes back, `registration.update()`. When a new
- * worker has taken over, the page still running the old bundle says so in a
- * toast with *Obnovit*, and reloads by itself on the next navigation — never
- * in the middle of a screen.
+ * and every time the network comes back, `registration.update()`.
+ *
+ * When a new worker has taken over, the page still running the old bundle
+ * says so — in a toast that **stays until it is tapped**, and in the version
+ * row of Nastavení, which is still there tomorrow. It also reloads by itself
+ * on the next navigation, never in the middle of a screen.
+ *
+ * All three exist because an eight-second toast was once the only one of them
+ * (D42): it was missed, and an installed PWA has no address bar to reload
+ * from. `ready` is the flag the screens read.
  */
 
 import { toast } from './toast.svelte';
 
-let pending = false;
+let pending = $state(false);
+
+export const update = {
+	/** Whether a new build has taken over and this page is the old one. */
+	get ready() {
+		return pending;
+	},
+
+	/** Into the new build, now. What *Obnovit* does, wherever it is offered. */
+	now(): void {
+		pending = false;
+		location.reload();
+	},
+
+	/**
+	 * Ask for a new build and reload either way — **the reload an installed
+	 * app has no address bar for** (D42).
+	 *
+	 * It is offered always rather than only when something is waiting,
+	 * because a control that appears only once there is news cannot be
+	 * reached: `applyUpdate` reloads on the next navigation, so navigating to
+	 * a screen to press it is the same as pressing it. Asking first is what
+	 * makes it more than a reload — a worker that has been sitting unasked
+	 * since yesterday installs now, and the page comes back on the new build.
+	 */
+	async refresh(): Promise<void> {
+		if (typeof navigator !== 'undefined' && 'serviceWorker' in navigator) {
+			await navigator.serviceWorker
+				.getRegistration()
+				.then((registration) => registration?.update())
+				.catch(() => {
+					/* Offline, or the server is away: reload on what is cached. */
+				});
+		}
+		update.now();
+	}
+};
 
 /**
  * Reload into the new build, if one has taken over. Called from the layout
@@ -22,8 +64,7 @@ let pending = false;
  */
 export function applyUpdate(): void {
 	if (!pending) return;
-	pending = false;
-	location.reload();
+	update.now();
 }
 
 /**
@@ -56,8 +97,10 @@ export function watchUpdates(): () => void {
 		}
 		pending = true;
 		toast.show('Nová verze je připravená', {
-			action: { label: 'Obnovit', run: () => location.reload() },
-			ms: 8000
+			action: { label: 'Obnovit', run: () => update.now() },
+			// Until it is tapped: the one thing it offers cannot be found again
+			// once it has gone, and there is no reload button in an installed app.
+			ms: 0
 		});
 	};
 

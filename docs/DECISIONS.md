@@ -1070,3 +1070,50 @@ subscription due that minute: the worker woke, chose a dream, and posted
 336 bytes of `aes128gcm` under a VAPID `Authorization`, TTL 14400. Everything
 but the browser decrypting it and calling `showNotification`, which needs a
 phone.
+
+### D42 — A new build keeps the one before it, and the way back into the app is a control rather than a toast
+
+The first deploy after M5 left the app with no way forward and no way to
+refresh. Three things had to be true at once, and all three were.
+
+**The service worker was deleting the shell that was still in use.** The
+shell is precached under the build's own name, so every build brings a cache
+and `activate` cleans up after it — and it cleaned up everything that was not
+the new one. A page still running the *old* bundle is served from the cache
+that just went. It then asked for a route chunk whose hashed name exists
+neither in the cache nor in the new image, got a 404, and could not finish the
+navigation. Which is the same navigation `applyUpdate` was waiting for to
+reload the page into the new build.
+
+So a new build now keeps **one generation back**: its own shell, and the
+newest of the others (`offline/shell.ts`, `shellsToForget`). A page from the
+build before last is beyond saving anyway, and the photographs and the board
+are not shells and were never in this. A cache whose name carries no build
+stamp cannot be placed in time, so it is not the generation worth keeping and
+it goes.
+
+**The toast said so for eight seconds and then stopped saying it.** The one
+thing it offered — *Obnovit* — could not be found again once it had gone. It
+now stays until it is tapped (`ms: 0`, `toast.svelte.ts`). That is a power
+kept for exactly this: a toast that sits there is a toast in the way, so it
+is for the message whose action cannot be got back to, and for nothing else.
+
+**And an installed app has no address bar.** On a phone, a PWA on the home
+screen has no reload button anywhere — the browser's chrome is the thing
+being installed away. So Nastavení's version card carries *Obnovit
+aplikaci*, always, not only when a build is waiting. A control that appears
+only once there is news cannot be reached: `applyUpdate` reloads on the next
+navigation, so navigating to the screen to press the button is already the
+press. Asking first is what makes it more than a reload — a worker that has
+been sitting unasked since yesterday installs now, and the page comes back on
+the new build.
+
+`update.ts` became `update.svelte.ts` for this: `pending` is `$state` now,
+because two screens read it rather than one toast writing it.
+
+**Three fixes for one failure, on purpose.** Any one of them alone leaves a
+version of the morning where somebody is stuck: the shell fix stops the
+bricking but not a missed toast, the toast fix is useless on a build whose
+chunks are gone, and the button is the one that works when the other two have
+already failed. This is the screen the app is recovered *from*, so it does not
+get to depend on anything.

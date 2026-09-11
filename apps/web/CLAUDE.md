@@ -26,11 +26,13 @@ stores. Anything that must happen "when the app opens" belongs in
 `routes/+layout.svelte`'s effects: the status bar colour, the update watcher,
 the connection watcher, the splash.
 
-Two rune modules hold app-wide state: `lib/ui/toast.svelte.ts` and
-`lib/offline/status.svelte.ts`. The second is the connection flag (D24):
-`connection.online` is read by the bar, the board, the forms and a dream's
-screen, and every write rests while it is false. The API client sets it
-from what each request learned.
+Three rune modules hold app-wide state: `lib/ui/toast.svelte.ts`,
+`lib/offline/status.svelte.ts` and `lib/ui/update.svelte.ts`. The second is
+the connection flag (D24): `connection.online` is read by the bar, the board,
+the forms and a dream's screen, and every write rests while it is false. The
+API client sets it from what each request learned. The third is whether a new
+build has taken over — `update.ready`, read by the toast that stays until it
+is tapped and by Nastavení's _Obnovit aplikaci_ (D42).
 
 ## The design system
 
@@ -62,7 +64,7 @@ Two accents, `--signal` (ember, acts) and `--dusk` (marks), one gradient
 | `/sen/[id]`             | One dream: the tile, the facts, the heart, Upravit and Smazat                                              |
 | `/sen/[id]/upravit`     | The same form with the saved values; back is the dream                                                     |
 | `/sin-slavy`            | Síň slávy. The achieved dreams, the most recent first; the pair                                            |
-| `/nastaveni`            | The hub: Vzhled, Upozornění, Tapeta, Stahování, Párování, the version                                      |
+| `/nastaveni`            | The hub: Vzhled, Upozornění, Tapeta, Stahování, Párování, the version and _Obnovit aplikaci_               |
 | `/nastaveni/upozorneni` | Upozornění. Off / daily / weekdays, and the hour                                                           |
 | `/nastaveni/tapeta`     | Tapeta. Up to six dreams onto a lock-screen collage                                                        |
 | `/nastaveni/vzhled`     | systém / světlý / tmavý                                                                                    |
@@ -93,8 +95,9 @@ scroll region and a frame queue the test turns by hand), `dreams/format.test.ts`
 `push/schedule.test.ts` (the nudge's time both ways, and why the nudge
 cannot be offered here — browser, server, permission, in that order),
 `images/downscale.test.ts`, `offline/cache.test.ts` (what is kept, in what
-order, a few at a time, the window ahead of the thumb and the ceiling) and
-`offline/policy.test.ts` (how much of the board a device keeps, and what an
+order, a few at a time, the window ahead of the thumb and the ceiling),
+`offline/shell.test.ts` (which shell caches a new build may throw away, and
+which one it must keep) and `offline/policy.test.ts` (how much of the board a device keeps, and what an
 unreadable connection counts as); a new rule gets a test before it gets a
 screen, and it lives in a `.ts` module the component imports, never in the
 component.

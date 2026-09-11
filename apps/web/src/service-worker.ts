@@ -7,7 +7,8 @@
  * Three caches, three rules (D24).
  *
  * The shell — everything the app needs to boot — is precached at install
- * under the build's own name and replaced whole on the next build. The
+ * under the build's own name and replaced whole on the next build, which
+ * keeps the one before it as well (D42). The
  * photographs live in a cache of their own that outlives builds: their URLs
  * are immutable, so a hit is the answer and the network is only for a miss.
  * The board's JSON is the third: the network first, always, because a cached
@@ -24,6 +25,7 @@
  */
 
 import { build, files, prerendered, version } from '$service-worker';
+import { shellsToForget } from '$lib/offline/shell';
 
 const sw = self as unknown as ServiceWorkerGlobalScope;
 
@@ -45,14 +47,19 @@ sw.addEventListener('install', (event) => {
 	);
 });
 
+/**
+ * The new shell takes over, and the build before it is kept one generation
+ * longer (`shellsToForget`, D42): a page still running the old bundle is
+ * served from that cache, and deleting it leaves the page unable to load a
+ * route chunk — and so unable to reach the navigation it would have reloaded
+ * on.
+ */
 sw.addEventListener('activate', (event) => {
 	event.waitUntil(
 		caches
 			.keys()
 			.then((keys) =>
-				Promise.all(
-					keys.filter((key) => key !== CACHE && !KEPT.has(key)).map((key) => caches.delete(key))
-				)
+				Promise.all(shellsToForget(keys, CACHE, KEPT).map((key) => caches.delete(key)))
 			)
 			.then(() => sw.clients.claim())
 	);

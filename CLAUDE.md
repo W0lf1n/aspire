@@ -2,7 +2,7 @@
 
 Guidance for Claude Code working in this repository.
 
-**Last revised:** 2026-09-11 · M5 closed, D38–D41 · 167 web tests · 166 API tests
+**Last revised:** 2026-09-11 · M5 closed, D38–D42 · 167 web tests · 166 API tests
 
 ---
 
@@ -110,8 +110,9 @@ apps/web/src/
 ├─ lib/images/     downscale.ts — the photograph to 2048 px on the device.
 ├─ lib/offline/    status.svelte.ts — the connection flag every screen reads —
 │                  cache.ts, which fills and prunes the photo cache a window
-│                  at a time — and policy.ts, how much of the board this
-│                  device keeps and what the connection costs (D39).
+│                  at a time — policy.ts, how much of the board this device
+│                  keeps and what the connection costs (D39) — and shell.ts,
+│                  which shell caches a new build may throw away (D42).
 ├─ lib/push/       nudge.ts — the browser's half of the morning notification
 │                  — and schedule.ts, the time as a field shows it.
 ├─ routes/         / · /pridat · /sen/[id] · /sen/[id]/upravit · /sin-slavy

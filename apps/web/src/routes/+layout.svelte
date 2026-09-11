@@ -3,7 +3,7 @@
 	import { afterNavigate } from '$app/navigation';
 	import Toaster from '$lib/ui/Toaster.svelte';
 	import { syncThemeColor } from '$lib/ui/theme';
-	import { applyUpdate, watchUpdates } from '$lib/ui/update';
+	import { applyUpdate, watchUpdates } from '$lib/ui/update.svelte';
 	import { health } from '$lib/api/client';
 	import { watchConnection } from '$lib/offline/status.svelte';
 	import type { LayoutProps } from './$types';

@@ -8,6 +8,12 @@
 	 * The theme and the token are on the device and read at once; the nudge
 	 * is the server's and arrives a moment later, so the row starts at the
 	 * one state that is true before anybody has asked for anything.
+	 *
+	 * The version card carries *Obnovit aplikaci*, which is the reload an
+	 * installed app has no address bar for: it asks for a new build and comes
+	 * back on it. It is here always, not only when one is waiting — a toast
+	 * can be missed, and a control that appears only once there is news cannot
+	 * be reached, because navigating to it is already a reload (D42).
 	 */
 	import { resolve } from '$app/paths';
 	// The package version, not `$app/environment`'s: that one is the build
@@ -17,12 +23,21 @@
 	import { readToken } from '$lib/api/token';
 	import { current } from '$lib/push/nudge';
 	import { detects, effectivePolicy, readPolicy } from '$lib/offline/policy';
+	import { update } from '$lib/ui/update.svelte';
 	import Icon from '$lib/ui/Icon.svelte';
 	import TabBar from '$lib/ui/TabBar.svelte';
 	import { settingsRows } from '$lib/ui/settings';
 	import { readTheme } from '$lib/ui/theme';
 
 	let nudge = $state<NudgeMode>('off');
+
+	/** The reload is a moment of nothing happening; the button says so. */
+	let refreshing = $state(false);
+
+	async function refresh() {
+		refreshing = true;
+		await update.refresh();
+	}
 
 	const rows = $derived(
 		settingsRows({
@@ -77,6 +92,24 @@
 				<dd>tento web</dd>
 			</div>
 		</dl>
+
+		<div class="actions">
+			<button
+				type="button"
+				class="btn btn--sm"
+				class:btn--primary={update.ready}
+				class:btn--quiet={!update.ready}
+				disabled={refreshing}
+				onclick={refresh}
+			>
+				Obnovit aplikaci
+			</button>
+		</div>
+		<p class="hint">
+			{update.ready
+				? 'Nová verze je stažená. Obnovením se do ní aplikace přepne.'
+				: 'Zkusí najít novou verzi a znovu se načte. Sny ani spárování se tím nesmažou.'}
+		</p>
 	</section>
 </main>
 
