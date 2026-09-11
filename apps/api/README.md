@@ -134,9 +134,13 @@ environment. Generate a pair **once**: the public half is in every
 subscription every browser has already made, so a new one silently stops
 all of them (D34). Run a second time it warns before it prints.
 
-On the VPS the same commands run as `docker compose exec api dotnet
-Aspire.Api.dll board …` (`vapid` wants `run --rm` rather than `exec`, since
-it may be needed before anything is up — `docs/DEPLOYMENT.md`). A code is digits only, six
+On the VPS `board` runs as `docker compose exec api dotnet Aspire.Api.dll
+board …` and `vapid` as `docker compose run --rm -T api vapid`, since it may
+be needed before anything is up (`docs/DEPLOYMENT.md`). The two spellings
+differ because `exec` runs a bare command in a container that is already up,
+while `run` appends what you type to the image's entrypoint — which is
+already `dotnet Aspire.Api.dll`, so naming it again hands the app arguments
+it does not recognise and it starts a web server instead. A code is digits only, six
 at least, twelve in production.
 
 ### The laptop's key pair goes in user secrets, not in git

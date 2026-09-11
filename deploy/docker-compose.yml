@@ -86,7 +86,8 @@ services:
       Media__Root: /data/media
       # The morning nudge (PLAN.md §3.6). Optional, and empty by default: with
       # no pair the API runs with notifications off and says so once. Made by
-      # `docker compose run --rm api dotnet Aspire.Api.dll vapid`, once and
+      # `docker compose run --rm -T api vapid` — the entrypoint is already
+      # `dotnet Aspire.Api.dll`, so the command is the word alone — once and
       # never again — a new pair stops every subscription anybody has (D34).
       Push__PublicKey: ${Push__PublicKey:-}
       Push__PrivateKey: ${Push__PrivateKey:-}

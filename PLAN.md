@@ -329,7 +329,7 @@ one they were told about and tomorrow's is different (D36). The service
 worker shows the notification, because a push arrives when no page of the
 app is running.
 
-`docker compose run --rm api dotnet Aspire.Api.dll vapid` makes the key
+`docker compose run --rm -T api vapid` makes the key
 pair, before the database exists, once. Without one the API runs with
 notifications off and says so; the screen tells the person rather than
 offering a switch that cannot work.

@@ -766,8 +766,8 @@ RFCs instead, on `System.Security.Cryptography`.
 
 ### D36 — `vapid` runs before the database, and the worker wakes every minute
 
-- **The command touches nothing.** `docker compose run --rm api dotnet
-  Aspire.Api.dll vapid` prints a pair and exits, and it runs *before* the
+- **The command touches nothing.** `docker compose run --rm -T api vapid`
+  prints a pair and exits, and it runs *before* the
   migration in `Program.cs`: the moment you need it is while setting a box
   up, which is before its database exists. Run a second time it warns first,
   because replacing the pair silently orphans every subscription anybody has

@@ -138,8 +138,15 @@ The command makes a pair and touches nothing else, so it works before the
 database exists:
 
 ```bash
-cd /opt/aspire/deploy && docker compose run --rm api dotnet Aspire.Api.dll vapid
+cd /opt/aspire/deploy && docker compose run --rm -T api vapid
 ```
+
+`vapid` on its own, and nothing before it: the image's entrypoint is already
+`dotnet Aspire.Api.dll`, and `compose run` appends what you type to it. Repeat
+the entrypoint and the app gets three arguments it does not recognise, ignores
+the command, and **starts a web server instead** — which looks like a hang.
+`-T` is for the pipe below; without a terminal it would otherwise wrap the
+output.
 
 It prints three lines. Put them in `.env`, set `Push__Subject` to an address
 a push service can reach you at — it is sent with every notification and some

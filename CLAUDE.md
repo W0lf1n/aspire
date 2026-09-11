@@ -236,6 +236,18 @@ nothing; `sed -n '34p' file | cat -A` shows it as `^A`. When a string
 constant is definitely right and the output is definitely wrong, look at the
 bytes before looking anywhere else.
 
+**`compose run` appends to the API image's entrypoint, which already names
+the dll.** `ENTRYPOINT ["dotnet", "Aspire.Api.dll"]`, so the command is the
+bare word — `docker compose run --rm -T api vapid`. Spell it
+`run --rm api dotnet Aspire.Api.dll vapid` and the app gets three arguments it
+does not recognise, falls through every command branch and **starts a web
+server**, which looks exactly like a hang. `exec` is the other way round: it
+runs a bare command in a container that is already up, so `board` there is
+`docker compose exec api dotnet Aspire.Api.dll board …`. The runbook had the
+`run` form wrong from M5 until 2026-09-11, and the symptom on the box was one
+stderr line about `libgssapi_krb5.so.2` — which is unrelated Npgsql noise the
+API prints on every start.
+
 **The web batch in `docker build` runs from the repository root**, because
 the client imports `@aspire/contracts`. `docker build -f apps/web/Dockerfile .`,
 never from `apps/web`.

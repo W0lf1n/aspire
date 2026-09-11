@@ -7,7 +7,7 @@ namespace Aspire.Api.Nudges;
 /// a fresh key pair for the operator to paste into the environment.
 ///
 /// <code>
-/// docker compose run --rm api dotnet Aspire.Api.dll vapid
+/// docker compose run --rm -T api vapid
 /// </code>
 ///
 /// A pair is generated once and then never again: the public half is baked
