@@ -2,7 +2,7 @@
 
 Guidance for Claude Code working in this repository.
 
-**Last revised:** 2026-09-12 · M6, M7, §3.7 and M8 closed, D51–D64 · 274 web tests · 364 API tests
+**Last revised:** 2026-09-12 · M6, M7, §3.7, M8 and §26 closed, D51–D69 · 302 web tests · 379 API tests
 
 ---
 
@@ -57,8 +57,14 @@ the same key (D61). §24 is M8, done: the photographs at scale — the reel
 drawn at the rung the phone is (D62), the encoder tuned once (D23 amended),
 the thumb under the picture (D63), and a board that weighs what its
 photographs weigh, with two gigabytes as full and the rule for when the disk
-stops being enough decided rather than built (D64). Nothing is left in the
-plan.
+stops being enough decided rather than built (D64). §26 is what a walk
+through the finished app found, and is not a milestone: Smazat waits six
+seconds and „Vrátit“ cancels it rather than a dialog asking (D65), a
+photograph still being resized says so instead of painting the same sky as a
+dream with none (D52 amended), the reel's rung reads the connection and not
+only the pixel ratio (D66), a control that writes wears `use:writes` instead
+of remembering the lock (D67), and components and endpoints have tests of
+their own (D68, D69). Nothing is left in the plan.
 
 ---
 
@@ -131,7 +137,9 @@ apps/web/src/
 │                  seg, chip, toggle, facts, well, field, btn, dream.
 ├─ lib/ui/         Hand-rolled components. No component library;
 │                  pager.ts — one dream per swipe, however long the swipe —
-│                  and Sheet.svelte, the `<dialog>` a form rises in (D44).
+│                  ReelTile.svelte, one page of the reel and every style that
+│                  makes it exactly one scrollport tall — and Sheet.svelte,
+│                  the `<dialog>` a form rises in (D44).
 ├─ lib/api/        client.ts (fetch + bearer), token.ts (localStorage),
 │                  pairing.ts (the flow) and errors.ts (the sentences).
 ├─ lib/dreams/     rules.ts — what a dream may be, and how it reads in a
@@ -145,14 +153,17 @@ apps/web/src/
 │                  — search.ts — what typing in the Seznam looks in
 │                  and how Czech is folded before it does (D49) —
 │                  duplicates.ts — whether a dream being written is one
-│                  already written down (D50) — upload.ts — the order a
+│                  already written down (D50) — deleting.svelte.ts, the few
+│                  seconds a deleted dream is not gone yet (D65) — upload.ts — the order a
 │                  photograph replaces another in, which two screens do
 │                  (D52) — wallpaper.ts — who can be on a collage and how
 │                  big it is — and format.ts.
 ├─ lib/images/     downscale.ts — the photograph to 2048 px on the device —
 │                  and focal.ts, where a photograph is looked at and how far
 │                  in, as a drag and a pinch become two numbers (D54).
-├─ lib/offline/    status.svelte.ts — the connection flag every screen reads —
+├─ lib/offline/    status.svelte.ts — the connection flag every screen reads,
+│                  and writes.svelte.ts, the `use:writes` every control that
+│                  writes wears instead of remembering it (D67) —
 │                  cache.ts, which fills and prunes the photo cache a window
 │                  at a time — policy.ts, how much of the board this device
 │                  keeps and what the connection costs (D39) — and shell.ts,
@@ -260,7 +271,7 @@ scripts/             check-bundle.mjs, and invite.sh — a board and its code
     and is revoked by making a new one. Anything else that ever answers
     without a token inherits that bargain whole.
 18. **The heart's one job is the wait.** `fuel = days since shown ×
-    (1 + min(likes, 10) / 10)` picks the day's dream and orders the automatic
+(1 + min(likes, 10) / 10)` picks the day's dream and orders the automatic
     wallpaper, in `dreams/board.ts` and in `DailyPick.cs`, counting whole days
     so two phones cannot disagree (D58). Nothing else reads the count, the
     reel's tile shows no number, and the cap is not negotiable: without it the
@@ -272,7 +283,15 @@ scripts/             check-bundle.mjs, and invite.sh — a board and its code
     day's pick was never put in front of anybody (D57). It is the same rule as
     `anniversaryToday` in `board.ts` and the two tests mirror each other case
     for case.
-20. **There are two reels, and only Vše is shuffled.** Teď is at most ten
+20. **A control that writes wears `use:writes`**, never a `disabled` of its
+    own that has to remember the connection (D67). Where it has a reason of
+    its own it says so — `use:writes={() => busy}` — and the connection half
+    is never the caller's. A link cannot, and keeps `aria-disabled`.
+21. **A deleted dream is held, not sent** (D65). `dreams/deleting.svelte.ts`
+    owns the window; every list that shows dreams filters `deleting.has`, and
+    an id stays hidden after the request has gone. A new list of dreams
+    inherits that filter or it will show a dream that was deleted a tab away.
+22. **There are two reels, and only Vše is shuffled.** Teď is at most ten
     dreams in the person's own order, `focusRank` on the dream and
     `dreams/focus.ts` on the client (D53). The day's pick and its `shown`
     stamp belong to Vše alone: a board opened on Teď has put no dream in
@@ -356,17 +375,16 @@ On the VPS it lost, and every upload saved a row that the worker then deleted
 because it could not make the directory — the dream showed the sky and nothing
 said why (D26). `media-init` in the compose file sets the owner rather than
 hoping for it, and `MediaStore.EnsureWritable` makes the API prove it can
-write before it serves. A check that a directory *exists* is not a check that
+write before it serves. A check that a directory _exists_ is not a check that
 you can write into it.
 
 ## Where the answers are
 
-
-| Document              | What it is                                                     |
-| --------------------- | -------------------------------------------------------------- |
-| `PLAN.md`             | The plan and its open questions                                |
-| `docs/DECISIONS.md`   | Every answered question and every deviation. Binding           |
-| `docs/DEPLOYMENT.md`  | The VPS runbook                                                |
-| `apps/web/DESIGN.md`  | The design system as built                                     |
-| `apps/web/PRODUCT.md` | Product truth for design work (Impeccable)                     |
-| `apps/api/README.md`  | The API: endpoints, running it, migrations                     |
+| Document              | What it is                                           |
+| --------------------- | ---------------------------------------------------- |
+| `PLAN.md`             | The plan and its open questions                      |
+| `docs/DECISIONS.md`   | Every answered question and every deviation. Binding |
+| `docs/DEPLOYMENT.md`  | The VPS runbook                                      |
+| `apps/web/DESIGN.md`  | The design system as built                           |
+| `apps/web/PRODUCT.md` | Product truth for design work (Impeccable)           |
+| `apps/api/README.md`  | The API: endpoints, running it, migrations           |

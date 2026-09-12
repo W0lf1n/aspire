@@ -9,40 +9,40 @@ more than store rows.
 
 ## Endpoints
 
-| Method | Path               | What                                            |
-| ------ | ------------------ | ----------------------------------------------- |
-| `GET`  | `/api/v1/health`   | `{ ok, version }`. No auth                      |
-| `POST` | `/api/v1/pair`     | Code in, `{ deviceId, token }` out. Rate-limited |
-| `GET`    | `/api/v1/dreams`            | The device's board, in board order            |
-| `POST`   | `/api/v1/dreams`            | `DreamInput` in, the dream out, 201           |
-| `GET`    | `/api/v1/dreams/{id}`       | One dream; 404 when it is not on this board   |
-| `PUT`    | `/api/v1/dreams/{id}`       | `DreamInput` in, the dream out                |
-| `DELETE` | `/api/v1/dreams/{id}`       | 204                                           |
-| `POST`   | `/api/v1/dreams/{id}/likes` | One more on the heart; the dream out          |
-| `POST`   | `/api/v1/dreams/{id}/shown` | The board opened on it today; 204             |
-| `POST`   | `/api/v1/dreams/{id}/focus` | Put it on Teď, last; the dream out. 409 when Teď is full or the dream is achieved (D53) |
-| `DELETE` | `/api/v1/dreams/{id}/focus` | Take it off Teď; 204, and 204 again when it was not on it |
-| `PUT`    | `/api/v1/focus` | `{ dreamIds }` — the whole of Teď, in this order and nothing else on it; the ten out |
-| `POST`   | `/api/v1/dreams/{id}/images` | Multipart `file`, `?kind=dreamt\|achieved`, optional `?focusX&focusY&zoom`; 202 with the image, `ready` once resized; 409 when the board is at its 2 GB (D64) |
-| `GET`    | `/api/v1/board` | The board's name, how many photographs it holds, their bytes and the ceiling (D64) |
-| `PUT`    | `/api/v1/dreams/{id}/images/{imageId}` | `{ focusX, focusY, zoom }` — where the photograph is looked at; no file is touched (D54) |
-| `DELETE` | `/api/v1/dreams/{id}/images/{imageId}` | 204                                |
-| `GET`    | `/api/v1/nudge/key` | The VAPID public key, or empty when the server has no pair. No auth |
-| `GET`    | `/api/v1/nudge` | `?endpoint=`; this device's `{ mode, atMinutes }` |
-| `PUT`    | `/api/v1/nudge` | `NudgeInput` in; `off` deletes the subscription. 503 with no key pair |
-| `POST`   | `/api/v1/nudge/offset` | `{ endpoint, utcOffsetMinutes }`; moves the offset on a subscription that exists, makes none, 204. Sent on every open and resume (D51) |
-| `DELETE` | `/api/v1/nudge` | `?endpoint=`; 204 |
-| `GET`    | `/api/v1/images/fetch` | `?url=`; the picture behind a link as a JPEG at most 2048 px, made on request and kept nowhere. Public addresses only, three redirects, 10 s, 10 MB; 20 a minute per address (D56) |
-| `GET`    | `/api/v1/wallpaper` | `?dreams=<id,…>&width&height&offset`; the lock-screen collage as JPEG, made on request and kept nowhere (D33). With no `dreams` it is today's six, and it stamps nothing (D59) |
-| `GET`    | `/api/v1/board/link` | This board's lock-screen link as `{ path }`, or `{ path: null }` (D60) |
-| `POST`   | `/api/v1/board/link` | A new key, which also stops the old link opening anything; `{ path }` |
-| `DELETE` | `/api/v1/board/link` | No link at all; 204, and 204 again when there was none |
-| `GET`    | `/api/v1/dreams/{id}/link` | This dream's share link as `{ path }`, or `{ path: null }` (D61) |
-| `POST`   | `/api/v1/dreams/{id}/link` | A new key, which also stops the old link opening anything; `{ path }` |
-| `DELETE` | `/api/v1/dreams/{id}/link` | Unshared; 204, and 204 again when it was not shared |
-| `GET`    | `/s/{key}` | **HTML, and no token** — one dream's page: its photograph, its name, its affirmation (D61). `noindex`, `no-store`, 404 for a key that opens nothing. Outside `/api/`, because a person reads this URL off a screen |
-| `GET`    | `/s/{key}/card.jpg` | The 1200×630 preview a chat app draws, as JPEG — the files on disk are WebP, which some of those apps will not render in a card |
-| `GET`    | `/api/v1/w/{key}` | Today's six as a JPEG, **with no token** — the key in the path is the whole permission (D60). `?width&height&offset`; `no-store`; 404 for a key that opens nothing; 10 a minute per address |
+| Method   | Path                                   | What                                                                                                                                                                                                               |
+| -------- | -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `GET`    | `/api/v1/health`                       | `{ ok, version }`. No auth                                                                                                                                                                                         |
+| `POST`   | `/api/v1/pair`                         | Code in, `{ deviceId, token }` out. Rate-limited                                                                                                                                                                   |
+| `GET`    | `/api/v1/dreams`                       | The device's board, in board order                                                                                                                                                                                 |
+| `POST`   | `/api/v1/dreams`                       | `DreamInput` in, the dream out, 201                                                                                                                                                                                |
+| `GET`    | `/api/v1/dreams/{id}`                  | One dream; 404 when it is not on this board                                                                                                                                                                        |
+| `PUT`    | `/api/v1/dreams/{id}`                  | `DreamInput` in, the dream out                                                                                                                                                                                     |
+| `DELETE` | `/api/v1/dreams/{id}`                  | 204                                                                                                                                                                                                                |
+| `POST`   | `/api/v1/dreams/{id}/likes`            | One more on the heart; the dream out                                                                                                                                                                               |
+| `POST`   | `/api/v1/dreams/{id}/shown`            | The board opened on it today; 204                                                                                                                                                                                  |
+| `POST`   | `/api/v1/dreams/{id}/focus`            | Put it on Teď, last; the dream out. 409 when Teď is full or the dream is achieved (D53)                                                                                                                            |
+| `DELETE` | `/api/v1/dreams/{id}/focus`            | Take it off Teď; 204, and 204 again when it was not on it                                                                                                                                                          |
+| `PUT`    | `/api/v1/focus`                        | `{ dreamIds }` — the whole of Teď, in this order and nothing else on it; the ten out                                                                                                                               |
+| `POST`   | `/api/v1/dreams/{id}/images`           | Multipart `file`, `?kind=dreamt\|achieved`, optional `?focusX&focusY&zoom`; 202 with the image, `ready` once resized; 409 when the board is at its 2 GB (D64)                                                      |
+| `GET`    | `/api/v1/board`                        | The board's name, how many photographs it holds, their bytes and the ceiling (D64)                                                                                                                                 |
+| `PUT`    | `/api/v1/dreams/{id}/images/{imageId}` | `{ focusX, focusY, zoom }` — where the photograph is looked at; no file is touched (D54)                                                                                                                           |
+| `DELETE` | `/api/v1/dreams/{id}/images/{imageId}` | 204                                                                                                                                                                                                                |
+| `GET`    | `/api/v1/nudge/key`                    | The VAPID public key, or empty when the server has no pair. No auth                                                                                                                                                |
+| `GET`    | `/api/v1/nudge`                        | `?endpoint=`; this device's `{ mode, atMinutes }`                                                                                                                                                                  |
+| `PUT`    | `/api/v1/nudge`                        | `NudgeInput` in; `off` deletes the subscription. 503 with no key pair                                                                                                                                              |
+| `POST`   | `/api/v1/nudge/offset`                 | `{ endpoint, utcOffsetMinutes }`; moves the offset on a subscription that exists, makes none, 204. Sent on every open and resume (D51)                                                                             |
+| `DELETE` | `/api/v1/nudge`                        | `?endpoint=`; 204                                                                                                                                                                                                  |
+| `GET`    | `/api/v1/images/fetch`                 | `?url=`; the picture behind a link as a JPEG at most 2048 px, made on request and kept nowhere. Public addresses only, three redirects, 10 s, 10 MB; 20 a minute per address (D56)                                 |
+| `GET`    | `/api/v1/wallpaper`                    | `?dreams=<id,…>&width&height&offset`; the lock-screen collage as JPEG, made on request and kept nowhere (D33). With no `dreams` it is today's six, and it stamps nothing (D59)                                     |
+| `GET`    | `/api/v1/board/link`                   | This board's lock-screen link as `{ path }`, or `{ path: null }` (D60)                                                                                                                                             |
+| `POST`   | `/api/v1/board/link`                   | A new key, which also stops the old link opening anything; `{ path }`                                                                                                                                              |
+| `DELETE` | `/api/v1/board/link`                   | No link at all; 204, and 204 again when there was none                                                                                                                                                             |
+| `GET`    | `/api/v1/dreams/{id}/link`             | This dream's share link as `{ path }`, or `{ path: null }` (D61)                                                                                                                                                   |
+| `POST`   | `/api/v1/dreams/{id}/link`             | A new key, which also stops the old link opening anything; `{ path }`                                                                                                                                              |
+| `DELETE` | `/api/v1/dreams/{id}/link`             | Unshared; 204, and 204 again when it was not shared                                                                                                                                                                |
+| `GET`    | `/s/{key}`                             | **HTML, and no token** — one dream's page: its photograph, its name, its affirmation (D61). `noindex`, `no-store`, 404 for a key that opens nothing. Outside `/api/`, because a person reads this URL off a screen |
+| `GET`    | `/s/{key}/card.jpg`                    | The 1200×630 preview a chat app draws, as JPEG — the files on disk are WebP, which some of those apps will not render in a card                                                                                    |
+| `GET`    | `/api/v1/w/{key}`                      | Today's six as a JPEG, **with no token** — the key in the path is the whole permission (D60). `?width&height&offset`; `no-store`; 404 for a key that opens nothing; 10 a minute per address                        |
 
 Everything but `health`, `pair`, `w/{key}` and `s/{key}` needs
 `Authorization: Bearer <token>`.
@@ -119,7 +119,7 @@ every column), so `psql` reads the way the plan is written.
 
 A board is the tenant (D21): a name, a pairing code stored as a PBKDF2
 hash, and every device and dream that belongs to it. `Pairing:Code` seeds
-the first one, *Nástěnka*, on the first start and is ignored afterwards.
+the first one, _Nástěnka_, on the first start and is ignored afterwards.
 The rest is the operator's, through the API's own binary:
 
 ```bash
@@ -224,6 +224,13 @@ as `/media/`; on the VPS it is the volume and nginx serves it.
 ---
 
 ## Tests
+
+`HttpEndpointTests` goes over a real request through
+`WebApplicationFactory<Program>` (`ApiFactory`), on SQLite in a temp file and
+a media root beside it, pairing on `000000` (D69). It checks what only the
+road can get wrong — the bearer header, the status code a problem comes back
+as, the multipart a phone sends, the camelCase and kebab-case on the wire —
+and leaves the rules to the tests that already have them.
 
 ```bash
 dotnet test

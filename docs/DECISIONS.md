@@ -218,7 +218,7 @@ name for the device list, and one pill. Every failure arrives as a status
 and each status has its Czech sentence in `apps/web/src/lib/api/pairing.ts`,
 which is tested; a browser's own message never reaches the screen.
 
-The card is a form, so the keyboard's return key pairs. *Odpojit* forgets
+The card is a form, so the keyboard's return key pairs. _Odpojit_ forgets
 the token on the device only; the row on the server stays until it is
 deleted there, which is what revocation is (D6). Same as Prosper.
 
@@ -369,7 +369,7 @@ chosen for the day rather than always the same one. Both are here.
   a few dozen dreams; a second list would be a second cache entry, and the
   wall would be blank without a signal.
 - **The Síň slávy is now the wall, which is half of M3.** Filtering without
-  it would have made splněno mean *gone*, and a filter that loses a dream is
+  it would have made splněno mean _gone_, and a filter that loses a dream is
   worse than no filter. It is the achieved dreams, most recent first, each
   still its own photograph. The before-and-after photograph, the affirmation
   and the anniversary stay M3's.
@@ -392,7 +392,7 @@ chosen for the day rather than always the same one. Both are here.
   before today's stamp can pick a different dream than the one another
   device saw. It is a dream from your own board either way.
 - **The pick wears no badge.** Nothing on the tile says it was chosen. The
-  reordering is meant to be felt as *this is what the board opened on*, not
+  reordering is meant to be felt as _this is what the board opened on_, not
   read as a label, and a second pill on a photograph is one more thing
   between the person and the picture (rule 4).
 
@@ -436,7 +436,6 @@ nothing left to show.
   either way, so there is nothing a surviving row could be retried from. The
   fix for the case that is the deployment's fault belongs at the start, where
   it now is.
-
 
 ---
 
@@ -492,8 +491,8 @@ reel must not open on the proof, and the wall is only proof if both are there.
   Every photograph taken before this change is a dreamt one; the migration
   says so.
 - **The upload names its kind and the API does not argue.** `POST
-  /dreams/{id}/images?kind=achieved`; anything but the two words is a
-  sentence, and a missing one is `dreamt`. The dream's *status* is not
+/dreams/{id}/images?kind=achieved`; anything but the two words is a
+  sentence, and a missing one is `dreamt`. The dream's _status_ is not
   checked: a status can change after, and the answer to a dream that went
   back to plním must never be deleting somebody's photograph. So the picker
   is offered only while the dream is achieved, and what is already there
@@ -534,7 +533,7 @@ they look every morning is the board.
 - **The most recent one wins when two share a day.** That is the wall's own
   order, and one line is the rule; a list of anniversaries is a screen, and
   the screen already exists.
-- **„Před rokem se ti splnil sen …“** — the verb agrees with *sen*, which is
+- **„Před rokem se ti splnil sen …“** — the verb agrees with _sen_, which is
   masculine, and not with the person. A board is a pairing code and the
   server has never been told anybody's gender (D21), so a sentence that
   needed to know would be wrong for half the boards. Czech wants `rokem` for
@@ -688,7 +687,7 @@ dream is seen a hundred times a day without opening anything.
   JPEG is the format every one of those steps has always taken.
 - **The share sheet, then a download link.** On a phone „Uložit obrázek" is
   in the share sheet, and a `download` link is not; `navigator.canShare({
-  files })` decides, and a browser without it gets the link. A share the
+files })` decides, and a browser without it gets the link. A share the
   person backed out of (`AbortError`) is not a failure and says nothing.
   The screen keeps the finished image on it either way, because the surest
   way to save a picture on a phone is still to hold a finger on it.
@@ -709,7 +708,7 @@ off / daily / weekdays. The parts of that decided before anything was sent:
 
 - **A subscription is per device, not per board.** A phone and a tablet on
   one board are two rows with two schedules, because it is the phone in a
-  pocket at seven that this is for. The push endpoint *is* the device, so it
+  pocket at seven that this is for. The push endpoint _is_ the device, so it
   is the unique key: subscribing again from the same phone moves the row it
   already has, and a phone re-paired into another board moves rather than
   colliding.
@@ -774,7 +773,7 @@ RFCs instead, on `System.Security.Cryptography`.
 ### D36 — `vapid` runs before the database, and the worker wakes every minute
 
 - **The command touches nothing.** `docker compose run --rm -T api vapid`
-  prints a pair and exits, and it runs *before* the
+  prints a pair and exits, and it runs _before_ the
   migration in `Program.cs`: the moment you need it is while setting a box
   up, which is before its database exists. Run a second time it warns first,
   because replacing the pair silently orphans every subscription anybody has
@@ -858,7 +857,7 @@ a reel.** §2 asks for a full-screen image per dream, and a masonry cell is
 a thumbnail; twelve of them at once is a gallery of things you own rather
 than one thing you want. The habituation that D30 fixed by shuffling comes
 straight back on a wall where everything is visible at once — nothing is
-ever *next*, so nothing is ever arrived at. And the day's pick (D25), which
+ever _next_, so nothing is ever arrived at. And the day's pick (D25), which
 is what makes the board different each morning, has nowhere to be when
 every tile is equally in view.
 
@@ -915,7 +914,7 @@ is what hurts; it does not bound the total.
 
 **Which is why there is a ceiling.** `WINDOW_KEEP` is 40 photographs, about
 8 MB: several mornings of swiping, and far enough under the size at which a
-browser starts choosing for itself. `overCap` drops the oldest *fetched* —
+browser starts choosing for itself. `overCap` drops the oldest _fetched_ —
 the Cache API's key order is the only clock it has, and what just arrived is
 at the far end of it, so a tile about to be swiped to is never what goes.
 
@@ -931,7 +930,7 @@ choice and it is on a screen:
 - **Vždy celá** — the whole board regardless.
 
 **The connection is read, not guessed.** `navigator.connection.type` is the
-only member that says what a connection *is*; `effectiveType` is a speed
+only member that says what a connection _is_; `effectiveType` is a speed
 estimate that cannot tell wifi from good cellular, so it is read in one
 direction only — definitely slow means treat it as metered, fast means
 nothing. A connection the browser will not describe counts as metered: the
@@ -959,7 +958,7 @@ other.
 that a scroll will not pass over a snap position, and it was already on every
 tile — but there was nothing underneath it for the promise to hold on to. The
 snapping was `proximity`, the tiles had a 12 px gap between them and a 20 px
-radius, each one was the screen *less* the bar rather than the screen, and
+radius, each one was the screen _less_ the bar rather than the screen, and
 they shared a scroll region with the wordmark, the areas rail and the
 anniversary. So the snap offsets were not multiples of anything, the top of
 the board was a page of a different height, and a long drag carried exactly as
@@ -1090,7 +1089,7 @@ refresh. Three things had to be true at once, and all three were.
 **The service worker was deleting the shell that was still in use.** The
 shell is precached under the build's own name, so every build brings a cache
 and `activate` cleans up after it — and it cleaned up everything that was not
-the new one. A page still running the *old* bundle is served from the cache
+the new one. A page still running the _old_ bundle is served from the cache
 that just went. It then asked for a route chunk whose hashed name exists
 neither in the cache nor in the new image, got a 404, and could not finish the
 navigation. Which is the same navigation `applyUpdate` was waiting for to
@@ -1104,15 +1103,15 @@ stamp cannot be placed in time, so it is not the generation worth keeping and
 it goes.
 
 **The toast said so for eight seconds and then stopped saying it.** The one
-thing it offered — *Obnovit* — could not be found again once it had gone. It
+thing it offered — _Obnovit_ — could not be found again once it had gone. It
 now stays until it is tapped (`ms: 0`, `toast.svelte.ts`). That is a power
 kept for exactly this: a toast that sits there is a toast in the way, so it
 is for the message whose action cannot be got back to, and for nothing else.
 
 **And an installed app has no address bar.** On a phone, a PWA on the home
 screen has no reload button anywhere — the browser's chrome is the thing
-being installed away. So Nastavení's version card carries *Obnovit
-aplikaci*, always, not only when a build is waiting. A control that appears
+being installed away. So Nastavení's version card carries _Obnovit
+aplikaci_, always, not only when a build is waiting. A control that appears
 only once there is news cannot be reached: `applyUpdate` reloads on the next
 navigation, so navigating to the screen to press the button is already the
 press. Asking first is what makes it more than a reload — a worker that has
@@ -1126,7 +1125,7 @@ because two screens read it rather than one toast writing it.
 version of the morning where somebody is stuck: the shell fix stops the
 bricking but not a missed toast, the toast fix is useless on a build whose
 chunks are gone, and the button is the one that works when the other two have
-already failed. This is the screen the app is recovered *from*, so it does not
+already failed. This is the screen the app is recovered _from_, so it does not
 get to depend on anything.
 
 ---
@@ -1216,7 +1215,7 @@ recently written first, with ＋ in the corner opening a sheet of five fields
   `showModal`, which is the whole reason to use one: the top layer puts it
   over the floating bar with no z-index to argue with, and the escape key,
   the focus trap and the inert screen behind it come with it. Being open is
-  the screen's state, never the element's — escape and the dim *ask* to
+  the screen's state, never the element's — escape and the dim _ask_ to
   close — so a sheet in the middle of saving stays up.
 - **The dim is an element, not `::backdrop`.** A backdrop does not inherit
   the tokens in every browser that has one, and a colour that is not in
@@ -1279,7 +1278,7 @@ is one SSH session that runs it on the box.
 
 - **Because the multitenancy was already there.** A board is the tenant (D21)
   and a device belongs to whichever board's code it typed. Nothing in the app
-  needed a line for a second person: a new board *is* the invitation. What
+  needed a line for a second person: a new board _is_ the invitation. What
   was missing was the code — `board add` made the operator invent one, and
   `DEPLOYMENT.md` handed them a `shuf` line to do it with.
 - **The machine's randomness, not a person's.** A code typed by somebody in a
@@ -1335,7 +1334,7 @@ one `sudo` rule.
   symlinked into `/opt/aspire`. It is the fence; a fence that moves when the
   thing it fences is updated is not one. It changes about never.
 - **The workflow's vocabulary shrank to match.** It sends `aspire-deploy
-  '<ref>'` rather than a path to a script, so the path lives on the box and
+'<ref>'` rather than a path to a script, so the path lives on the box and
   `VPS_PATH` is gone. The single quotes are for the case where somebody sets
   this up without the forced command and a real shell sees the string; with
   the forced command there is no shell, so the wrapper unquotes it itself.
@@ -1389,8 +1388,8 @@ year — `dreams/search.ts`.
   „splněno“ finds what is done and „být“ finds that area — what is searched
   is what is read.
 - **Diacritics are folded off both sides.** Czech typed at speed on a phone
-  is Czech with half the marks missing, so „stesti“ finds *Štěstí* and
-  „drevena zahrad“ finds *Dřevěná dílna na zahradě*. A search that insists
+  is Czech with half the marks missing, so „stesti“ finds _Štěstí_ and
+  „drevena zahrad“ finds _Dřevěná dílna na zahradě_. A search that insists
   on a caron is a search that answers „nic“ to a word that is on the screen.
 - **Words are an AND, not a phrase.** A person types the two words they
   remember, not the words in the order they were written.
@@ -1529,6 +1528,14 @@ polls twice, swaps the preview for `/media/…`, and takes the pill with it.
 ---
 
 ## M7 · 2026-09-12 — the second reel
+
+**Amended 2026-09-12 (D65's session).** A photograph between the upload and
+the resize painted this same sky, under this same pill — so a tile that was
+holding a photograph invited the same one to be sent again, and a slow
+connection read as an upload that failed. `photoComing` in `dreams/photos.ts`
+tells the two apart, and the tile says „Zpracovává se…“ in the row the pill
+was in. In that row rather than above it: anything that adds height to the
+scrollport breaks rule 14's arithmetic.
 
 ### D53 — There are two reels, and Teď is ten dreams in his own order
 
@@ -1701,7 +1708,7 @@ is the most dangerous thing in it.
 - **http and https only, ports 80 and 443 only**, ten seconds, ten megabytes
   — the upload's own cap — and a content type that is an image or a page.
 - **One sentence for every failure.** „Z tohohle odkazu fotku nedostanu.“ A
-  message that said *which* address was refused, or what a host answered,
+  message that said _which_ address was refused, or what a host answered,
   would turn this endpoint into a way to ask the internet questions from
   inside the VPS and read the answers back.
 - **A content type is a claim; ImageSharp reading the header is the fact**, so
@@ -1732,7 +1739,7 @@ Two things the real internet taught in the first five minutes. A news page is
 megabytes of script and the tag is in the first few kilobytes, so the read cap
 now truncates a page instead of refusing it — refusing big pages meant
 refusing most of the web. And the failure sentence was landing on the screen
-*underneath* the open sheet, where nobody could read it; it belongs where the
+_underneath_ the open sheet, where nobody could read it; it belongs where the
 thing that failed was asked for.
 
 Checked against the live internet: a Wikipedia article's `og:image` came back
@@ -1758,7 +1765,7 @@ the one thing a person who has stopped opening the app will not do.
 - **„Před rokem“ over „Splnil se ti sen „Loď“.“** The heading is how long ago
   and the line is what happened, the two reading as one sentence, which is
   `formatAnniversary`'s sentence on the board split where a notification splits
-  it. `rokem` for one year and `lety` above it; the verb agrees with *sen*, so
+  it. `rokem` for one year and `lety` above it; the verb agrees with _sen_, so
   the sentence is right for whoever is holding the phone (D21).
 - **The photograph is the achieved one**, the dreamt one where there is none.
   The proof is the picture (D28) and this morning is about the proof.
@@ -1808,7 +1815,7 @@ fuel = days since shown × (1 + min(likes, 10) / 10)
 
 The daily pick keeps the shape D25 gave it — a dream already shown today
 holds all day, a dream never shown comes before any that has — and where the
-*oldest* used to win, the most fuel wins now.
+_oldest_ used to win, the most fuel wins now.
 
 - **Ten hearts double it**, so a loved dream comes round twice as often as one
   with none: twenty days unloved and ten days at ten hearts are the same
@@ -1831,7 +1838,7 @@ photograph in fuel order, and Tapeta opens on those six already chosen instead
 of on an empty grid — a lock screen is a thing you want to be right before you
 are asked anything. `wallpaperCandidates` stays as it was for the choice by
 hand, the wall included: a dream already lived is exactly the kind you want on
-a lock screen, but what is *automatic* should be what is still ahead.
+a lock screen, but what is _automatic_ should be what is still ahead.
 
 **The count leaves the reel tile** — PLAN.md §8's eighth question, answered
 yes. The tap stays, with the haptic, and the tile keeps the one bit that
@@ -1862,7 +1869,7 @@ the automation will fetch at 6:55.
 
 - **The reel only.** `wallpaperCandidates` keeps the wall for the choice by
   hand, because a dream already lived is exactly the kind you want on a lock
-  screen. But what is chosen *for* somebody should be what is still ahead:
+  screen. But what is chosen _for_ somebody should be what is still ahead:
   a lock screen is the surface §3.5 exists to put a future in front of.
 - **It stamps nothing.** A lock screen is not the board opening, and „shown“
   is a word about the board's own turn (D25, D36). If fetching the collage
@@ -1929,9 +1936,9 @@ bakes in this phone's canvas and offset, because the link is static and
 whatever it carries is what will be asked for every morning from now on.
 
 The screen says the rest in Czech — Zkratky → Automatizace → Denně v 6:55 →
-*Získat obsah URL* → *Nastavit tapetu* — including the two things that make it
+_Získat obsah URL_ → _Nastavit tapetu_ — including the two things that make it
 fail silently: the wallpaper has to be a plain photo wallpaper rather than a
-shuffle, and *Zeptat se před spuštěním* has to be off.
+shuffle, and _Zeptat se před spuštěním_ has to be off.
 
 Checked end to end against a running server: the link answers a request with no
 `Authorization` header at all with a 107 kB JPEG at exactly the phone's canvas,
@@ -1946,15 +1953,15 @@ free.
 
 ### D61 — A shared dream is a page this server writes
 
-PLAN.md §3.7 has had one line since M0 — *share a single dream via a signed
-link* — and it is the last thing in the plan that is not a milestone. The
+PLAN.md §3.7 has had one line since M0 — _share a single dream via a signed
+link_ — and it is the last thing in the plan that is not a milestone. The
 mechanism arrived with the lock screen (D60): a key that is its own permission,
 against one dream instead of one board. `dreams.link_key`, `POST` to make one
 over the old, `DELETE` to remove it, and `GET /s/{key}` to read it.
 
 **It is a page, not a route of the app.** The whole point is somebody who has
 nothing — no app, no pairing code, no account — and who is sent a link in a
-message. A message shows a preview only if the *server* put the picture in the
+message. A message shows a preview only if the _server_ put the picture in the
 head; a client-rendered route of the PWA arrives at WhatsApp as a bare URL with
 no title and no image. So the API writes HTML, for the first and only time.
 
@@ -2107,3 +2114,130 @@ a board is meant to reach a hundred (D30).
   the same worker, never in the request, with its poster frame written
   through `ImageProcessor` so every screen that shows a photograph keeps
   working.
+
+### D65 — Smazat waits six seconds instead of asking
+
+Deleting a dream was one tap and no way back. The server takes the row and
+its photographs together, so there was nothing left to put back afterwards
+either — „je pryč“ in a toast was a statement, not an offer.
+
+A dialog was the obvious fix and is the wrong one. It taxes every deletion a
+person meant to make, which is nearly all of them, to catch the rare one
+they did not; and the dream screen's own note has said since M1 that this
+app does not ask, as Prosper does not. So the fix is not to ask but to
+**wait**: `dreams/deleting.svelte.ts` holds the request for as long as the
+toast that announces it stands, and „Vrátit“ cancels it before it is ever
+sent. Nothing is deleted and then restored, because a photograph cannot be.
+
+- **Every screen drops it at once, and keeps it dropped.** The board, the
+  Seznam, Teď and the Síň slávy all filter the held id. It stays on that list
+  after the request has gone, because a board fetched before the deletion
+  landed still carries the dream, and a tile that flickers back for a frame
+  reads as a deletion that failed. Only „Vrátit“ takes an id off.
+- **The board keeps the server's answer and a filtered view of it**, so
+  „Vrátit“ puts the tile back without a second trip.
+- **Leaving commits.** The window is for the finger that slipped while the
+  screen was being looked at; anybody who closes the app or switches away
+  meant it. `pagehide` and `visibilitychange` send what is held, with
+  `keepalive` so the request outlives the document.
+- **A request that fails puts the dream back**, because the server still has
+  it and hiding it would be a lie.
+- **Six seconds**, which is what a toast carrying an action already stood
+  for (`ui/toast.svelte.ts`). One constant, `UNDO_MS`, so the two cannot
+  drift.
+
+Petr asked for this after M8; it changes a behaviour M1 chose deliberately,
+which is why it is here rather than only in the diff.
+
+### D66 — The rung reads the connection, not only the pixel ratio
+
+D62 gave the 2048 rung to every screen at 2× and up. Every phone is 2× or 3×,
+so every phone read it — including one on mobile data, at about 350 kB a
+swipe against 200. The compromise D62 struck is worth striking where the
+bytes are free and not where somebody is paying for them.
+
+`rungFor` now asks two questions: enough pixels to want it, and a connection
+that is not metered. `offline/policy.ts`'s `metered()` already folded Save
+Data in, so asking the browser to spend less gives the same answer and
+`savesData()` is gone — one question, one place.
+
+**A browser that will not say is treated as free.** Safari has no Network
+Information API, so `metered()` is `null` on every iPhone. Reading that as
+metered would mean the phone this app is built for never sees the rung that
+was built for it; reading it as free costs a few hundred kilobytes a swipe
+to somebody on cellular Safari. The second is the better mistake.
+
+### D67 — A control that writes wears the lock instead of remembering it
+
+D24 says every write rests without a signal, and each control remembered it
+by hand: `disabled={busy || !connection.online}`, with the second half each
+screen's to forget. `use:writes` in `offline/writes.svelte.ts` is that rule
+with a name — a control wears it instead of a `disabled` of its own, and
+`use:writes={() => busy}` where it has a reason of its own, the two or-ed.
+A control that writes now cannot be built without the lock on it.
+
+- **The screens' own sentences stay where they are.** „Bez připojení. Seznam
+  je z paměti a nový sen počká na signál.“ is true about the Seznam and says
+  nothing about Upozornění. A lock is one rule everywhere; what to tell
+  somebody about it is that screen's to say. Only the two a _form_ shows are
+  shared, as `cannot(online, verb)`, because a form has no room to say more
+  than which verb it cannot do.
+- **The tab bar's ＋ keeps `aria-disabled`.** It is a link, and a link has no
+  `disabled` to set.
+- **Tapeta's link buttons were already covered** by a guard on the whole
+  screen, which is the other honest shape: a screen that cannot work at all
+  without a signal says so once and shows nothing.
+
+### D68 — Components get tests, in happy-dom rather than a browser
+
+Every rule in this app lives in a `.ts` module a component imports, and all
+of them were tested; not one test rendered a component. So what a screen
+does with those rules — which element is on the page, whether the control
+that writes is dead — was checked by hand or not at all, and the extraction
+of `ReelTile` is exactly the kind of change that can break one silently.
+
+Vitest grows a second project: `server` in node as before, `client` in
+happy-dom for `*.svelte.test.ts`. The config already half had this shape —
+the `server` project excluded `*.svelte.test.ts` with nothing on the other
+side of the exclusion.
+
+- **happy-dom, one dev dependency**, against `vitest-browser-svelte` and a
+  Playwright download. What these tests ask is which element is on the page
+  and what a click does, not how it paints; the things a real browser would
+  add — layout, scrolling, frames — are the things `apps/web/CLAUDE.md`
+  already says cannot be checked in a hidden pane either.
+- **Svelte's own `mount` and `flushSync`**, no testing library: rule 2's
+  reason applies to test helpers too.
+- **`resolve.conditions: ['browser']` on that project**, or Svelte hands
+  back its server build, whose `mount` exists only to say it is not the
+  browser.
+- **The rules keep their own tests.** A component test that re-checks
+  `photoComing` is a slower copy of a test that exists; these check the
+  wiring only.
+
+### D69 — The endpoints get tests over a real request
+
+Every API test reached past the request and called a service with a
+`DbContext` the test had made. That checks the rule and not the road to it:
+the bearer header, the status code a problem comes back as, the multipart a
+phone actually sends, the camelCase and kebab-case the TypeScript client is
+written against (rule 6). All of that is wiring only a real request touches,
+and the `vapid` entrypoint and the media volume were both failures of wiring
+that no unit test could have caught.
+
+`ApiFactory` is `WebApplicationFactory<Program>` on the laptop's own
+configuration — SQLite in a temp file, a media root beside it, pairing on
+`000000` — so it exercises `Program.cs` whole: the JSON options, the rate
+limiters, `EnsureWritable`, the schema guard, the seed. `public partial
+class Program` was already there for exactly this.
+
+Fifteen tests, and each one is a thing the road can get wrong rather than a
+rule restated: 401 without a token and for a token nobody knows, a wrong
+pairing code, a dream through create-read-update-delete with its diacritics
+intact, a 404 for another board's dream, a 400 with a sentence for an empty
+one, the eleventh dream on Teď as a **409 and not a 400**, the board's usage
+against its ceiling, a photograph as multipart answering 202 with three URLs
+and its focal point, a file that is not a picture, a crop outside the
+photograph, and a key that opens nothing as a bare 404 (rule 17).
+
+One test-only package, `Microsoft.AspNetCore.Mvc.Testing`. Nothing ships.

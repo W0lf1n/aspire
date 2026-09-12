@@ -1,6 +1,6 @@
 # Aspire — Project Plan
 
-Status: M0–M8 done · §3.7 done · Owner: Petr · Created: 2026-09-09 · Revised: 2026-09-12
+Status: M0–M8 done · §3.7 done · §26 done · Owner: Petr · Created: 2026-09-09 · Revised: 2026-09-12
 
 Third app in the personal self-improvement trio (Prosper → Planner → **Aspire**, the dreamboard). Building first. Standalone. No integration with the others for now.
 
@@ -8,7 +8,7 @@ Third app in the personal self-improvement trio (Prosper → Planner → **Aspir
 
 ## 1. Vision
 
-Open phone anywhere — train, queue, bad meeting — swipe through your dreams in 10 seconds. Remember *why*.
+Open phone anywhere — train, queue, bad meeting — swipe through your dreams in 10 seconds. Remember _why_.
 
 Not a task app. Not a goal tracker. Pure fuel. Images first, words second.
 
@@ -27,6 +27,7 @@ Yager: "Dream building" is step one of everything. Dream must be visual, specifi
 ## 3. Features
 
 ### 3.1 Dreams (MVP)
+
 - Dream = title · 1–5 images · "why" (1–3 sentences) · category · target year (optional) · status (dreaming / in progress / achieved) · created_at.
 - Categories (**fixed**, §8.3): Want · Be · Do — Chtít · Být · Dělat. Optional on a dream. Yager's nine until 2026-09-11, when the set became the three questions a dream can answer as it is being written (D43, in place of D32).
 - Image upload: phone camera, library, paste URL. Server resizes to 3 sizes (thumb / screen / full), WebP.
@@ -34,6 +35,7 @@ Yager: "Dream building" is step one of everything. Dream must be visual, specifi
   reel is shuffled on every open instead, so no order is a route you learn (D30).
 
 ### 3.2 Board view (MVP)
+
 - **Mobile:** full-screen vertical swipe, one dream per screen (Instagram-stories feel). Tap → detail with "why" and gallery.
 - ~~**Desktop/tablet:** masonry grid, click → detail.~~ Dropped 2026-09-11:
   a grid is a gallery, a reel is a queue, and desktop stays the phone layout
@@ -42,24 +44,29 @@ Yager: "Dream building" is step one of everything. Dream must be visual, specifi
 - Filter by category / status. Default: dreaming + in progress.
 
 ### 3.3 Achieved wall (v1.1)
+
 - Mark dream achieved → date + optional "achieved photo" (real photo vs dream photo side by side).
 - Separate "Hall of Fame" screen. Motivational proof that system works.
 - Anniversary reminder: "1 year ago you achieved X".
 
 ### 3.4 Affirmations & audio (v1.1)
+
 - Per dream: optional affirmation line shown on card ("I drive it in 2028").
 - ~~Optional short voice memo per dream (record on phone, play on detail).~~
   Dropped 2026-09-10 (§8.4, D31).
 
 ### 3.5 Wallpaper / collage export (v1.2)
+
 - Generate lock-screen collage from N selected dreams (server-side rendering, phone aspect ratio presets).
 - One tap → save image → set as wallpaper. Dream seen 100× per day without opening app.
 
 ### 3.6 Daily nudge (v1.2)
+
 - Push notification at user-set time (default 07:00): one dream image + title. Tap opens board.
 - Configurable: off / daily / weekdays.
 
 ### 3.7 Later / maybe
+
 - ~~Share single dream via signed link (for Zuzana, upline).~~ — done
   2026-09-12 (§25, D61). The key is D60's, against one dream; the link opens a
   page the API writes, because a message shows a preview only if the server
@@ -83,6 +90,7 @@ aspire/
 ```
 
 Backend
+
 - .NET 9, EF Core 9 + Npgsql.
 - Image processing: `SixLabors.ImageSharp` → resize + WebP, strip EXIF. Run in background queue (`Channel<T>` + hosted service), return placeholder until ready.
 - Storage: local disk volume `/data/media/{userId}/{dreamId}/{size}.webp` served via reverse proxy with cache headers. Option: MinIO on VPS or S3-compatible later if disk fills. NAS backup via existing homelab flow.
@@ -91,6 +99,7 @@ Backend
 - Auth: same as Prosper.
 
 Frontend
+
 - SvelteKit PWA. ~~Service worker caches **all** screen-size images of active dreams (typ. < 20 dreams × ~200 KB = fine). Board fully usable offline.~~ The 200 KB was right — 197 measured — but "all" was a twenty-dream assumption: at a hundred it is 20 MB, so the board caches a window of the reel and the whole of itself only on a connection the browser says is free (§17, D39).
 - Swipe: CSS scroll-snap, no heavy lib. `Motion One` or plain CSS for transitions.
 - Upload: `<input capture="environment">` for camera, drag-drop on desktop, client-side downscale before upload (max 2048 px) to save mobile data.
@@ -98,6 +107,7 @@ Frontend
 - Screens: Board · Dream detail · Add/Edit · Hall of Fame · Settings.
 
 Infra
+
 - Contabo VPS, Docker Compose, Postgres + media volume, nightly backup of both.
 - Subdomain e.g. `aspire.petrbohac.eu`.
 
@@ -122,17 +132,17 @@ Daily pick rule: `ORDER BY last_shown_at NULLS FIRST, random() LIMIT 1` among st
 
 ## 6. Milestones
 
-| # | Milestone | Scope | Est. |
-|---|---|---|---|
-| M0 | Scaffold | Copy Prosper/Planner skeleton, media volume, deploy | 1 weekend |
-| M1 | Dreams + board | Done 2026-09-10 (§10). Categories followed (§13); the desktop grid dropped 2026-09-11 (D38) | 2 weekends |
-| M2 | PWA offline | Folded into M1 on 2026-09-10 (D24): the photographs and the board cached, read-only offline | done |
-| **→ MVP live. Load real dreams. Use 2 weeks.** | | | |
-| M3 | Hall of Fame + affirmations | Done 2026-09-10 (§12): affirmation, before/after, anniversary. Voice memo dropped (§8.4) | done |
-| M4 | Wallpaper export | Done 2026-09-10 (§14): collage renderer, the phone's own canvas, share or save | done |
-| M5 | Daily nudge | Done 2026-09-11 (§15): subscription, schedule, the crypto by hand, the morning notification | done |
-| M6 | The review's four, and the late nudge | Done 2026-09-12 (§22): the nudge is urgent and reports its offset (D51), a sky tile takes a photograph (D52), the anniversary is the morning's nudge (D57), the heart weighs the pick and the wallpaper (D58), and the lock screen refreshes itself from a link that is its own key (D59, D60) | done |
-| M7 | Teď, a link, and the crop | Done 2026-09-12 (§23): the second reel of ten in his order (D53), a focal point and zoom per photograph (D54), a photograph from a pasted link (D56) | done |
+| #                                              | Milestone                             | Scope                                                                                                                                                                                                                                                                                          | Est.       |
+| ---------------------------------------------- | ------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------- |
+| M0                                             | Scaffold                              | Copy Prosper/Planner skeleton, media volume, deploy                                                                                                                                                                                                                                            | 1 weekend  |
+| M1                                             | Dreams + board                        | Done 2026-09-10 (§10). Categories followed (§13); the desktop grid dropped 2026-09-11 (D38)                                                                                                                                                                                                    | 2 weekends |
+| M2                                             | PWA offline                           | Folded into M1 on 2026-09-10 (D24): the photographs and the board cached, read-only offline                                                                                                                                                                                                    | done       |
+| **→ MVP live. Load real dreams. Use 2 weeks.** |                                       |                                                                                                                                                                                                                                                                                                |            |
+| M3                                             | Hall of Fame + affirmations           | Done 2026-09-10 (§12): affirmation, before/after, anniversary. Voice memo dropped (§8.4)                                                                                                                                                                                                       | done       |
+| M4                                             | Wallpaper export                      | Done 2026-09-10 (§14): collage renderer, the phone's own canvas, share or save                                                                                                                                                                                                                 | done       |
+| M5                                             | Daily nudge                           | Done 2026-09-11 (§15): subscription, schedule, the crypto by hand, the morning notification                                                                                                                                                                                                    | done       |
+| M6                                             | The review's four, and the late nudge | Done 2026-09-12 (§22): the nudge is urgent and reports its offset (D51), a sky tile takes a photograph (D52), the anniversary is the morning's nudge (D57), the heart weighs the pick and the wallpaper (D58), and the lock screen refreshes itself from a link that is its own key (D59, D60) | done       |
+| M7                                             | Teď, a link, and the crop             | Done 2026-09-12 (§23): the second reel of ten in his order (D53), a focal point and zoom per photograph (D54), a photograph from a pasted link (D56)                                                                                                                                           | done       |
 
 Smallest of the three apps. Good candidate to build **first** if you want a quick win, or **second** right after Planner MVP — both are one-month projects at weekend pace.
 
@@ -257,7 +267,7 @@ a small trophy, the way back to the dream itself (D29). It is also the
 morning's notification since §22.4, replacing the day's dream on that one
 morning (D57); the line stays, because the board is where it is read by
 somebody who never turned notifications on. The sentence's verb agrees
-with *sen* rather than with the person, because a board is a pairing code
+with _sen_ rather than with the person, because a board is a pairing code
 and the server has never been told anybody's gender (D21).
 
 **The voice memo is dropped** (§8.4, D31), which finishes M3: audio is the
@@ -383,7 +393,7 @@ milestone is closed and nothing in §3.1–§3.6 is outstanding.**
 It was never only a layout. The app is one column at most 34 rem wide, and
 above 35 rem it shows its edges as a hairline and is otherwise unchanged —
 `DESIGN.md`'s whole shape. A masonry board would be the only screen that is
-not that. But the deciding argument is what a grid *feels* like: §2 asks for
+not that. But the deciding argument is what a grid _feels_ like: §2 asks for
 a full-screen image per dream, and a cell in a wall of twelve is a
 thumbnail. The habituation D30 fixed by shuffling the reel comes back on a
 wall where everything is visible at once — nothing is ever next, so nothing
@@ -405,9 +415,9 @@ D37 left one question open — whether a hundred-dream board should prefetch
 every photograph at all. It should not, and now it does not (D39).
 
 **Measured rather than guessed:** a `screen` photograph is 197 kB, so a
-hundred dreams is about **20 MB**. That is nothing for a phone to *store* —
+hundred dreams is about **20 MB**. That is nothing for a phone to _store_ —
 the app is not going to run anybody out of room — and it is real money to
-*fetch* on a metered plan, in the minute somebody is looking at the first
+_fetch_ on a metered plan, in the minute somebody is looking at the first
 tile. Size matters for a second reason too: iOS drops a PWA's caches after a
 week unused (§7), and a fatter origin is evicted sooner.
 
@@ -419,8 +429,8 @@ grew would still arrive at the whole board in time, so there is a ceiling of
 40 photographs on what windowing keeps.
 
 And because a window narrows D24's promise that the board reads without a
-signal, it is a choice rather than a default, in Nastavení · Stahování: *co
-prolistuješ · na wifi · vždy celá*. Safari cannot tell wifi from mobile data,
+signal, it is a choice rather than a default, in Nastavení · Stahování: _co
+prolistuješ · na wifi · vždy celá_. Safari cannot tell wifi from mobile data,
 so on an iPhone the middle one is not offered and the screen says why.
 
 ---
@@ -455,7 +465,7 @@ after §16 and is still not a milestone.
 
 **The areas are Chtít · Být · Dělat** (D43). §8.3 was answered with Yager's
 nine and the answer held for a day of using them: placing a dream in one of
-nine is a decision you make *about* the dream, after writing it, and the
+nine is a decision you make _about_ the dream, after writing it, and the
 field is optional so the decision was mostly not made at all. Want, be, do is
 the same question asked in the second the dream is being written. The nine
 are gone from the column with it — the `Areas` migration clears every word
@@ -612,9 +622,9 @@ held it.
    late morning is a `grep` rather than a guess.
 3. D34's promise kept: when the app opens with a push subscription in the
    browser, the device sends its offset — `POST /api/v1/nudge/offset
-   { endpoint, utcOffsetMinutes }`, 204, which updates a row that exists and
+{ endpoint, utcOffsetMinutes }`, 204, which updates a row that exists and
    makes none. A separate verb rather than `PUT`, because `PUT` without a
-   mode today writes *daily at seven* over whatever the row said, and an
+   mode today writes _daily at seven_ over whatever the row said, and an
    open of the app must never move the time. It belongs with the other
    „when the app opens“ effects in `routes/+layout.svelte`.
 4. A test on the sender's headers through a fake `HttpMessageHandler` —
@@ -640,7 +650,7 @@ measurement, which §2's third principle keeps off the board.
 
 **The rule: a heart shortens the wait, and ten hearts halve it.** The pick
 stays what D25 made it — the dream already stamped today holds; a dream
-never shown comes before any that has — and where today the *oldest* wins,
+never shown comes before any that has — and where today the _oldest_ wins,
 the one with the highest **fuel** wins:
 
 ```
@@ -781,7 +791,7 @@ tapetu“ action that takes an image and aims it at the lock screen, the
 home screen or both, and a time-of-day automation can run it every morning;
 the wallpaper has to be a plain photo wallpaper, not a shuffle. It went
 missing in one iOS 16 beta and came back, so the check is whether it is in
-*his* Shortcuts today. If it is not, steps 1 and 3 below are still worth
+_his_ Shortcuts today. If it is not, steps 1 and 3 below are still worth
 building and step 2 waits.
 
 **1. Six without being told which.** `GET /api/v1/wallpaper` with no
@@ -797,10 +807,10 @@ from the same rule in TypeScript, so he sees which before he makes it.
 **2. A link the phone's automation can hold.** Shortcuts fetches a URL and
 sets the picture; it needs a way in. Two ways, one recommended:
 
-- *The device token as a header in the Shortcut.* No server work. But the
+- _The device token as a header in the Shortcut._ No server work. But the
   token leaves the app for a Shortcut typed by hand, and a typo is a
   wallpaper that silently never changes.
-- *A link that is its own key* — recommended. `boards.link_key`: 32 random
+- _A link that is its own key_ — recommended. `boards.link_key`: 32 random
   bytes, base64url, made on request, unique; `GET /api/v1/w/{linkKey}` is
   the collage for that board with no header, `width`, `height` and `offset`
   in the query. Made by `POST /api/v1/board/link`, revoked and replaced by
@@ -855,7 +865,7 @@ wants, so the two go together.
 ### 23.1 Two reels: Vše · Teď — done 2026-09-12
 
 **What.** The board gets a second reel, the ten dreams he is on now, the way
-Instagram has *For you* beside *Following*. A segmented pill `seg` at the
+Instagram has _For you_ beside _Following_. A segmented pill `seg` at the
 top-left of the floating chrome — **Vše · Teď** — and the areas rail under
 it on Vše only; ten dreams need no narrowing. The chrome still floats (D40)
 and adds no height to the scroll region, so rule 14 stands; `--band`
@@ -900,11 +910,11 @@ Three places, most used first.
 
 1. **The dream's own screen.** A „Teď“ pill beside the heart, on-state
    ember. On: `POST /api/v1/dreams/{id}/focus` puts it last (rank = highest
-   + 1) and answers the dream; off: `DELETE …/focus`, 204, and the ranks
-   above close the gap. Ten already: 409 with „Na teď máš už deset snů.
-   Některý nejdřív odeber.“ — the client says it on the tap from the board
-   it holds, the way `rules.ts` says things on the keystroke. Without a
-   signal the pill rests like every write.
+   - 1. and answers the dream; off: `DELETE …/focus`, 204, and the ranks
+        above close the gap. Ten already: 409 with „Na teď máš už deset snů.
+        Některý nejdřív odeber.“ — the client says it on the tap from the board
+        it holds, the way `rules.ts` says things on the keystroke. Without a
+        signal the pill rests like every write.
 2. **The order.** Teď's chrome carries a small `.round` pencil that opens
    `/ted`: a numbered `.card--list` of the ten in rank order, each row with
    ↑ ↓ and ×, and a „Přidat“ row that opens a sheet listing the rest of the
@@ -914,7 +924,7 @@ Three places, most used first.
    whole order — `PUT /api/v1/focus { dreamIds }`, ranks set atomically,
    a foreign or achieved id refused. `/ted` lights Nástěnka in `nav.ts`.
 3. **The Seznam** says „teď“ first in a line that has it — `teď · plním ·
-   Dělat · 2027` — so the list shows the ten and typing „teď“ finds them
+Dělat · 2027` — so the list shows the ten and typing „teď“ finds them
    (D49).
 
 **Files.** `Dreams/DreamEndpoints.cs` and `DreamService.cs` (add, remove,
@@ -930,7 +940,7 @@ estimated. Two things the plan had wrong. The partial **unique** index it
 asked for is not there — a unique index is checked per statement, so two
 dreams swapping places collide on the way past each other, and ten rows a
 board do not earn a two-phase write to prevent a tie. And §23.1 wanted an
-empty Teď to be its own page *and* `focus.ts` to fall back to Vše; the page
+empty Teď to be its own page _and_ `focus.ts` to fall back to Vše; the page
 won, because somebody who taps Teď is owed an answer about Teď.
 
 ### 23.3 A photograph from a link — done 2026-09-12
@@ -988,7 +998,7 @@ tag) with `ImageFetcherTests` through a fake handler and HTML fixtures,
 planned D59. **Took** one session. Pinterest's wall cost nothing in the end —
 the fence and the parsing were the work, and both were proved against the live
 internet rather than only against fixtures. Two things the plan had wrong: the
-read cap must *truncate* a page rather than refuse it, because a news page is
+read cap must _truncate_ a page rather than refuse it, because a news page is
 megabytes of script and refusing big pages means refusing most of the web; and
 the failure sentence has to be said inside the sheet, not handed to the screen
 underneath it where the sheet hides it.
@@ -1074,7 +1084,7 @@ to §25 in between, so §24.2 is D62, §24.5 is D63 and §24.6 is D64.
 day: how does one VPS carry that without a rack behind it, and what is the
 compromise between the bytes the server keeps and the picture the person
 sees? The answer is mostly arithmetic, and the arithmetic says the disk is
-not the problem. What is worth doing is what a photograph *is served as*,
+not the problem. What is worth doing is what a photograph _is served as_,
 which is where the phone can tell the difference.
 
 **What is true today.** The phone downscales to 2048 px and sends a JPEG at
@@ -1092,11 +1102,11 @@ per-picture scheme is different.
 **What one photograph costs**, measured on the VPS for `screen` (§17) and
 estimated for the rest at the same quality:
 
-| Rung | Longest edge | About |
-| --- | --- | --- |
-| thumb | 400 | 25 kB |
-| screen | 1280 | 200 kB |
-| full | 2048 | 500 kB |
+| Rung   | Longest edge | About  |
+| ------ | ------------ | ------ |
+| thumb  | 400          | 25 kB  |
+| screen | 1280         | 200 kB |
+| full   | 2048         | 500 kB |
 
 A board of a hundred dreams with two photographs each is about 150 MB. A
 200 GB disk holds a thousand such boards, and there are two. **Photographs
@@ -1206,7 +1216,7 @@ document, a screenshot — looked at on the phone at the rung they are for.
    resizes bicubic by default; Lanczos keeps edges, and a `GaussianSharpen`
    at a small sigma after the resize is what every photo host does to make
    a downscaled picture look like a photograph rather than a soft copy of
-   one. This is the one that most changes how 1280 *looks* for no bytes
+   one. This is the one that most changes how 1280 _looks_ for no bytes
    at all, and the one most worth looking at before keeping.
 
 **Not AVIF.** It would be a third smaller again, and ImageSharp does not
@@ -1241,7 +1251,7 @@ under it and nobody sees it go. It is a second `<img>` in the same
 absolutely-positioned frame, so it adds no height to the scroll region
 (rule 14). The sky stays for a dream that has no photograph at all — that
 is a different sentence (D52). The cache's prefetch asks for the thumb
-one tile *before* it asks for the screen of the same dream, so on a
+one tile _before_ it asks for the screen of the same dream, so on a
 metered window the shape arrives before the picture does.
 
 **What it costs.** 25 kB a dream on the wire, which is an eighth of the
@@ -1329,7 +1339,7 @@ back into the board, `noindex`, `no-store`. `Nový` replaces the key and
 
 **Why a page rather than a route of the app.** The person it is sent to has
 nothing — no app, no code, no account — and is reading a message. A message
-shows a preview only if the *server* put the picture in the head, and a
+shows a preview only if the _server_ put the picture in the head, and a
 client-rendered route of the PWA arrives at WhatsApp as a bare URL. So the
 API writes HTML for the first and only time, and renders its own preview card
 at 1200×630 as a JPEG, because the photographs on disk are WebP and some chat
@@ -1352,3 +1362,50 @@ it claims none now, because a broken picture looks broken where no picture
 looks deliberate.
 
 **What is left in this plan is §24's M8**, and nothing else.
+
+## 26. Three screens and four seams · 2026-09-12 — done
+
+Not a milestone: M8 closed the plan, and this is what a walk through the
+finished app turned up. Petr picked three of the five things the walk found
+on the screens and all four in the code.
+
+**On the screens.**
+
+1. **Smazat waits** (D65). It was one tap, no confirmation and no way back,
+   on a server that takes the photographs with the row. The request is held
+   for as long as the toast stands and „Vrátit“ cancels it; leaving the app
+   commits it with `keepalive`. Every list drops the dream at once.
+2. **The sky says it is working** (D52 amended). A photograph still being
+   resized looked exactly like a dream that has none, under a pill asking
+   for the one already on its way. The tile says „Zpracovává se…“ instead,
+   in the action row so it adds no height (rule 14).
+3. **The rung reads the connection** (D66). D62 gave 2048 to every 2×
+   screen, mobile data included, at 350 kB a swipe. Metered reads 1280; a
+   browser that will not say is still treated as free, so the iPhone keeps
+   the rung that was built for it.
+
+Two the walk found and Petr left: a jump from the reel to a dream in the
+Seznam, and the board's name on the Nastavení hub.
+
+**In the code.**
+
+4. **A page of the reel is a component.** `ui/ReelTile.svelte`, with every
+   style that makes a page exactly one scrollport tall — a scoped rule left
+   behind by its markup stops matching and says nothing, and
+   `.reel__fuel--lit svg` is the only thing on the board that shows a dream
+   has been fuelled since D58 took the count off the tile. The route is 860
+   lines, from 1023.
+5. **A control that writes wears the lock** (D67), rather than each screen
+   remembering `!connection.online`.
+6. **Components get tests** (D68): a second Vitest project in happy-dom,
+   nine on `ReelTile`.
+7. **The endpoints get tests** (D69): fifteen over a real request, through
+   `WebApplicationFactory<Program>`.
+
+**`app.css` at 1213 lines was left alone.** It is long because it is the one
+place the primitives live, and rule 2 is the reason for that; splitting it
+into files would mean a screen could declare a primitive of its own without
+anyone noticing, which is the thing the rule exists to stop. Long and
+single is the shape that was chosen.
+
+**Took** one session. **Decides** D65, D66, D67, D68, D69, and amends D52.
