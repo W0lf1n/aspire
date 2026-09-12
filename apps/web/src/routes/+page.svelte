@@ -50,14 +50,12 @@
 		reelOrder,
 		reelSequence,
 		shownToday,
-		tileLine,
 		type BoardFilter
 	} from '$lib/dreams/board';
 	import { deleting } from '$lib/dreams/deleting.svelte';
 	import { formatAnniversary } from '$lib/dreams/format';
 	import { focusDreams, readReel, saveReel, type Reel } from '$lib/dreams/focus';
-	import { photoComing, photoOf, photoStyle, reelUrl } from '$lib/dreams/photos';
-	import { CATEGORY_LABEL, FOCUS_MAX, STATUS_BADGE } from '$lib/dreams/rules';
+	import { CATEGORY_LABEL, FOCUS_MAX } from '$lib/dreams/rules';
 	import { photographDone, replacePhotograph } from '$lib/dreams/upload';
 	import { downscale } from '$lib/images/downscale';
 	import { aheadOf, prefetchOrder, rememberBoard } from '$lib/offline/cache';
@@ -71,6 +69,7 @@
 	} from '$lib/offline/policy';
 	import { connection } from '$lib/offline/status.svelte';
 	import Icon from '$lib/ui/Icon.svelte';
+	import ReelTile from '$lib/ui/ReelTile.svelte';
 	import TabBar from '$lib/ui/TabBar.svelte';
 	import { pager, type Pager } from '$lib/ui/pager';
 	import { toast } from '$lib/ui/toast.svelte';
@@ -449,119 +448,14 @@
 		-->
 		<section class="reel" style:--band="{band}px" bind:this={region} aria-label="Sny">
 			{#each shown as dream, index (dream.id)}
-				{@const photo = photoOf(dream, 'dreamt')}
-				{@const line = tileLine(dream)}
-				{@const busy = picking?.id === dream.id}
-				<!-- A photograph uploaded and not yet resized: the tile paints the
-				     sky for it exactly as it does for a dream that has none, and
-				     only this tells the two apart. -->
-				{@const coming = photoComing(dream, 'dreamt')}
-				<!-- The saved photograph, or the one being saved: a tile shows
-				     the picture from the moment it is picked (D52). -->
-				{@const src = (busy ? picking?.preview : null) ?? reelUrl(photo)}
-				<article class="dream reel__tile" class:dream--sky={!src}>
-					{#if src}
-						{#if photo && !busy}
-							<!-- The thumb, blurred, under the picture: the shape of
-							     the photograph arrives with its first kilobytes
-							     while the rest is on its way (D63). Absolute in the
-							     same frame, so it adds no height to the pager. -->
-							<img
-								class="dream__under"
-								src={photo.thumbUrl}
-								alt=""
-								aria-hidden="true"
-								style={photoStyle(photo)}
-								loading={Math.abs(index - at) <= 1 ? 'eager' : 'lazy'}
-								decoding="async"
-							/>
-						{/if}
-						<!-- The dream on the screen and its two neighbours are
-						     fetched and decoded before they are reached; a
-						     photograph that decodes mid-swipe is the one thing
-						     that can make a reel stutter. -->
-						<img
-							class="dream__img"
-							{src}
-							alt=""
-							style={busy ? '' : photoStyle(photo)}
-							loading={Math.abs(index - at) <= 1 ? 'eager' : 'lazy'}
-							decoding="async"
-						/>
-					{/if}
-					<span class="badge dream__tag">
-						{STATUS_BADGE[dream.status]}{dream.category
-							? ` · ${CATEGORY_LABEL[dream.category]}`
-							: ''}
-					</span>
-					<a
-						class="reel__open"
-						href={resolve('/sen/[id]', { id: dream.id })}
-						aria-label={dream.title}
-					></a>
-					<div class="dream__body reel__body">
-						<h2 class="dream__title">{dream.title}</h2>
-						{#if line.text}
-							<p class="dream__why" class:dream__say={line.said}>{line.text}</p>
-						{/if}
-						<div class="reel__acts">
-							<!--
-								The heart, and no number beside it (D58). The count is a
-								measurement, and a measurement on a photograph is the one
-								thing §2's third principle keeps off the board; it is read
-								on the dream's own screen, where the facts are. What the
-								tile says is the one bit that matters — whether this dream
-								has been fuelled at all — and the tap answers with the
-								haptic and a heart that fills.
-							-->
-							<button
-								type="button"
-								class="btn btn--photo reel__fuel"
-								class:reel__fuel--lit={dream.likes > 0}
-								onclick={() => like(dream)}
-								disabled={!connection.online}
-								aria-label={`Palivo: ${dream.likes}`}
-							>
-								<Icon name="heart" size={18} stroke={2} />
-							</button>
-
-							{#if !photo && coming && !busy}
-								<!--
-									The photograph is on the server and its sizes are
-									being made. Without this the sky reads as an upload
-									that failed, and the pill beside it invites the same
-									photograph to be sent again (D52 amended). It sits
-									in this row rather than above it, so it adds no
-									height to the scrollport and rule 14 holds.
-								-->
-								<span class="btn btn--photo reel__pick reel__pick--busy">
-									<Icon name="camera" size={18} stroke={1.8} />
-									Zpracovává se…
-								</span>
-							{:else if !photo}
-								<!--
-									A dream written as a sentence in the Seznam has no
-									picture, and this is the screen that notices: the
-									pill is on the tile rather than two screens away
-									(D52). It is gone the moment there is a photograph
-									— replacing one is the dream's own screen, where
-									there is room to look at it first.
-								-->
-								<label class="btn btn--photo reel__pick" class:reel__pick--busy={busy}>
-									<Icon name="camera" size={18} stroke={1.8} />
-									{busy ? 'Ukládám…' : 'Přidat fotku'}
-									<input
-										class="reel__file"
-										type="file"
-										accept="image/*"
-										onchange={(event) => takePhoto(dream, event)}
-										disabled={!canPick}
-									/>
-								</label>
-							{/if}
-						</div>
-					</div>
-				</article>
+				<ReelTile
+					{dream}
+					eager={Math.abs(index - at) <= 1}
+					preview={picking?.id === dream.id ? picking.preview : null}
+					{canPick}
+					onlike={like}
+					onpick={takePhoto}
+				/>
 			{/each}
 		</section>
 
@@ -769,6 +663,10 @@
 	 * unevenly, and owns the wheel and the arrow keys outright. Nothing sets
 	 * `scroll-behavior`: the pager animates the offset itself, on the house
 	 * curve, and a second opinion from CSS would fight it.
+	 *
+	 * A page of it is `ui/ReelTile.svelte`, and so are the rules that make one
+	 * exactly this tall: a scoped rule left behind by its markup is a rule
+	 * that stops matching and says nothing.
 	 */
 	.reel {
 		flex: 1;
@@ -779,91 +677,6 @@
 		/* Vertical only, so a sideways drag is never half a page turn — with
 		   pinch kept, because that is somebody's way of reading. */
 		touch-action: pan-y pinch-zoom;
-	}
-
-	/**
-	 * A page: the screen, edge to edge. The print's ratio, radius and shadow
-	 * all go, and so does the gap that used to be between two of them — a
-	 * reel has no ground to show a dream against, and a seam of it passing by
-	 * mid-swipe is the tell that this is a list rather than a reel.
-	 */
-	.reel__tile {
-		aspect-ratio: auto;
-		height: 100%;
-		border-radius: 0;
-		box-shadow: none;
-		scroll-snap-align: start;
-		scroll-snap-stop: always;
-	}
-
-	/* A screen's worth of photograph needs the longer ramp: the words sit
-	   clear of the bar, a sixth of the way up, where `--scrim` has barely
-	   begun (tokens.css). */
-	.reel__tile::after {
-		background: var(--scrim-tall);
-	}
-
-	/* The status stands under the floating chrome rather than behind it. The
-	   chrome measures itself and says how tall it is; the fallback is what it
-	   measures when it is only the rail, so the first frame is already right
-	   on the board that has no anniversary — which is every board but one. */
-	.reel__tile .dream__tag {
-		top: calc(var(--band, 4.25rem) + var(--space-2));
-	}
-
-	.reel__open {
-		position: absolute;
-		inset: 0;
-		z-index: 1;
-	}
-
-	/* The words let the tap through to the link; only the heart takes it.
-	   Their foot clears the floating bar, by the distance every page's last
-	   row clears it. */
-	.reel__body {
-		z-index: 2;
-		padding-bottom: var(--page-end);
-		pointer-events: none;
-	}
-
-	/* The tile's controls: the heart, and the photo pill on a tile that has no
-	   photograph yet. A row, because they are the same kind of thing — the two
-	   things a dream can be given from the reel — and they wrap rather than
-	   squeeze on a narrow phone. Only this row takes a tap; the words above it
-	   fall through to the dream. */
-	.reel__acts {
-		display: flex;
-		flex-wrap: wrap;
-		gap: var(--space-2);
-		margin-top: var(--space-2);
-		pointer-events: auto;
-	}
-
-	/* The heart alone is a circle, not a pill with nothing in it. */
-	.reel__fuel {
-		width: 40px;
-		padding: 0;
-	}
-
-	/* Fuelled at least once: the heart fills. White rather than ember, because
-	   the accent stays off a photograph and the interface steps back there
-	   (rule 4) — the ember heart is on the dream's own screen. */
-	.reel__fuel--lit :global(svg) {
-		fill: var(--photo-ink);
-	}
-
-	.reel__pick--busy {
-		opacity: 0.6;
-	}
-
-	/* The real input, kept for the picker it opens and hidden from the eye;
-	   the label is the pill, as it is in `PhotoPicker`. */
-	.reel__file {
-		position: absolute;
-		width: 1px;
-		height: 1px;
-		opacity: 0;
-		pointer-events: none;
 	}
 
 	/* ── the chrome, floating ──────────────────────────────────────────── */
