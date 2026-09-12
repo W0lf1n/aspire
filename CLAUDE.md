@@ -223,6 +223,13 @@ old file answers "no such column". Delete it and start the API again.
 **A Bash heredoc over about 8 kB is cut short on this machine** and fails
 with an unmatched quote. Write large files with the Write tool.
 
+**Czech in a `curl -d` argument does not survive this machine's shell.**
+`-d '{"why":"Chci vidět…"}'` reaches the API as broken UTF-8 and comes back
+as `The JSON value could not be converted … Path: $.why`, which reads like a
+contract mismatch and is an encoding one. Write the body with the Write tool
+and send it as `--data-binary @file`. Every payload this app takes has
+diacritics in it, so this is most of them.
+
 **The Browser pane produces no frames while it is hidden**, and a scroll
 event is dispatched by the frame loop — so a `scrollTop` set from the console
 fires no `scroll`, no `IntersectionObserver` and no `requestAnimationFrame`,
