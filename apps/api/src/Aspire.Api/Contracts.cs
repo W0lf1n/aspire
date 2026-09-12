@@ -45,6 +45,17 @@ public sealed record NudgeInput(
     int? UtcOffsetMinutes);
 
 /// <summary>
+/// Where a device is now, sent every time the app opens (D34, D51).
+///
+/// Its own verb rather than a <c>PUT</c> of the whole subscription: a
+/// <c>PUT</c> carrying no mode and no time writes „daily at seven“ over
+/// whatever the row said, and opening the app must never move the hour the
+/// person chose. This touches the offset and nothing else, and a device with
+/// no subscription is a request that changes nothing.
+/// </summary>
+public sealed record NudgeOffsetInput(string? Endpoint, int? UtcOffsetMinutes);
+
+/// <summary>
 /// A device's standing nudge, as it reads it back. No keys come out: the
 /// server was told them and has no reason to say them again.
 /// </summary>

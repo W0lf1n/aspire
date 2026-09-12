@@ -612,6 +612,39 @@ cd /opt/aspire/deploy && docker compose exec -u root api chown -R 1654:1654 /dat
 The photographs already lost are lost: their rows were deleted, so those
 dreams need the picture picked again.
 
+**The morning nudge arrived late.** Find out whether the server was late or
+the phone was. A sent nudge stamps the dream it named, so the stamp is the
+server's own record of when it went out:
+
+```bash
+cd /opt/aspire/deploy && docker compose exec db psql -U aspire -d aspire -c 'select title, last_shown_at from dreams order by last_shown_at desc nulls last limit 3;'
+```
+
+```bash
+cd /opt/aspire/deploy && docker compose exec db psql -U aspire -d aspire -c 'select mode, at_minutes, utc_offset_minutes, last_sent_on from push_subscriptions;'
+```
+
+The stamp is UTC and `utc_offset_minutes` converts it: 120 in summer here, so
+`05:00:02Z` is two minutes past seven and the server was on time. Then the
+delay was the push service holding the message, which is what `Urgency: high`
+is for (D51) — before that fix every nudge went out at `normal`, and one sat
+in Apple's queue for 77 minutes. Since D51 each send also logs a line:
+
+```bash
+cd /opt/aspire/deploy && docker compose logs api --tail=400 | grep Nudged
+```
+
+A stamp *later* than the chosen hour means the worker itself was late, which
+it is allowed to be for two hours (`NudgeSchedule.GraceMinutes`) — a deploy
+over breakfast still sends, at the first tick after it comes back:
+
+```bash
+cd /opt/aspire/deploy && docker inspect -f '{{.State.StartedAt}}' $(docker compose ps -q api)
+```
+
+Nothing arriving at all, with a stamp that moved, is the phone: a Focus, a
+scheduled summary, or notifications off for the installed app.
+
 ---
 
 ## What this deliberately does not do

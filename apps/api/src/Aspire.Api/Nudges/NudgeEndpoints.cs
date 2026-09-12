@@ -65,6 +65,28 @@ public static class NudgeEndpoints
             return Results.Ok(NudgeDto.From(await nudges.SaveAsync(device.BoardId, input, ct)));
         });
 
+        // Where the device is, every time the app opens (D34's promise, kept
+        // by D51). It moves the offset on a subscription that exists and
+        // makes none: a device that has not asked to be nudged gets the same
+        // 204 as one that has, because whether this phone wants a morning
+        // dream is not something a request like this should be able to learn.
+        app.MapPost("/api/v1/nudge/offset", async (
+            NudgeOffsetInput input,
+            HttpContext http,
+            DeviceAuth auth,
+            NudgeService nudges,
+            CancellationToken ct) =>
+        {
+            var device = await auth.ResolveAsync(http.Request.Headers.Authorization, ct);
+            if (device is null) return Results.Unauthorized();
+
+            if (NudgeService.Problem(input) is { } problem) return Results.Problem(problem, statusCode: 400);
+
+            await nudges.UpdateOffsetAsync(
+                device.BoardId, input.Endpoint!.Trim(), input.UtcOffsetMinutes!.Value, ct);
+            return Results.NoContent();
+        });
+
         app.MapDelete("/api/v1/nudge", async (
             string? endpoint,
             HttpContext http,

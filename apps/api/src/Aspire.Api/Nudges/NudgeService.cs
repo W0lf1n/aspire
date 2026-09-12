@@ -45,8 +45,36 @@ public sealed class NudgeService(AppDbContext db)
         return null;
     }
 
+    /// <summary>The sentence for a bad offset report, or null when it is fine.</summary>
+    public static string? Problem(NudgeOffsetInput input)
+    {
+        if (string.IsNullOrWhiteSpace(input.Endpoint)) return "Prohlížeč nedal adresu pro upozornění.";
+        if (input.Endpoint.Length > PushSubscription.EndpointMaxLength)
+        {
+            return "Adresa pro upozornění je moc dlouhá.";
+        }
+
+        if (input.UtcOffsetMinutes is null || !NudgeSchedule.IsUtcOffset(input.UtcOffsetMinutes.Value))
+        {
+            return "Tohle časové pásmo neznám.";
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// This device's subscription as it stands, for reading only.
+    ///
+    /// Untracked, for <c>DueAsync</c>'s reason (D34): <c>MarkSentAsync</c> and
+    /// <c>UpdateOffsetAsync</c> both write with <c>ExecuteUpdate</c>, which
+    /// goes round the change tracker, so a tracked read after one of them
+    /// hands back the row as it was before. Nothing mutates what comes out of
+    /// here — <c>SaveAsync</c> does its own tracked query for that.
+    /// </summary>
     public Task<PushSubscription?> FindAsync(string boardId, string endpoint, CancellationToken ct = default) =>
-        db.PushSubscriptions.FirstOrDefaultAsync(s => s.BoardId == boardId && s.Endpoint == endpoint, ct);
+        db.PushSubscriptions
+            .AsNoTracking()
+            .FirstOrDefaultAsync(s => s.BoardId == boardId && s.Endpoint == endpoint, ct);
 
     /// <summary>
     /// The device's subscription, made or brought up to date. The endpoint is
@@ -85,6 +113,25 @@ public sealed class NudgeService(AppDbContext db)
 
         await db.SaveChangesAsync(ct);
         return subscription;
+    }
+
+    /// <summary>
+    /// This device has moved, or the clocks have: the offset brought up to
+    /// date and nothing else touched (D51).
+    ///
+    /// D34 promised the device would say where it is every time the app
+    /// opens, and until now only moving the switch in Upozornění said it — so
+    /// a subscription made in summer nudged an hour out all winter. False
+    /// when this board has no such subscription, which is not a failure: a
+    /// device that has never asked to be nudged has no offset to keep.
+    /// </summary>
+    public async Task<bool> UpdateOffsetAsync(
+        string boardId, string endpoint, int utcOffsetMinutes, CancellationToken ct = default)
+    {
+        var changed = await db.PushSubscriptions
+            .Where(s => s.BoardId == boardId && s.Endpoint == endpoint)
+            .ExecuteUpdateAsync(set => set.SetProperty(s => s.UtcOffsetMinutes, utcOffsetMinutes), ct);
+        return changed > 0;
     }
 
     /// <summary>Off is gone: the row goes, and so does anything to send to it.</summary>

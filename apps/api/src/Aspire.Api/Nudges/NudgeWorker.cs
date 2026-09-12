@@ -114,6 +114,16 @@ public sealed class NudgeWorker(
                     // they tap it, and tomorrow's nudge is a different one.
                     await dreams.MarkShownAsync(subscription.BoardId, dream.Id, ct);
                     await nudges.MarkSentAsync(subscription, utcNow, ct);
+                    // One line per nudge, with the clock the person reads: a
+                    // send used to leave no trace at all, so a notification
+                    // that arrived late could not be told from one that was
+                    // sent late (D51). The endpoint is left out — it is the
+                    // capability that can push to the phone.
+                    log.LogInformation(
+                        "Nudged board {Board} with dream {Dream} at {Local:HH:mm} local.",
+                        subscription.BoardId,
+                        dream.Id,
+                        NudgeSchedule.LocalNow(utcNow, subscription.UtcOffsetMinutes));
                     break;
 
                 case PushResult.Gone:

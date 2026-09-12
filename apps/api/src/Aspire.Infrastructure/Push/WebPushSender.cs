@@ -43,6 +43,21 @@ public sealed class WebPushSender(HttpClient http)
     /// </summary>
     private static readonly TimeSpan TokenLife = TimeSpan.FromHours(12);
 
+    /// <summary>
+    /// How soon the push service should wake the phone (RFC 8030 §5.3).
+    ///
+    /// <c>high</c>, not <c>normal</c>: a push service may hold anything below
+    /// it until the device is convenient to reach, and Apple's carries web
+    /// push through the same queue as app notifications, where the lower
+    /// priority is the one a sleeping phone may defer. On 2026-09-12 a nudge
+    /// set for 07:00 was sent at 07:00:02 and arrived at 08:17 — the server
+    /// was on time and the hour was spent in that queue. The specification's
+    /// own example of <c>high</c> is a time-sensitive alert, which is what a
+    /// notification at a minute the person chose is; nothing else is ever
+    /// sent from here, so there is nothing for it to crowd out (D51).
+    /// </summary>
+    private const string Urgency = "high";
+
     public async Task<PushResult> SendAsync(
         string endpoint,
         string p256dh,
@@ -81,7 +96,7 @@ public sealed class WebPushSender(HttpClient http)
                 DateTimeOffset.UtcNow.Add(TokenLife)));
         request.Headers.TryAddWithoutValidation("TTL", TimeToLiveSeconds.ToString());
         // The phone is asleep; waking it is the whole point.
-        request.Headers.TryAddWithoutValidation("Urgency", "normal");
+        request.Headers.TryAddWithoutValidation("Urgency", Urgency);
 
         try
         {

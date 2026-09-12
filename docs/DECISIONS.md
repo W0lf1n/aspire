@@ -1431,3 +1431,56 @@ takes one press.
 - **The screens that have no board do not check.** Přidat and Upravit fetch
   it alongside their own work and a fetch that fails is a form that says
   nothing, never a form that cannot be used.
+
+---
+
+## M6 · 2026-09-12 — the nudge that came late
+
+### D51 — A nudge is urgent, says so in the log, and the device reports where it is on every open
+
+A nudge set for 07:00 arrived at 08:17. The server was not at fault and the
+clock was not either: the dream it named was stamped `2026-09-12 05:00:02Z`,
+which on this board's +120 offset is two minutes past seven. The hour and a
+quarter was spent in the push service's queue, because of one word.
+
+- **`Urgency: high`, not `normal`.** RFC 8030 §5.3 lets a push service hold
+  anything below `high` until the device is convenient to reach, and Apple
+  carries web push through the same queue as app notifications, where the
+  lower priority is the one a sleeping phone may defer. The header had always
+  said `normal`, under a comment arguing the opposite — „the phone is asleep;
+  waking it is the whole point“. The specification's own example of `high` is
+  a time-sensitive alert, which is exactly a notification at a minute the
+  person chose; this server sends nothing else, so there is nothing for it to
+  crowd out and no budget it can spend.
+- **A sent nudge writes a line.** Only failures were logged, so a notification
+  that arrived late could not be told apart from one that was sent late — the
+  diagnosis had to go through `last_shown_at` in `psql`, which only works
+  because the stamp happens to exist (D36). The line carries the board, the
+  dream and the device's own local time. Not the endpoint: that is the
+  capability to push to somebody's phone, and it does not belong in a log.
+- **The envelope has a test now.** `WebPushSenderTests` drives the sender
+  through a fake handler and asserts the four headers and the status mapping.
+  The crypto was checked against RFC 8291's own numbers from the first day
+  (D35) and the envelope around it was checked by nothing, which is where the
+  only delivery bug so far lived.
+- **`POST /api/v1/nudge/offset`, on every open and every resume.** D34
+  promised that „the device sends it again every time the app opens, so it is
+  right the morning after a clock change“, and the code never did: the offset
+  went only when the switch in Upozornění was moved. A subscription made in
+  summer would have nudged an hour out all winter. It is its own verb rather
+  than a `PUT` of the subscription, because a `PUT` carrying no mode and no
+  time writes „daily at seven“ over whatever the row said — opening the app
+  must never move the hour. A resume counts as an open: a phone is rarely
+  loaded cold, and the morning after the clocks move is a resume.
+- **It answers 204 whether or not there was a row.** A device that has never
+  asked to be nudged gets the same answer as one that has, so the endpoint
+  cannot be used to find out whether this phone wants a morning dream.
+- **`FindAsync` reads untracked now**, which the offset's own test caught:
+  `MarkSentAsync` and `UpdateOffsetAsync` both write with `ExecuteUpdate`,
+  which goes round the change tracker, so a tracked read after either one
+  hands back the row as it was before. D34 had already learned this about
+  `DueAsync` and the lesson had not reached the neighbouring method.
+
+What this does not change: the two-hour grace window stays (D34). A deploy
+over breakfast should still send the morning's dream, and the window is why
+the 11th's nudge went at 09:11 rather than not at all.

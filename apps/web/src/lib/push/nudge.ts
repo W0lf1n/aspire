@@ -8,7 +8,7 @@
  */
 
 import type { NudgeInput, NudgeMode, NudgeSettings } from '@aspire/contracts';
-import { nudgeKey, readNudge, saveNudge } from '$lib/api/client';
+import { nudgeKey, readNudge, saveNudge, saveNudgeOffset } from '$lib/api/client';
 import { outOfReach } from './schedule';
 
 /** Whether this browser can do notifications at all. */
@@ -59,6 +59,38 @@ async function sends(): Promise<boolean | null> {
 async function existing(): Promise<PushSubscription | null> {
 	const registration = await navigator.serviceWorker.ready;
 	return registration.pushManager.getSubscription();
+}
+
+/**
+ * Say where this device is, every time the app opens (D51).
+ *
+ * D34 promised exactly this and the code did not keep it: the offset was sent
+ * only when the switch in Upozornění was moved, so a subscription made in
+ * summer nudged an hour out all winter, and a phone that had flown somewhere
+ * nudged by the time zone it left. An offset needs no zone database on either
+ * side; it only needs saying again.
+ *
+ * Quiet about everything. A device that never asked to be nudged has nothing
+ * to report, and a server that cannot be reached will be asked again the next
+ * time the app opens — neither is worth a sentence on a screen nobody opened
+ * for this.
+ */
+export async function reportOffset(): Promise<void> {
+	if (!supported()) return;
+
+	try {
+		const subscription = await existing();
+		if (!subscription) return;
+
+		await saveNudgeOffset({
+			endpoint: subscription.endpoint,
+			// Minutes *ahead* of UTC, the opposite sign to what the browser gives.
+			utcOffsetMinutes: -new Date().getTimezoneOffset()
+		});
+	} catch {
+		// Offline, unpaired, or a server that has forgotten this device. The
+		// next open says it again.
+	}
 }
 
 /** What the server has for this device: off until it says otherwise. */

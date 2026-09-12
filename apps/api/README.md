@@ -25,6 +25,7 @@ more than store rows.
 | `GET`    | `/api/v1/nudge/key` | The VAPID public key, or empty when the server has no pair. No auth |
 | `GET`    | `/api/v1/nudge` | `?endpoint=`; this device's `{ mode, atMinutes }` |
 | `PUT`    | `/api/v1/nudge` | `NudgeInput` in; `off` deletes the subscription. 503 with no key pair |
+| `POST`   | `/api/v1/nudge/offset` | `{ endpoint, utcOffsetMinutes }`; moves the offset on a subscription that exists, makes none, 204. Sent on every open and resume (D51) |
 | `DELETE` | `/api/v1/nudge` | `?endpoint=`; 204 |
 | `GET`    | `/api/v1/wallpaper` | `?dreams=<id,…>&width&height`; the lock-screen collage as JPEG, made on request and kept nowhere (D33) |
 

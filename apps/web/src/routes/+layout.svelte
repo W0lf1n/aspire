@@ -5,6 +5,7 @@
 	import { syncThemeColor } from '$lib/ui/theme';
 	import { applyUpdate, watchUpdates } from '$lib/ui/update.svelte';
 	import { health } from '$lib/api/client';
+	import { reportOffset } from '$lib/push/nudge';
 	import { watchConnection } from '$lib/offline/status.svelte';
 	import type { LayoutProps } from './$types';
 
@@ -35,6 +36,24 @@
 		const stop = watchConnection();
 		void health().catch(() => undefined);
 		return stop;
+	});
+
+	/**
+	 * Where this device is, told to the server on every open and every resume
+	 * (D51). A phone is the same subscription in a new time zone after a
+	 * flight and after every clock change, and the offset is the only thing
+	 * the morning nudge has to go on (D34).
+	 *
+	 * A resume counts as an open: on a phone the app is rarely loaded cold,
+	 * and the morning after the clocks move is exactly a resume.
+	 */
+	$effect(() => {
+		void reportOffset();
+		const onResume = () => {
+			if (document.visibilityState === 'visible') void reportOffset();
+		};
+		document.addEventListener('visibilitychange', onResume);
+		return () => document.removeEventListener('visibilitychange', onResume);
 	});
 
 	/**

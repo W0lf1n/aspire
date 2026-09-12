@@ -146,4 +146,71 @@ public sealed class NudgeServiceTests : IDisposable
         Assert.Equal("Tohle časové pásmo neznám.", NudgeService.Problem(Input(offset: 15 * 60)));
         Assert.Null(NudgeService.Problem(Input()));
     }
+
+    // ── the offset, reported every time the app opens (D51) ─────────────────
+
+    [Fact]
+    public async Task Opening_the_app_somewhere_else_moves_the_offset_and_nothing_else()
+    {
+        await _nudges.SaveAsync(BoardA, Input(mode: NudgeMode.Weekdays, at: 6 * 60, offset: 120));
+
+        Assert.True(await _nudges.UpdateOffsetAsync(BoardA, Endpoint, -180));
+
+        var row = await _nudges.FindAsync(BoardA, Endpoint);
+        Assert.NotNull(row);
+        Assert.Equal(-180, row.UtcOffsetMinutes);
+        // The hour and the mode are the person's; a report of where the phone
+        // is must never overwrite either of them.
+        Assert.Equal(6 * 60, row.AtMinutes);
+        Assert.Equal(NudgeMode.Weekdays, row.Mode);
+    }
+
+    [Fact]
+    public async Task A_moved_offset_decides_the_next_morning()
+    {
+        // Subscribed in Prague, wanting seven: at 05:00 UTC it is owed one.
+        await _nudges.SaveAsync(BoardA, Input(offset: 120));
+        var utcNow = new DateTimeOffset(2026, 9, 12, 5, 0, 0, TimeSpan.Zero);
+        Assert.Single(await _nudges.DueAsync(utcNow));
+
+        // The same phone opens the app in Lisbon. Seven there is not yet.
+        await _nudges.UpdateOffsetAsync(BoardA, Endpoint, -180);
+
+        Assert.Empty(await _nudges.DueAsync(utcNow));
+        Assert.Single(await _nudges.DueAsync(utcNow.AddHours(5)));
+    }
+
+    [Fact]
+    public async Task A_device_that_never_asked_to_be_nudged_has_no_offset_to_keep()
+    {
+        Assert.False(await _nudges.UpdateOffsetAsync(BoardA, Endpoint, 60));
+        Assert.Empty(await _db.PushSubscriptions.ToListAsync());
+    }
+
+    [Fact]
+    public async Task One_board_cannot_move_another_boards_offset()
+    {
+        await _nudges.SaveAsync(BoardA, Input(offset: 120));
+
+        Assert.False(await _nudges.UpdateOffsetAsync(BoardB, Endpoint, -180));
+
+        var row = await _nudges.FindAsync(BoardA, Endpoint);
+        Assert.Equal(120, row!.UtcOffsetMinutes);
+    }
+
+    [Theory]
+    [InlineData(null, 120, "Prohlížeč nedal adresu pro upozornění.")]
+    [InlineData(Endpoint, null, "Tohle časové pásmo neznám.")]
+    [InlineData(Endpoint, 15 * 60, "Tohle časové pásmo neznám.")]
+    public void An_offset_report_that_makes_no_sense_earns_a_sentence(
+        string? endpoint, int? offset, string expected)
+    {
+        Assert.Equal(expected, NudgeService.Problem(new NudgeOffsetInput(endpoint, offset)));
+    }
+
+    [Fact]
+    public void An_offset_report_that_makes_sense_earns_nothing()
+    {
+        Assert.Null(NudgeService.Problem(new NudgeOffsetInput(Endpoint, -180)));
+    }
 }

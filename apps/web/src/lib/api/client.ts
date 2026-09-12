@@ -15,6 +15,7 @@ import type {
 	DreamInput,
 	HealthResponse,
 	NudgeInput,
+	NudgeOffsetInput,
 	NudgeSettings,
 	PushKeyResponse,
 	PairRequest,
@@ -183,6 +184,14 @@ export function readNudge(endpoint: string | null): Promise<NudgeSettings> {
 /** Set it, or turn it off — `off` deletes the subscription entirely. */
 export function saveNudge(input: NudgeInput): Promise<NudgeSettings> {
 	return call<NudgeSettings>('/nudge', { method: 'PUT', body: JSON.stringify(input) });
+}
+
+/**
+ * Where this device is, on a subscription it already has (D51). Its own verb,
+ * so an open of the app cannot move the hour the person chose.
+ */
+export function saveNudgeOffset(input: NudgeOffsetInput): Promise<void> {
+	return call<void>('/nudge/offset', { method: 'POST', body: JSON.stringify(input) });
 }
 
 export function deleteImage(dreamId: string, imageId: string): Promise<void> {

@@ -129,6 +129,20 @@ export interface NudgeInput extends NudgeSettings {
 	utcOffsetMinutes: number;
 }
 
+/**
+ * Where a device is now, sent every time the app opens (D34, D51).
+ *
+ * Its own verb rather than writing the whole subscription again: a `PUT` with
+ * no mode and no time would write „daily at seven“ over whatever the person
+ * chose, and opening the app must never move the hour. This carries the
+ * offset and nothing else.
+ */
+export interface NudgeOffsetInput {
+	endpoint: string;
+	/** Minutes ahead of UTC, the opposite sign to `getTimezoneOffset`. */
+	utcOffsetMinutes: number;
+}
+
 /** The VAPID public key, or empty when the server cannot send at all. */
 export interface PushKeyResponse {
 	publicKey: string;
