@@ -116,14 +116,6 @@ function connection(): NetworkInformation | undefined {
 	return (navigator as Navigator & { connection?: NetworkInformation }).connection;
 }
 
-/**
- * Whether the person has asked the browser to spend less — Save Data, where
- * the browser will say. The reel reads the smaller rung then (D62).
- */
-export function savesData(): boolean {
-	return connection()?.saveData === true;
-}
-
 /** Whether this browser can tell wifi from mobile data at all. */
 export function detects(): boolean {
 	return typeof connection()?.type === 'string';

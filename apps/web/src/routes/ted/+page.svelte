@@ -20,6 +20,7 @@
 	import { resolve } from '$app/paths';
 	import type { Dream } from '@aspire/contracts';
 	import { listBoard, saveFocus } from '$lib/api/client';
+	import { deleting } from '$lib/dreams/deleting.svelte';
 	import { describeError } from '$lib/api/errors';
 	import { reelDreams } from '$lib/dreams/board';
 	import { focusDreams, focusFullSentence } from '$lib/dreams/focus';
@@ -47,7 +48,10 @@
 
 	let busy = $state(false);
 
-	const byId = $derived(new Map(dreams.map((dream) => [dream.id, dream])));
+	/** The board less whatever is inside its undo window (D65). */
+	const standing = $derived(dreams.filter((one) => !deleting.has(one.id)));
+
+	const byId = $derived(new Map(standing.map((dream) => [dream.id, dream])));
 
 	/** The ten, as dreams, in the order being edited. */
 	const rows = $derived(
@@ -55,7 +59,7 @@
 	);
 
 	/** Everything still ahead that is not already on Teď. */
-	const candidates = $derived(reelDreams(dreams).filter((dream) => !chosen.includes(dream.id)));
+	const candidates = $derived(reelDreams(standing).filter((dream) => !chosen.includes(dream.id)));
 	const offered = $derived(searchDreams(candidates, query));
 	const searchable = $derived(candidates.length >= SEARCH_FROM);
 

@@ -1,6 +1,14 @@
 import { describe, expect, it } from 'vitest';
 import type { Dream, DreamImage, DreamImageKind } from '@aspire/contracts';
-import { photoOf, photoStyle, photosOf, photosToReplace, reelUrl, rungFor } from './photos';
+import {
+	photoComing,
+	photoOf,
+	photoStyle,
+	photosOf,
+	photosToReplace,
+	reelUrl,
+	rungFor
+} from './photos';
 
 function image(id: string, kind: DreamImageKind, ready = true): DreamImage {
 	return {
@@ -98,29 +106,58 @@ describe('photoStyle', () => {
 });
 
 describe('rungFor', () => {
-	it('is the large rung on a phone, which is 2× or 3×', () => {
-		expect(rungFor({ dpr: 2, saveData: false })).toBe('large');
-		expect(rungFor({ dpr: 3, saveData: false })).toBe('large');
+	it('is the large rung on a phone on wifi, which is 2× or 3×', () => {
+		expect(rungFor({ dpr: 2, metered: false })).toBe('large');
+		expect(rungFor({ dpr: 3, metered: false })).toBe('large');
 	});
 
 	it('is the screen rung on a laptop at 1×, where 1280 is already more than the pixels', () => {
-		expect(rungFor({ dpr: 1, saveData: false })).toBe('screen');
-		expect(rungFor({ dpr: 1.5, saveData: false })).toBe('screen');
+		expect(rungFor({ dpr: 1, metered: false })).toBe('screen');
+		expect(rungFor({ dpr: 1.5, metered: false })).toBe('screen');
 	});
 
-	it('is the screen rung wherever the person asked the browser to save data', () => {
-		expect(rungFor({ dpr: 3, saveData: true })).toBe('screen');
+	it('is the screen rung on mobile data, whatever the screen (D66)', () => {
+		expect(rungFor({ dpr: 3, metered: true })).toBe('screen');
+		expect(rungFor({ dpr: 2, metered: true })).toBe('screen');
+	});
+
+	it('is the large rung where the browser will not say, which is every iPhone', () => {
+		// Safari has no Network Information API, and the phone this app is
+		// built for must still get the rung that was built for it.
+		expect(rungFor({ dpr: 3, metered: null })).toBe('large');
 	});
 });
 
 describe('reelUrl', () => {
 	it('is the URL of the rung the screen reads', () => {
 		const photo = image('d', 'dreamt');
-		expect(reelUrl(photo, { dpr: 3, saveData: false })).toBe('/media/d/d/full.webp');
-		expect(reelUrl(photo, { dpr: 1, saveData: false })).toBe('/media/d/d/screen.webp');
+		expect(reelUrl(photo, { dpr: 3, metered: false })).toBe('/media/d/d/full.webp');
+		expect(reelUrl(photo, { dpr: 1, metered: false })).toBe('/media/d/d/screen.webp');
+		expect(reelUrl(photo, { dpr: 3, metered: true })).toBe('/media/d/d/screen.webp');
 	});
 
 	it('is nothing for no photograph', () => {
-		expect(reelUrl(null, { dpr: 3, saveData: false })).toBeNull();
+		expect(reelUrl(null, { dpr: 3, metered: false })).toBeNull();
+	});
+});
+
+describe('photoComing', () => {
+	it('is true for a row whose sizes are not made yet', () => {
+		expect(photoComing(dream([image('d', 'dreamt', false)]), 'dreamt')).toBe(true);
+	});
+
+	it('is false once the sizes are there, which is when the tile can show it', () => {
+		expect(photoComing(dream([image('d', 'dreamt')]), 'dreamt')).toBe(false);
+	});
+
+	it('is false for a dream with no photograph at all — the sky that wants one (D52)', () => {
+		expect(photoComing(dream([]), 'dreamt')).toBe(false);
+	});
+
+	it('does not mistake the other kind for this one', () => {
+		const rows = dream([image('a', 'achieved', false)]);
+
+		expect(photoComing(rows, 'dreamt')).toBe(false);
+		expect(photoComing(rows, 'achieved')).toBe(true);
 	});
 });

@@ -33,6 +33,7 @@
 	import { resolve } from '$app/paths';
 	import type { Dream, DreamInput } from '@aspire/contracts';
 	import { createDream, listBoard } from '$lib/api/client';
+	import { deleting } from '$lib/dreams/deleting.svelte';
 	import { describeError } from '$lib/api/errors';
 	import { listOrder } from '$lib/dreams/board';
 	import { photoOf, photoStyle } from '$lib/dreams/photos';
@@ -66,7 +67,9 @@
 	/** What is typed in the search field. Empty is the whole list. */
 	let query = $state('');
 
-	const rows = $derived(listOrder(dreams));
+	// Less whatever is inside its undo window, so a dream deleted on its own
+	// screen is not still in the list a tab away (D65).
+	const rows = $derived(listOrder(dreams.filter((one) => !deleting.has(one.id))));
 
 	/** Which line each dream is, counted down the whole list from the top. */
 	const place = $derived(new Map(rows.map((dream, i) => [dream.id, i + 1])));

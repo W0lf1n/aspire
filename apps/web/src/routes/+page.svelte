@@ -53,9 +53,10 @@
 		tileLine,
 		type BoardFilter
 	} from '$lib/dreams/board';
+	import { deleting } from '$lib/dreams/deleting.svelte';
 	import { formatAnniversary } from '$lib/dreams/format';
 	import { focusDreams, readReel, saveReel, type Reel } from '$lib/dreams/focus';
-	import { photoOf, photoStyle, reelUrl } from '$lib/dreams/photos';
+	import { photoComing, photoOf, photoStyle, reelUrl } from '$lib/dreams/photos';
 	import { CATEGORY_LABEL, FOCUS_MAX, STATUS_BADGE } from '$lib/dreams/rules';
 	import { photographDone, replacePhotograph } from '$lib/dreams/upload';
 	import { downscale } from '$lib/images/downscale';
@@ -74,7 +75,15 @@
 	import { pager, type Pager } from '$lib/ui/pager';
 	import { toast } from '$lib/ui/toast.svelte';
 
+	/** What the server said. A dream deleted a moment ago is still in it (D65). */
 	let dreams = $state<Dream[] | null>(null);
+
+	/**
+	 * The board as the screens must show it: without any dream inside its undo
+	 * window. The raw answer is kept beside it, so „Vrátit“ puts the tile back
+	 * without a second trip to the server.
+	 */
+	const board = $derived(dreams === null ? null : dreams.filter((one) => !deleting.has(one.id)));
 
 	/** The server answered 401 to a token this device still holds. */
 	let unknownDevice = $state(false);
@@ -131,7 +140,7 @@
 	let filter = $state<BoardFilter>('all');
 
 	/** The chips offered: only the areas this board has anything in. */
-	const areas = $derived(dreams === null ? [] : categoriesOnBoard(dreams, DREAM_CATEGORIES));
+	const areas = $derived(board === null ? [] : categoriesOnBoard(board, DREAM_CATEGORIES));
 
 	/**
 	 * The area actually asked for. An area the board has run out of — its
@@ -144,9 +153,7 @@
 	);
 
 	/** Everything still ahead, in this open's order, in the area asked for. */
-	const everything = $derived(
-		dreams === null ? [] : byCategory(reelOrder(dreams, sequence), asking)
-	);
+	const everything = $derived(board === null ? [] : byCategory(reelOrder(board, sequence), asking));
 
 	/**
 	 * Teď: the ten he is on now, in his own order and not shuffled (D53). Ten
@@ -154,7 +161,7 @@
 	 * a route learned by heart — which is what D30's shuffle exists to stop on
 	 * a board of a hundred.
 	 */
-	const focus = $derived(dreams === null ? [] : focusDreams(dreams));
+	const focus = $derived(board === null ? [] : focusDreams(board));
 
 	/** What is actually on the screen. */
 	const reel = $derived(which === 'focus' ? focus : everything);
@@ -164,7 +171,7 @@
 	 * chosen a Teď on still gets the choice — that is how the screen says
 	 * there is one — but a board with no dreams does not.
 	 */
-	const hasBoard = $derived(dreams !== null && dreams.length > 0);
+	const hasBoard = $derived(board !== null && board.length > 0);
 
 	/** How many of them are in the document; it grows as the reel is swiped. */
 	let windowed = $state(REEL_WINDOW);
@@ -275,24 +282,24 @@
 	 * promise kept wherever it can be kept without spending mobile data.
 	 */
 	$effect(() => {
-		const board = dreams;
-		if (!fromNetwork || board === null || ahead.length === 0) return;
+		const rows = board;
+		if (!fromNetwork || rows === null || ahead.length === 0) return;
 
 		const order = sequence;
 		const near = ahead;
 		void (async () => {
-			await rememberBoard(near, board, capFor(policy));
+			await rememberBoard(near, rows, capFor(policy));
 			if (wantsWholeBoard(policy, metered())) {
-				await rememberBoard(prefetchOrder(board, order), board);
+				await rememberBoard(prefetchOrder(rows, order), rows);
 			}
 		})();
 	});
 
 	/** Dreams on the board, none of them left to swipe: all of them are done. */
-	const allAchieved = $derived(dreams !== null && dreams.length > 0 && reel.length === 0);
+	const allAchieved = $derived(board !== null && board.length > 0 && reel.length === 0);
 
 	/** A dream that came true on this day in an earlier year, or nothing. */
-	const anniversary = $derived(dreams === null ? null : anniversaryToday(dreams));
+	const anniversary = $derived(board === null ? null : anniversaryToday(board));
 
 	$effect(() => {
 		let live = true;
@@ -305,7 +312,7 @@
 					if (!live) return;
 					dreams = rows;
 					unknownDevice = false;
-					openWith(rows);
+					openWith(rows.filter((one) => !deleting.has(one.id)));
 					// The cache's board is the last one seen: nothing to fetch
 					// and nothing to prune against, because a board from the
 					// cache is not news about what the board still has.
@@ -363,11 +370,11 @@
 	 */
 	$effect(() => {
 		const id = pickedId;
-		const board = dreams;
-		if (which !== 'all' || id === null || board === null || stamped) return;
+		const rows = board;
+		if (which !== 'all' || id === null || rows === null || stamped) return;
 		if (!connection.online) return;
 
-		const chosen = board.find((dream) => dream.id === id);
+		const chosen = rows.find((dream) => dream.id === id);
 		stamped = true;
 		if (chosen && !shownToday(chosen.lastShownAt)) {
 			void markShown(id).catch(() => undefined);
@@ -445,6 +452,10 @@
 				{@const photo = photoOf(dream, 'dreamt')}
 				{@const line = tileLine(dream)}
 				{@const busy = picking?.id === dream.id}
+				<!-- A photograph uploaded and not yet resized: the tile paints the
+				     sky for it exactly as it does for a dream that has none, and
+				     only this tells the two apart. -->
+				{@const coming = photoComing(dream, 'dreamt')}
 				<!-- The saved photograph, or the one being saved: a tile shows
 				     the picture from the moment it is picked (D52). -->
 				{@const src = (busy ? picking?.preview : null) ?? reelUrl(photo)}
@@ -514,7 +525,20 @@
 								<Icon name="heart" size={18} stroke={2} />
 							</button>
 
-							{#if !photo}
+							{#if !photo && coming && !busy}
+								<!--
+									The photograph is on the server and its sizes are
+									being made. Without this the sky reads as an upload
+									that failed, and the pill beside it invites the same
+									photograph to be sent again (D52 amended). It sits
+									in this row rather than above it, so it adds no
+									height to the scrollport and rule 14 holds.
+								-->
+								<span class="btn btn--photo reel__pick reel__pick--busy">
+									<Icon name="camera" size={18} stroke={1.8} />
+									Zpracovává se…
+								</span>
+							{:else if !photo}
 								<!--
 									A dream written as a sentence in the Seznam has no
 									picture, and this is the screen that notices: the

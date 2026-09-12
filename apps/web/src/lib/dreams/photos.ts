@@ -12,33 +12,45 @@
  */
 
 import type { Dream, DreamImage, DreamImageKind } from '@aspire/contracts';
-import { savesData } from '$lib/offline/policy';
+import { metered } from '$lib/offline/policy';
 
 /**
- * What this device is, as far as a photograph's rung cares (D62): how many
- * device pixels a CSS pixel is, and whether the person asked the browser to
- * spend less.
+ * What this device is, as far as a photograph's rung cares (D62, D66): how
+ * many device pixels a CSS pixel is, and whether the bytes are on somebody's
+ * data plan.
  */
 export interface Screen {
 	dpr: number;
-	saveData: boolean;
+	/**
+	 * True on mobile data or Save Data, false on wifi and ethernet, `null`
+	 * where the browser will not say — which on an iPhone is always
+	 * (`offline/policy.ts`).
+	 */
+	metered: boolean | null;
 }
 
 /** The screen this is running on; a laptop's worth of pixels where there is none. */
 export function thisScreen(): Screen {
 	return {
 		dpr: typeof window === 'undefined' ? 1 : window.devicePixelRatio || 1,
-		saveData: savesData()
+		metered: metered()
 	};
 }
 
 /**
- * Which rung the reel reads on a screen (D62). The reel is full-bleed on a
- * portrait phone: a 3:4 photograph at 1280 is 960×1280, and cover on a 3×
+ * Which rung the reel reads on a screen (D62, D66). The reel is full-bleed on
+ * a portrait phone: a 3:4 photograph at 1280 is 960×1280, and cover on a 3×
  * phone stretches it 2.2×, on a 2× phone 2.0×. The 2048 file is 1.4× and
  * 1.2× on the same screens, which is where Instagram's stories sit. So a
- * phone reads it — every phone is 2× or 3× — and a laptop at 1×, or anyone
- * who asked the browser to save data, reads 1280, which is right for both.
+ * phone on wifi reads it — every phone is 2× or 3× — and a laptop at 1×
+ * reads 1280, which is already more than its pixels.
+ *
+ * **A connection somebody pays for reads 1280 whatever the screen** (D66).
+ * 350 kB a swipe against 200 is the compromise D62 struck, and it is only
+ * worth striking where the bytes are free; `metered` folds Save Data in, so
+ * asking the browser to spend less is the same answer. A browser that will
+ * not say — Safari, so every iPhone — is not treated as metered, or the
+ * device the app is built for would never see the rung that was built for it.
  *
  * One rule here rather than `srcset`, because the prefetch (`offline/cache`)
  * has to ask for the same URL the tile will show: a browser choosing per
@@ -46,7 +58,7 @@ export function thisScreen(): Screen {
  * window is a promise about bytes.
  */
 export function rungFor(screen: Screen): 'screen' | 'large' {
-	return screen.dpr >= 2 && !screen.saveData ? 'large' : 'screen';
+	return screen.dpr >= 2 && screen.metered !== true ? 'large' : 'screen';
 }
 
 /** The URL the reel shows for this photograph on this screen, or nothing. */
@@ -69,6 +81,20 @@ export function photosOf(dream: Pick<Dream, 'images'>): {
 	achieved: DreamImage | null;
 } {
 	return { dreamt: photoOf(dream, 'dreamt'), achieved: photoOf(dream, 'achieved') };
+}
+
+/**
+ * Whether a photograph of this kind is on its way: a row that exists and has
+ * no sizes yet.
+ *
+ * Between the upload and the resize a dream has a photograph the screens
+ * cannot show, and the tile paints the sky — which is also what a dream with
+ * no photograph at all looks like (D52). The two are not the same thing and
+ * must not read the same: one wants a picture, the other is holding one.
+ * A screen asks this to tell them apart.
+ */
+export function photoComing(dream: Pick<Dream, 'images'>, kind: DreamImageKind): boolean {
+	return dream.images.some((image) => image.kind === kind && !image.ready);
 }
 
 /**

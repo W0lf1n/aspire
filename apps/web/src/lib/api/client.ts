@@ -120,8 +120,11 @@ export function updateDream(id: string, input: DreamInput): Promise<Dream> {
 	return call<Dream>(`/dreams/${id}`, { method: 'PUT', body: JSON.stringify(input) });
 }
 
-export function deleteDream(id: string): Promise<void> {
-	return call<void>(`/dreams/${id}`, { method: 'DELETE' });
+export function deleteDream(id: string, keepalive = false): Promise<void> {
+	// `keepalive` is for the deletion held past the screen it was asked on
+	// (D65): the person switched away, the window closed, and the request has
+	// to outlive the document rather than die with it.
+	return call<void>(`/dreams/${id}`, { method: 'DELETE', keepalive });
 }
 
 /** One more on the heart; the dream comes back with its new count. */

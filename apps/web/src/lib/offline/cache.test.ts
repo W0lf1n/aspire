@@ -57,8 +57,8 @@ function deferred() {
 	return { promise, settle };
 }
 
-const laptop = { dpr: 1, saveData: false };
-const phone = { dpr: 3, saveData: false };
+const laptop = { dpr: 1, metered: false };
+const phone = { dpr: 3, metered: false };
 
 describe('tileUrls', () => {
 	it('takes the first ready photograph of each dream: the thumb, then the picture', () => {

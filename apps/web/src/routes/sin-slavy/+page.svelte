@@ -13,6 +13,7 @@
 	import { resolve } from '$app/paths';
 	import type { Dream } from '@aspire/contracts';
 	import { listBoard } from '$lib/api/client';
+	import { deleting } from '$lib/dreams/deleting.svelte';
 	import { achievedDreams } from '$lib/dreams/board';
 	import { formatDate } from '$lib/dreams/format';
 	import { photoStyle, photosOf } from '$lib/dreams/photos';
@@ -22,7 +23,8 @@
 
 	let dreams = $state<Dream[]>([]);
 
-	const achieved = $derived(achievedDreams(dreams));
+	// Less whatever is inside its undo window (D65).
+	const achieved = $derived(achievedDreams(dreams.filter((one) => !deleting.has(one.id))));
 
 	$effect(() => {
 		let live = true;

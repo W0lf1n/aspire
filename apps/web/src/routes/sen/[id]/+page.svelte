@@ -10,8 +10,10 @@
 	 * photograph of it having happened, beside the one that was dreamt (D28).
 	 * It is offered only while the dream is achieved, and never taken away —
 	 * a status changed back leaves the picture where it is.
-	 * Deleting asks nothing and says so in a toast, as Prosper does; a dream
-	 * is a few words and one photograph, both quick to give back.
+	 * Deleting asks nothing and says so in a toast, as Prosper does — but the
+	 * request is held for as long as that toast stands, and „Vrátit“ cancels
+	 * it (D65). A dialog would tax every real deletion to catch the rare
+	 * wrong one; waiting taxes none of them.
 	 *
 	 * And this is where a dream is shared: „Sdílet“ opens a sheet with a link
 	 * that is its own key (D61), for somebody who has no app and never will.
@@ -35,6 +37,7 @@
 		uploadImage
 	} from '$lib/api/client';
 	import { describeError } from '$lib/api/errors';
+	import { UNDO_MS, deleting } from '$lib/dreams/deleting.svelte';
 	import { focusFull, focusFullSentence } from '$lib/dreams/focus';
 	import { shareText, shareUrl } from '$lib/dreams/share';
 	import { formatDate } from '$lib/dreams/format';
@@ -297,16 +300,40 @@
 		return image ? sane({ x: image.focusX, y: image.focusY, zoom: image.zoom }) : { ...CENTRED };
 	}
 
+	/**
+	 * Let it go — in a few seconds (D65).
+	 *
+	 * Nothing is sent yet: every screen drops the dream at once, and the
+	 * request goes when the toast does. „Vrátit“ inside that window cancels
+	 * it, and the dream was never touched. A request that does go and comes
+	 * back a failure puts the dream back on the screens, because the server
+	 * still has it.
+	 */
 	async function remove() {
 		if (!dream) return;
 		const doomed = dream;
-		try {
-			await deleteDream(doomed.id);
-			toast.show(`„${doomed.title}“ je pryč`);
-			await goto(resolve('/'));
-		} catch (e) {
-			toast.show(describeError(e));
-		}
+
+		deleting.hold(doomed.id, async () => {
+			try {
+				await deleteDream(doomed.id, true);
+			} catch (e) {
+				deleting.keep(doomed.id);
+				toast.show(describeError(e));
+			}
+		});
+
+		toast.show(`„${doomed.title}“ je pryč`, {
+			ms: UNDO_MS,
+			action: {
+				label: 'Vrátit',
+				run: () => {
+					deleting.keep(doomed.id);
+					toast.show(`„${doomed.title}“ je zpátky`);
+				}
+			}
+		});
+
+		await goto(resolve('/'));
 	}
 </script>
 
