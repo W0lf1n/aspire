@@ -75,6 +75,12 @@ public sealed record NudgeDto(NudgeMode Mode, int AtMinutes)
 /// </summary>
 public sealed record PushKeyResponse(string PublicKey);
 
+/// <summary>
+/// Where a photograph is looked at, and how close (D54). Everything optional,
+/// so a field left out keeps what the photograph already has.
+/// </summary>
+public sealed record FocalInput(double? FocusX, double? FocusY, double? Zoom);
+
 public sealed record DreamImageDto(
     Guid Id,
     int SortOrder,
@@ -82,6 +88,9 @@ public sealed record DreamImageDto(
     int Width,
     int Height,
     bool Ready,
+    double FocusX,
+    double FocusY,
+    double Zoom,
     string ThumbUrl,
     string ScreenUrl,
     string FullUrl)
@@ -93,6 +102,9 @@ public sealed record DreamImageDto(
         image.Width,
         image.Height,
         image.ProcessedAt is not null,
+        image.FocusX,
+        image.FocusY,
+        image.Zoom,
         MediaStore.UrlOf(image.DreamId, image.Id, "thumb"),
         MediaStore.UrlOf(image.DreamId, image.Id, "screen"),
         MediaStore.UrlOf(image.DreamId, image.Id, "full"));

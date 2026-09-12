@@ -5,38 +5,70 @@
 	 * the phone's own picker — camera or library, the phone's choice. The file
 	 * is downscaled here (`downscale.ts`) before anyone sees it, so the preview
 	 * is exactly what the server will get.
+	 *
+	 * Beside it, once there is a picture, a second pill that says where it is
+	 * looked at (D54). It opens the editor on the reel's own shape, and
+	 * answers with a focal point the screen either sends with the upload — a
+	 * picture picked here is positioned before the dream may even exist — or
+	 * saves against the photograph that is already there.
 	 */
+	import { photoStyle } from '$lib/dreams/photos';
 	import { downscale } from '$lib/images/downscale';
+	import { CENTRED, type Focal } from '$lib/images/focal';
+	import CropEditor from './CropEditor.svelte';
 	import Icon from './Icon.svelte';
 
 	interface Props {
 		/** What is there now: the saved photograph's URL, or nothing. */
 		current?: string | null;
+		/** Where the saved photograph is looked at (D54). */
+		focal?: Focal;
 		title?: string;
 		why?: string;
 		/** 16:10 on a form, where the words are below; 4:5 on a dream's own screen. */
 		wide?: boolean;
 		busy?: boolean;
-		/** The downscaled photograph, ready to send. */
-		onpick: (photo: Blob) => void;
+		/** The downscaled photograph, ready to send, and where it is looked at. */
+		onpick: (photo: Blob, focal: Focal) => void;
+		/** The crop, after the editor. For a picture already saved, save it. */
+		onmove?: (focal: Focal) => void;
 		/** A sentence when the picture could not be read. */
 		onproblem: (sentence: string) => void;
 	}
 
 	let {
 		current = null,
+		focal = CENTRED,
 		title = '',
 		why = '',
 		wide = false,
 		busy = false,
 		onpick,
+		onmove,
 		onproblem
 	}: Props = $props();
 
 	let preview = $state<string | null>(null);
 	let reading = $state(false);
+	let placing = $state(false);
+
 	const shown = $derived(preview ?? current);
 	const label = $derived(reading ? 'Čtu fotku…' : shown ? 'Vyměnit fotku' : 'Vybrat fotku');
+
+	/** Where the picture on this tile is looked at, as it is being decided. */
+	let at = $state<Focal>({ ...CENTRED });
+
+	/**
+	 * While nothing has been picked here, this follows the saved photograph:
+	 * the dream arrives after the first paint, and its crop with it. Once a
+	 * file is picked the local one wins — the saved crop belongs to a picture
+	 * that is about to be replaced.
+	 */
+	$effect(() => {
+		if (!preview) at = { ...focal };
+	});
+
+	const style = $derived(photoStyle({ focusX: at.x, focusY: at.y, zoom: at.zoom }));
 
 	async function pick(event: Event) {
 		const input = event.currentTarget as HTMLInputElement;
@@ -49,12 +81,22 @@
 			const photo = await downscale(file);
 			if (preview) URL.revokeObjectURL(preview);
 			preview = URL.createObjectURL(photo);
-			onpick(photo);
+			// A new picture starts in the middle, and is offered the frame it
+			// will really be seen in straight away.
+			at = { ...CENTRED };
+			onpick(photo, at);
+			placing = true;
 		} catch {
 			onproblem('Tohle se nepodařilo přečíst jako fotku.');
 		} finally {
 			reading = false;
 		}
+	}
+
+	function placed(chosen: Focal) {
+		at = chosen;
+		placing = false;
+		onmove?.(chosen);
 	}
 
 	$effect(() => () => {
@@ -64,7 +106,7 @@
 
 <article class="dream picker" class:dream--sky={!shown} class:dream--wide={wide}>
 	{#if shown}
-		<img class="dream__img" src={shown} alt="" />
+		<img class="dream__img" src={shown} alt="" {style} />
 	{/if}
 	<div class="dream__body">
 		{#if title}
@@ -73,19 +115,46 @@
 		{#if why}
 			<p class="dream__why">{why}</p>
 		{/if}
-		<label class="btn btn--photo" class:picker__pill--busy={busy || reading}>
-			<Icon name="camera" size={18} stroke={1.8} />
-			{label}
-			<input
-				class="picker__input"
-				type="file"
-				accept="image/*"
-				onchange={pick}
-				disabled={busy || reading}
-			/>
-		</label>
+		<div class="picker__acts">
+			<label class="btn btn--photo" class:picker__pill--busy={busy || reading}>
+				<Icon name="camera" size={18} stroke={1.8} />
+				{label}
+				<input
+					class="picker__input"
+					type="file"
+					accept="image/*"
+					onchange={pick}
+					disabled={busy || reading}
+				/>
+			</label>
+
+			{#if shown}
+				<button
+					type="button"
+					class="btn btn--photo"
+					onclick={() => (placing = true)}
+					disabled={busy || reading}
+				>
+					<Icon name="image" size={18} stroke={1.8} />
+					Posunout
+				</button>
+			{/if}
+		</div>
 	</div>
 </article>
+
+{#if shown}
+	<CropEditor
+		open={placing}
+		src={shown}
+		focal={at}
+		{title}
+		line={why}
+		{busy}
+		onsave={placed}
+		oncancel={() => (placing = false)}
+	/>
+{/if}
 
 <style>
 	.picker {
@@ -102,6 +171,14 @@
 
 	.picker__pill--busy {
 		opacity: 0.6;
+	}
+
+	/* The pill that picks and, once there is a picture, the one that moves it.
+	   A row, wrapping on a narrow phone. */
+	.picker__acts {
+		display: flex;
+		flex-wrap: wrap;
+		gap: var(--space-2);
 	}
 
 	/* The real input, kept for the picker it opens and hidden from the eye;

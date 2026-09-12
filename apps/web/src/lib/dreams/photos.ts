@@ -35,3 +35,40 @@ export function photosOf(dream: Pick<Dream, 'images'>): {
 export function photosToReplace(dream: Pick<Dream, 'images'>, kind: DreamImageKind): DreamImage[] {
 	return dream.images.filter((image) => image.kind === kind);
 }
+
+/**
+ * How an `<img>` shows this photograph: where it is looked at, and how close
+ * (D54). One helper, so the reel, the wall, the Seznam's circle and the
+ * picker all crop a photograph in the same place without any of them knowing
+ * the arithmetic.
+ *
+ * `object-position` is the browser's own focal crop and needs no help. Zoom is
+ * a `transform` on top of it, with its origin at the same point so the thing
+ * being looked at stays where it is while the picture grows around it.
+ *
+ * A photograph nobody has moved gets no style at all rather than a style that
+ * says „the middle, all of it“: the default is what `object-fit: cover`
+ * already does, and an identity transform on five full-screen images is five
+ * compositing layers bought for nothing.
+ */
+export function photoStyle(image: Pick<DreamImage, 'focusX' | 'focusY' | 'zoom'> | null): string {
+	if (!image) return '';
+
+	const x = percent(image.focusX);
+	const y = percent(image.focusY);
+	const zoom = Number.isFinite(image.zoom) ? Math.max(1, image.zoom) : 1;
+
+	const position = x === 50 && y === 50 ? '' : `object-position:${x}% ${y}%;`;
+	const scale = zoom === 1 ? '' : `transform:scale(${round(zoom)});transform-origin:${x}% ${y}%;`;
+	return position + scale;
+}
+
+function percent(value: number): number {
+	const unit = Number.isFinite(value) ? Math.min(1, Math.max(0, value)) : 0.5;
+	return round(unit * 100);
+}
+
+/** Two decimals is finer than any screen can show and shorter than a float. */
+function round(value: number): number {
+	return Math.round(value * 100) / 100;
+}

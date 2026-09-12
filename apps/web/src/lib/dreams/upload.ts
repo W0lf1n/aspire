@@ -16,7 +16,7 @@
  * here, and neither needs a browser to check.
  */
 
-import type { Dream, DreamImage, DreamImageKind } from '@aspire/contracts';
+import type { Dream, DreamImage, DreamImageKind, FocalInput } from '@aspire/contracts';
 import { photoOf, photosToReplace } from './photos';
 
 /**
@@ -31,7 +31,12 @@ export const READY_EVERY_MS = 800;
 /** The three calls this needs, so the sequence can be tested without them. */
 export interface PhotoApi {
 	deleteImage(dreamId: string, imageId: string): Promise<void>;
-	uploadImage(dreamId: string, photo: Blob, kind: DreamImageKind): Promise<DreamImage>;
+	uploadImage(
+		dreamId: string,
+		photo: Blob,
+		kind: DreamImageKind,
+		focal?: FocalInput
+	): Promise<DreamImage>;
 	getDream(id: string): Promise<Dream>;
 }
 
@@ -56,6 +61,8 @@ export async function replacePhotograph(
 	photo: Blob,
 	kind: DreamImageKind,
 	api: PhotoApi,
+	/** Where the new photograph is looked at, chosen before it was sent (D54). */
+	focal?: FocalInput,
 	wait: (ms: number) => Promise<void> = sleep
 ): Promise<Dream> {
 	// Out before in, and only this kind (D28). A row still being resized goes
@@ -64,7 +71,7 @@ export async function replacePhotograph(
 		await api.deleteImage(dream.id, image.id);
 	}
 
-	await api.uploadImage(dream.id, photo, kind);
+	await api.uploadImage(dream.id, photo, kind, focal);
 
 	// The row exists from the upload and the WebPs follow (D23), so the dream
 	// is asked for again until one of them is ready to point an `<img>` at.

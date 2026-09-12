@@ -33,10 +33,12 @@ public sealed class ImageService(AppDbContext db, MediaStore media, ImageQueue q
     /// </summary>
     public async Task<(DreamImage? Image, string? Problem)> AddAsync(
         Dream dream, Stream upload, long length, DreamImageKind kind = DreamImageKind.Dreamt,
+        FocalInput? focal = null,
         CancellationToken ct = default)
     {
         if (length <= 0) return (null, "Vyber fotku.");
         if (length > MaxUploadBytes) return (null, "Fotka je moc velká, nejvýš 10 MB.");
+        if (focal is not null && Problem(focal) is { } wrong) return (null, wrong);
 
         var image = new DreamImage
         {
@@ -44,6 +46,12 @@ public sealed class ImageService(AppDbContext db, MediaStore media, ImageQueue q
             DreamId = dream.Id,
             SortOrder = await db.DreamImages.CountAsync(i => i.DreamId == dream.Id, ct),
             Kind = kind,
+            // The crop travels with the upload, because a photograph is
+            // positioned before it is sent: on the add screen there is no
+            // dream to hang a second request on yet (D54).
+            FocusX = focal?.FocusX ?? DreamImage.Centre,
+            FocusY = focal?.FocusY ?? DreamImage.Centre,
+            Zoom = focal?.Zoom ?? DreamImage.NoZoom,
             CreatedAt = DateTimeOffset.UtcNow
         };
 
@@ -85,6 +93,47 @@ public sealed class ImageService(AppDbContext db, MediaStore media, ImageQueue q
         File.Delete(StagedPath(imageId));
         return true;
     }
+
+    /// <summary>
+    /// Where this photograph is looked at, and how close (D54). A field left
+    /// out keeps what it had, so a screen that only moved the point does not
+    /// have to send the zoom back.
+    ///
+    /// The three files on disk are not touched: the crop is metadata, which
+    /// is why changing it is instant and costs no resize — and why it is right
+    /// for every shape at once rather than for the one it was cropped to.
+    /// </summary>
+    public async Task<(DreamImage? Image, string? Problem)> MoveAsync(
+        Dream dream, Guid imageId, FocalInput input, CancellationToken ct = default)
+    {
+        if (Problem(input) is { } problem) return (null, problem);
+
+        var image = await db.DreamImages.FirstOrDefaultAsync(i => i.Id == imageId && i.DreamId == dream.Id, ct);
+        if (image is null) return (null, null);
+
+        image.FocusX = input.FocusX ?? image.FocusX;
+        image.FocusY = input.FocusY ?? image.FocusY;
+        image.Zoom = input.Zoom ?? image.Zoom;
+        await db.SaveChangesAsync(ct);
+        return (image, null);
+    }
+
+    /// <summary>The sentence for a crop that is not one, or null.</summary>
+    public static string? Problem(FocalInput input)
+    {
+        if (OutOfUnit(input.FocusX) || OutOfUnit(input.FocusY)) return "Výřez je mimo fotku.";
+
+        if (input.Zoom is { } zoom &&
+            (double.IsNaN(zoom) || zoom < DreamImage.NoZoom || zoom > DreamImage.MaxZoom))
+        {
+            return $"Přiblížení je mezi {DreamImage.NoZoom:0} a {DreamImage.MaxZoom:0}.";
+        }
+
+        return null;
+    }
+
+    private static bool OutOfUnit(double? value) =>
+        value is { } v && (double.IsNaN(v) || v < 0 || v > 1);
 
     /// <summary>What a restart left behind, for the worker's sweep.</summary>
     public Task<List<Guid>> UnprocessedAsync(CancellationToken ct = default) =>

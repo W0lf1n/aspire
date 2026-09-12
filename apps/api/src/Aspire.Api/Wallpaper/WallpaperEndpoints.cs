@@ -63,14 +63,19 @@ public static class WallpaperEndpoints
 
             // In the order they were asked for, which is the order the person
             // chose them in; a dream whose photograph is not ready drops out.
-            var files = new List<string>();
+            // Each one carries its own crop, so the cell shows what the reel
+            // shows rather than whatever is in the middle (D54).
+            var files = new List<CollageRenderer.Photograph>();
             foreach (var id in chosen)
             {
                 var image = byDream[id].FirstOrDefault();
                 if (image is null) continue;
 
                 var path = media.PathOf(id, image.Id, "full");
-                if (File.Exists(path)) files.Add(path);
+                if (File.Exists(path))
+                {
+                    files.Add(new CollageRenderer.Photograph(path, image.FocusX, image.FocusY, image.Zoom));
+                }
             }
 
             if (files.Count == 0)

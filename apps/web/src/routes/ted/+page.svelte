@@ -23,7 +23,7 @@
 	import { describeError } from '$lib/api/errors';
 	import { reelDreams } from '$lib/dreams/board';
 	import { focusDreams, focusFullSentence } from '$lib/dreams/focus';
-	import { photoOf } from '$lib/dreams/photos';
+	import { photoOf, photoStyle } from '$lib/dreams/photos';
 	import { FOCUS_MAX, listLine } from '$lib/dreams/rules';
 	import { SEARCH_FROM, searchDreams } from '$lib/dreams/search';
 	import { connection } from '$lib/offline/status.svelte';
@@ -161,7 +161,14 @@
 				<div class="row">
 					<span class="row__no">{index + 1}</span>
 					{#if photo}
-						<img class="circle shot" src={photo.thumbUrl} alt="" loading="lazy" decoding="async" />
+						<img
+							class="circle shot"
+							src={photo.thumbUrl}
+							alt=""
+							style={photoStyle(photo)}
+							loading="lazy"
+							decoding="async"
+						/>
 					{:else}
 						<span class="circle circle--sky" aria-hidden="true"></span>
 					{/if}
@@ -261,7 +268,14 @@
 				{@const photo = photoOf(dream, 'dreamt')}
 				<button type="button" class="row row--press" onclick={() => put(dream.id)} disabled={busy}>
 					{#if photo}
-						<img class="circle shot" src={photo.thumbUrl} alt="" loading="lazy" decoding="async" />
+						<img
+							class="circle shot"
+							src={photo.thumbUrl}
+							alt=""
+							style={photoStyle(photo)}
+							loading="lazy"
+							decoding="async"
+						/>
 					{:else}
 						<span class="circle circle--sky" aria-hidden="true"></span>
 					{/if}

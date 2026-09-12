@@ -19,6 +19,9 @@ function image(id: string, ready: boolean, kind: DreamImageKind = 'dreamt'): Dre
 		width: 1280,
 		height: 853,
 		ready,
+		focusX: 0.5,
+		focusY: 0.5,
+		zoom: 1,
 		thumbUrl: `/media/d/${id}/thumb.webp`,
 		screenUrl: `/media/d/${id}/screen.webp`,
 		fullUrl: `/media/d/${id}/full.webp`

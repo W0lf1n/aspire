@@ -697,6 +697,18 @@ stands.
 Empty, the board is a `.page` again, with the wordmark, the 4:5 sky tile and
 the anniversary back in the flow on `--dusk-wash`. There is nothing to swipe.
 
+### The crop (D54)
+Every photograph carries a point and a zoom, and every surface that shows one
+honours them: `photoStyle` in `dreams/photos.ts` emits `object-position` and,
+above zoom 1, a `transform: scale()` whose origin is the same point. A
+photograph nobody has moved gets no style at all — the default is what
+`object-fit: cover` already does. The editor is a full-bleed `<dialog>` whose
+frame is the reel's own page: the app column at 34 rem, `100dvh`, the
+`--scrim-tall` a tile wears, and the title and line where they will really
+sit. Its picture is the only element in the app with `touch-action: none`.
+Three `.btn--photo` pills sit at the foot — Zrušit · Na střed · Hotovo, the
+last one ember — and the hint rides at the top in `.glass`.
+
 ### The pair (Síň slávy)
 A dream with both photographs stands them side by side: two 4:5 halves in a
 `1fr 1fr` grid with a 2 px seam, the pair owning one 20 px radius and the

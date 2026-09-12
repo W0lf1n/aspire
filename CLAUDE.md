@@ -43,7 +43,10 @@ second person's whole onboarding (D46). §21 gives the list a shape: every
 line numbered with its place in the whole list (D48), a field that narrows it
 on everything a dream says about itself (D49), and a note that says when a
 dream is already written down without ever stopping it being written again
-(D50). What is left is §3.7's share link, which is not a milestone.
+(D50). §24 is M8, planned and not started: the photographs at scale — the
+reel drawn at the rung the phone is, the encoder tuned once, the thumb
+under the picture, and the rule for when the disk stops being enough.
+What is left besides it is §3.7's share link, which is not a milestone.
 
 ---
 
@@ -53,6 +56,10 @@ Run from the repository root.
 
 ```bash
 pnpm install
+```
+
+```bash
+pnpm start
 ```
 
 ```bash
@@ -87,8 +94,12 @@ pnpm budget
 pnpm api:test
 ```
 
-`pnpm api` runs the API in Development: SQLite in `apps/api/src/Aspire.Api`,
-port 5300, pairing code `000000`. `pnpm dev` proxies `/api` to it. `pnpm
+`pnpm start` runs both halves at once and is the one to use. `pnpm api` runs
+the API alone in Development: SQLite in `apps/api/src/Aspire.Api`, port 5300,
+pairing code **`000000`** — the laptop's own board, which has nothing to do
+with any code generated on the VPS. `pnpm dev` runs the client alone and
+proxies `/api` to port 5300, so on its own every request is
+`ECONNREFUSED`. `pnpm
 budget` runs after a build and fails over 150 kB brotli on the entry route.
 
 To add a migration:
@@ -125,7 +136,9 @@ apps/web/src/
 │                  photograph replaces another in, which two screens do
 │                  (D52) — wallpaper.ts — who can be on a collage and how
 │                  big it is — and format.ts.
-├─ lib/images/     downscale.ts — the photograph to 2048 px on the device.
+├─ lib/images/     downscale.ts — the photograph to 2048 px on the device —
+│                  and focal.ts, where a photograph is looked at and how far
+│                  in, as a drag and a pinch become two numbers (D54).
 ├─ lib/offline/    status.svelte.ts — the connection flag every screen reads —
 │                  cache.ts, which fills and prunes the photo cache a window
 │                  at a time — policy.ts, how much of the board this device
@@ -209,7 +222,11 @@ scripts/             check-bundle.mjs, and invite.sh — a board and its code
     gesture on top of the browser's own snapping (D40). Anything that adds
     height to that scroll region — a mark, a header, a gap — breaks the
     arithmetic, and the guarantee with it.
-15. **There are two reels, and only Vše is shuffled.** Teď is at most ten
+15. **A photograph is cropped by a point and a zoom, never by a file.**
+    `focus_x` · `focus_y` · `zoom` on the row, `photoStyle` on the client and
+    `FocalCrop` on the server, and every surface that shows a photograph
+    reads them (D54). The three files on disk are never re-cut.
+16. **There are two reels, and only Vše is shuffled.** Teď is at most ten
     dreams in the person's own order, `focusRank` on the dream and
     `dreams/focus.ts` on the client (D53). The day's pick and its `shown`
     stamp belong to Vše alone: a board opened on Teď has put no dream in

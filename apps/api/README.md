@@ -23,7 +23,8 @@ more than store rows.
 | `POST`   | `/api/v1/dreams/{id}/focus` | Put it on Teď, last; the dream out. 409 when Teď is full or the dream is achieved (D53) |
 | `DELETE` | `/api/v1/dreams/{id}/focus` | Take it off Teď; 204, and 204 again when it was not on it |
 | `PUT`    | `/api/v1/focus` | `{ dreamIds }` — the whole of Teď, in this order and nothing else on it; the ten out |
-| `POST`   | `/api/v1/dreams/{id}/images` | Multipart `file`, `?kind=dreamt\|achieved`; 202 with the image, `ready` once resized |
+| `POST`   | `/api/v1/dreams/{id}/images` | Multipart `file`, `?kind=dreamt\|achieved`, optional `?focusX&focusY&zoom`; 202 with the image, `ready` once resized |
+| `PUT`    | `/api/v1/dreams/{id}/images/{imageId}` | `{ focusX, focusY, zoom }` — where the photograph is looked at; no file is touched (D54) |
 | `DELETE` | `/api/v1/dreams/{id}/images/{imageId}` | 204                                |
 | `GET`    | `/api/v1/nudge/key` | The VAPID public key, or empty when the server has no pair. No auth |
 | `GET`    | `/api/v1/nudge` | `?endpoint=`; this device's `{ mode, atMinutes }` |
@@ -69,6 +70,12 @@ both gated behind `Database:MigrateOnStart` (default `true`). The SQLite side
 therefore never runs a migration; it creates the schema as the model stands,
 which is all a laptop needs. It also never updates it: after a model change,
 delete `aspire.db` and start the API again.
+
+The API will not let that be a surprise. Before serving anything in SQLite
+mode it asks every table for one row, which makes SQLite name every column the
+model expects; a file that is behind stops the start with one line naming the
+file and the fix, rather than answering 500 to the first request for a dream
+(D55).
 
 `dotnet-ef` is pinned per repository:
 

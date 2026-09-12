@@ -154,8 +154,29 @@ if (app.Configuration.GetValue("Database:MigrateOnStart", true))
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     // Postgres walks the migration history; SQLite has none and creates the
     // schema as the model stands, which is all a laptop needs.
-    if (usesSqlite) await db.Database.EnsureCreatedAsync();
-    else await db.Database.MigrateAsync();
+    if (usesSqlite)
+    {
+        await db.Database.EnsureCreatedAsync();
+
+        // …but only the first time. `EnsureCreated` leaves an existing file
+        // alone, so a model that has gained a column since leaves a file that
+        // answers 500 to the first request rather than anything to the start
+        // (D55). Better to be told now, with the fix in the sentence.
+        if (await SqliteSchema.BehindTheModelAsync(db) is { } complaint)
+        {
+            app.Logger.LogError(
+                "The laptop database is behind the model: {Complaint} " +
+                "Delete {File} and start the API again — SQLite mode creates the schema as the " +
+                "model stands and never migrates it (D5). The dreams in it go with it.",
+                complaint,
+                SqliteSchema.FileOf(app.Configuration.GetConnectionString("Sqlite")));
+            return 1;
+        }
+    }
+    else
+    {
+        await db.Database.MigrateAsync();
+    }
 
     // The configured code goes to the first board, or to one that has none.
     await BoardSeed.ApplyAsync(db, app.Configuration["Pairing:Code"]);

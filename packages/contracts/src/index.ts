@@ -103,9 +103,32 @@ export interface DreamImage {
 	width: number;
 	height: number;
 	ready: boolean;
+	/**
+	 * Where the photograph is looked at, and how close (D54). `focusX` and
+	 * `focusY` are `object-position` percentages, 0 to 1; `zoom` is 1 for as
+	 * much of the picture as the frame can hold. The middle and all of it —
+	 * 0.5, 0.5, 1 — is what every photograph is until somebody moves it.
+	 *
+	 * Metadata rather than a cropped file, so every shape that shows this
+	 * photograph — a screen, a 4:5 print, a 40 px circle, a collage cell —
+	 * crops to the same point rather than to one crop made for one of them.
+	 */
+	focusX: number;
+	focusY: number;
+	zoom: number;
 	thumbUrl: string;
 	screenUrl: string;
 	fullUrl: string;
+}
+
+/**
+ * Where a photograph is looked at, as it is sent (D54). Everything optional:
+ * a field left out keeps what the photograph already has.
+ */
+export interface FocalInput {
+	focusX?: number;
+	focusY?: number;
+	zoom?: number;
 }
 
 // ── GET/PUT /api/v1/nudge ─────────────────────────────────────

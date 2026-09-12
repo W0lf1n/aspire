@@ -326,7 +326,8 @@ public sealed class DreamServiceTests : IDisposable
             BoardA, [made[3].Id, made[2].Id, made[1].Id]);
 
         Assert.Null(problem);
-        Assert.Equal(["Sen 3", "Sen 2", "Sen 1"], rows!.Select(d => d.Title));
+        Assert.NotNull(rows);
+        Assert.Equal(["Sen 3", "Sen 2", "Sen 1"], rows.Select(d => d.Title));
         Assert.Equal([1, 2, 3], rows.Select(d => d.FocusRank));
         Assert.Equal(["Sen 3", "Sen 2", "Sen 1"], await FocusTitles());
     }

@@ -24,13 +24,15 @@
 		getDream,
 		likeDream,
 		listBoard,
+		moveImage,
 		removeFromFocus,
 		uploadImage
 	} from '$lib/api/client';
 	import { describeError } from '$lib/api/errors';
 	import { focusFull, focusFullSentence } from '$lib/dreams/focus';
 	import { formatDate } from '$lib/dreams/format';
-	import { photosOf } from '$lib/dreams/photos';
+	import { photoOf, photosOf } from '$lib/dreams/photos';
+	import { CENTRED, sane, type Focal } from '$lib/images/focal';
 	import { photographDone, replacePhotograph } from '$lib/dreams/upload';
 	import { CATEGORY_LABEL, STATUS_BADGE, STATUS_CLASS } from '$lib/dreams/rules';
 	import AppBar from '$lib/ui/AppBar.svelte';
@@ -154,17 +156,54 @@
 	 * before in, and only its own kind — is `dreams/upload.ts`, because the
 	 * reel does the same thing to a dream that has no photograph yet (D52).
 	 */
-	async function replacePhoto(picked: Blob, kind: DreamImageKind) {
+	async function replacePhoto(picked: Blob, kind: DreamImageKind, at: Focal) {
 		if (!dream || uploading) return;
 		uploading = kind;
 		try {
-			dream = await replacePhotograph(dream, picked, kind, { deleteImage, uploadImage, getDream });
+			dream = await replacePhotograph(
+				dream,
+				picked,
+				kind,
+				{ deleteImage, uploadImage, getDream },
+				{ focusX: at.x, focusY: at.y, zoom: at.zoom }
+			);
 			toast.show(photographDone(kind));
 		} catch (e) {
 			toast.show(describeError(e));
 		} finally {
 			uploading = null;
 		}
+	}
+
+	/**
+	 * Where a photograph that is already saved is looked at (D54). No file is
+	 * touched and nothing is re-sized: the crop is metadata, so this is one
+	 * small request and the picture on screen has already moved.
+	 */
+	async function movePhoto(kind: DreamImageKind, at: Focal) {
+		const image = dream ? photoOf(dream, kind) : null;
+		if (!dream || !image) return;
+
+		try {
+			const moved = await moveImage(dream.id, image.id, {
+				focusX: at.x,
+				focusY: at.y,
+				zoom: at.zoom
+			});
+			dream = {
+				...dream,
+				images: dream.images.map((one) => (one.id === moved.id ? moved : one))
+			};
+			toast.show('Fotka je, kde má být');
+		} catch (e) {
+			toast.show(describeError(e));
+		}
+	}
+
+	/** Where each of the two photographs is looked at, for the pickers. */
+	function focalOf(kind: DreamImageKind): Focal {
+		const image = dream ? photoOf(dream, kind) : null;
+		return image ? sane({ x: image.focusX, y: image.focusY, zoom: image.zoom }) : { ...CENTRED };
 	}
 
 	async function remove() {
@@ -190,10 +229,12 @@
 	{#if dream}
 		<PhotoPicker
 			current={photos.dreamt?.screenUrl ?? null}
+			focal={focalOf('dreamt')}
 			title={dream.title}
 			why={dream.why}
 			busy={uploading !== null || !connection.online}
-			onpick={(picked) => replacePhoto(picked, 'dreamt')}
+			onpick={(picked, at) => replacePhoto(picked, 'dreamt', at)}
+			onmove={(at) => movePhoto('dreamt', at)}
 			onproblem={(sentence) => toast.show(sentence)}
 		/>
 
@@ -207,9 +248,11 @@
 				<p class="label">Jak to dopadlo</p>
 				<PhotoPicker
 					current={photos.achieved?.screenUrl ?? null}
+					focal={focalOf('achieved')}
 					wide
 					busy={uploading !== null || !connection.online}
-					onpick={(picked) => replacePhoto(picked, 'achieved')}
+					onpick={(picked, at) => replacePhoto(picked, 'achieved', at)}
+					onmove={(at) => movePhoto('achieved', at)}
 					onproblem={(sentence) => toast.show(sentence)}
 				/>
 				<p class="hint">Skutečná fotka toho dne. V Síni slávy pak stojí vedle té vysněné.</p>

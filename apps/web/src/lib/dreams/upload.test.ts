@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import type { Dream, DreamImage, DreamImageKind } from '@aspire/contracts';
+import type { Dream, DreamImage, DreamImageKind, FocalInput } from '@aspire/contracts';
 import { READY_ATTEMPTS, photographDone, replacePhotograph, type PhotoApi } from './upload';
 
 function image(id: string, kind: DreamImageKind, ready = true): DreamImage {
@@ -10,6 +10,9 @@ function image(id: string, kind: DreamImageKind, ready = true): DreamImage {
 		width: 1600,
 		height: 2000,
 		ready,
+		focusX: 0.5,
+		focusY: 0.5,
+		zoom: 1,
 		thumbUrl: `/media/d/${id}/thumb.webp`,
 		screenUrl: `/media/d/${id}/screen.webp`,
 		fullUrl: `/media/d/${id}/full.webp`
@@ -63,7 +66,7 @@ describe('replacePhotograph', () => {
 		// So an upload that fails leaves the sky rather than the wrong picture.
 		const { api, calls, wait } = fake([dream([image('new', 'dreamt')])]);
 
-		await replacePhotograph(dream([image('old', 'dreamt')]), photo, 'dreamt', api, wait);
+		await replacePhotograph(dream([image('old', 'dreamt')]), photo, 'dreamt', api, undefined, wait);
 
 		expect(calls.slice(0, 2)).toEqual(['delete old', 'upload dreamt']);
 	});
@@ -75,7 +78,7 @@ describe('replacePhotograph', () => {
 		]);
 		const both = dream([image('old', 'dreamt'), image('proof', 'achieved')]);
 
-		await replacePhotograph(both, photo, 'dreamt', api, wait);
+		await replacePhotograph(both, photo, 'dreamt', api, undefined, wait);
 
 		expect(calls.filter((call) => call.startsWith('delete'))).toEqual(['delete old']);
 	});
@@ -84,7 +87,14 @@ describe('replacePhotograph', () => {
 		// Or it comes back as a second picture a moment later.
 		const { api, calls, wait } = fake([dream([image('new', 'dreamt')])]);
 
-		await replacePhotograph(dream([image('waiting', 'dreamt', false)]), photo, 'dreamt', api, wait);
+		await replacePhotograph(
+			dream([image('waiting', 'dreamt', false)]),
+			photo,
+			'dreamt',
+			api,
+			undefined,
+			wait
+		);
 
 		expect(calls).toContain('delete waiting');
 	});
@@ -92,10 +102,35 @@ describe('replacePhotograph', () => {
 	it('adds a photograph to a dream that had none', async () => {
 		const { api, calls, wait } = fake([dream([image('new', 'dreamt')])]);
 
-		const after = await replacePhotograph(dream([]), photo, 'dreamt', api, wait);
+		const after = await replacePhotograph(dream([]), photo, 'dreamt', api, undefined, wait);
 
 		expect(calls.filter((call) => call.startsWith('delete'))).toEqual([]);
 		expect(after.images.map((i) => i.id)).toEqual(['new']);
+	});
+
+	it('sends the crop with the photograph', async () => {
+		// A picture is positioned before it is sent, so the upload carries it
+		// rather than a second request doing it afterwards (D54).
+		const sent: (FocalInput | undefined)[] = [];
+		const { api, wait } = fake([dream([image('new', 'dreamt')])]);
+		const watching: PhotoApi = {
+			...api,
+			uploadImage: (dreamId, blob, kind, focal) => {
+				sent.push(focal);
+				return api.uploadImage(dreamId, blob, kind, focal);
+			}
+		};
+
+		await replacePhotograph(
+			dream([]),
+			photo,
+			'dreamt',
+			watching,
+			{ focusX: 0.2, focusY: 0.8, zoom: 1.5 },
+			wait
+		);
+
+		expect(sent).toEqual([{ focusX: 0.2, focusY: 0.8, zoom: 1.5 }]);
 	});
 
 	it('stops asking the moment the sizes are ready', async () => {
@@ -104,7 +139,7 @@ describe('replacePhotograph', () => {
 			dream([image('new', 'dreamt', true)])
 		]);
 
-		const after = await replacePhotograph(dream([]), photo, 'dreamt', api, wait);
+		const after = await replacePhotograph(dream([]), photo, 'dreamt', api, undefined, wait);
 
 		expect(calls.filter((call) => call === 'get')).toHaveLength(2);
 		expect(after.images[0].ready).toBe(true);
@@ -115,7 +150,7 @@ describe('replacePhotograph', () => {
 		// shows the sky, and the next open of the board has the picture.
 		const { api, calls, wait } = fake([]);
 
-		const after = await replacePhotograph(dream([]), photo, 'dreamt', api, wait);
+		const after = await replacePhotograph(dream([]), photo, 'dreamt', api, undefined, wait);
 
 		expect(calls.filter((call) => call === 'get')).toHaveLength(READY_ATTEMPTS);
 		expect(after.images).toEqual([]);
@@ -133,7 +168,7 @@ describe('replacePhotograph', () => {
 		};
 
 		await expect(
-			replacePhotograph(dream([image('old', 'dreamt')]), photo, 'dreamt', api, wait)
+			replacePhotograph(dream([image('old', 'dreamt')]), photo, 'dreamt', api, undefined, wait)
 		).rejects.toThrow('413');
 		expect(calls).toEqual(['delete old']);
 		expect(api.getDream).not.toHaveBeenCalled();

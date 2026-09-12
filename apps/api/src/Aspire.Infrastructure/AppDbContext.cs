@@ -77,6 +77,13 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
                 .HasConversion(k => DreamImageKindNames.ToWire(k), k => DreamImageKindNames.Parse(k))
                 .HasMaxLength(16);
 
+            // The middle and all of it, which is what every photograph taken
+            // before D54 was cropped to anyway — so the migration gives the
+            // rows that already exist exactly the crop they already had.
+            entity.Property(i => i.FocusX).HasDefaultValue(DreamImage.Centre);
+            entity.Property(i => i.FocusY).HasDefaultValue(DreamImage.Centre);
+            entity.Property(i => i.Zoom).HasDefaultValue(DreamImage.NoZoom);
+
             // A dream that goes takes its photographs' rows with it; the
             // files are the MediaStore's to remove.
             entity.HasOne<Dream>()

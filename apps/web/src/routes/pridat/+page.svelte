@@ -21,9 +21,13 @@
 	import PhotoPicker from '$lib/ui/PhotoPicker.svelte';
 	import { toast } from '$lib/ui/toast.svelte';
 	import { connection } from '$lib/offline/status.svelte';
+	import { CENTRED, type Focal } from '$lib/images/focal';
 
 	const locked = $derived(connection.online ? '' : 'Bez připojení se sen nedá přidat.');
 	let photo = $state<Blob | null>(null);
+
+	/** Where the picked photograph is looked at, chosen before it is sent (D54). */
+	let focal = $state<Focal>({ ...CENTRED });
 	let busy = $state(false);
 	let error = $state('');
 
@@ -53,7 +57,13 @@
 		try {
 			if (createdId) await updateDream(createdId, input);
 			else createdId = (await createDream(input)).id;
-			if (photo) await uploadImage(createdId, photo);
+			if (photo) {
+				await uploadImage(createdId, photo, 'dreamt', {
+					focusX: focal.x,
+					focusY: focal.y,
+					zoom: focal.zoom
+				});
+			}
 			toast.show('Sen je na nástěnce');
 			await goto(resolve('/'));
 		} catch (e) {
@@ -73,7 +83,11 @@
 	<PhotoPicker
 		wide
 		busy={busy || !!locked}
-		onpick={(picked) => (photo = picked)}
+		onpick={(picked, at) => {
+			photo = picked;
+			focal = at;
+		}}
+		onmove={(at) => (focal = at)}
 		onproblem={(s) => (error = s)}
 	/>
 	<DreamForm submitLabel="Přidat sen" accent {existing} {busy} {error} {locked} onsubmit={add} />

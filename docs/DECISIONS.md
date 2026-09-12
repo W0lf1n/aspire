@@ -1590,3 +1590,75 @@ Checked in the pane end to end: the segment switches and is remembered, Teď
 shows the ranks in order, an arrow swaps two and the server agrees, the sheet
 adds one and it leaves the candidates, the pill toggles both ways, opening on
 Teď stamps nothing, and „ted“ finds the four.
+
+### D54 — A photograph carries a point and a zoom, not a cropped file
+
+Every surface in this app crops: the reel to the shape of a phone screen, the
+Síň slávy to 4:5 and to half of a pair, the Seznam to a 40 px circle, the
+wallpaper to a collage cell. All of them cropped from the centre, so a
+portrait with a face near the top lost the face on the reel and there was
+nothing to be done about it.
+
+- **Three numbers on the photograph, not pixels on the disk.** `focus_x`,
+  `focus_y` and `zoom`, defaulting to the middle and all of it — which is
+  exactly the crop every photograph already had, so the migration changes
+  nothing anybody can see. A crop baked into the file would be made for one
+  of those four shapes and wrong for the other three; metadata is right for
+  all of them at once, changes instantly, and costs no resize.
+- **They are `object-position` percentages.** 0 is the left or top edge, 1 the
+  right or bottom. That is the browser's own meaning, so `photoStyle` sets two
+  custom properties and does no arithmetic at render time, and
+  `FocalCrop.For` works the same window out in C# for a collage cell. One
+  definition, two languages, and a wallpaper that crops where the reel crops.
+- **Zoom is a transform with its origin at the point**, so what is being
+  looked at stays where it is while the picture grows around it. It stops at
+  three: past that the `screen` size is being stretched on a phone, and the
+  point of this is a better crop rather than a worse picture.
+- **A photograph nobody has moved gets no style at all.** The default is what
+  `object-fit: cover` already does, and an identity transform on five
+  full-screen tiles is five compositing layers bought for nothing.
+- **The editor is the reel's own page**, not a preview of it: the app column,
+  the height of the screen, the scrim, and the title and line where they will
+  really sit. A photograph positioned in a 4:5 preview and then shown on a
+  9:19 screen is positioned for the wrong shape. One finger moves it, two
+  pinch it, a wheel zooms on a laptop and the arrows nudge it; the whole drag
+  is measured from where the finger went down rather than added up frame by
+  frame, so a gesture that hits an edge and comes back ends where it should.
+- **The crop travels with the upload.** On the add screen there is no dream to
+  hang a second request on, so `focusX`, `focusY` and `zoom` ride in the
+  query beside `kind`. A photograph that already exists takes
+  `PUT /dreams/{id}/images/{imageId}` instead, which touches no file.
+- **`FocalCrop` is pure geometry with its own test**, beside `CollageLayout`
+  for the same reason: every edge of it — both axes, the flush one, the zoom,
+  a window that must never leave the photograph, numbers that cannot mean
+  anything — is arithmetic rather than a picture somebody has to look at.
+
+Two things the browser caught that no unit test would have. A photograph
+already in the cache — which is every photograph the reel has just shown —
+fires `load` before the editor exists, so its size was never read and every
+gesture was a silent no-op; the element is asked directly now as well. And
+`setPointerCapture` throws on a pointer the browser has already released, so
+it is guarded: a drag without capture beats a drag that stops.
+
+### D55 — The laptop's database says when it is behind, at start
+
+SQLite mode creates its schema with `EnsureCreated` and migrations are
+written for Npgsql (D5), so `EnsureCreated` makes the file once and never
+touches it again. The morning after a model gains a column, the file is a
+column short, the API starts perfectly well, and the first request for a
+dream comes back „no such column: d.focus_rank“ as a 500 — which reaches the
+screen as „Server odpověděl 500“, and that is a bad way to find out.
+
+`SqliteSchema.BehindTheModelAsync` asks every table for one row before the
+server serves anything, which makes SQLite prepare a statement naming every
+column the model expects. A file that is behind says so at start, once, with
+the file's full path and the fix in the same sentence, and the API refuses to
+start rather than answering 500 all morning. The same bargain as
+`MediaStore.EnsureWritable` (D26): prove it can do the thing before promising
+to.
+
+`pnpm start` runs the API and the web together, which is the other half of
+the same problem: `pnpm dev` alone proxies to a port with nothing behind it,
+and `ECONNREFUSED 127.0.0.1:5300` in the Vite log is not obviously „you did
+not start the other one“. No new dependency — pnpm runs both scripts from one
+regex.

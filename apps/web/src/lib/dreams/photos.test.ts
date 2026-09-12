@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { Dream, DreamImage, DreamImageKind } from '@aspire/contracts';
-import { photoOf, photosOf, photosToReplace } from './photos';
+import { photoOf, photoStyle, photosOf, photosToReplace } from './photos';
 
 function image(id: string, kind: DreamImageKind, ready = true): DreamImage {
 	return {
@@ -10,6 +10,9 @@ function image(id: string, kind: DreamImageKind, ready = true): DreamImage {
 		width: 1600,
 		height: 2000,
 		ready,
+		focusX: 0.5,
+		focusY: 0.5,
+		zoom: 1,
 		thumbUrl: `/media/d/${id}/thumb.webp`,
 		screenUrl: `/media/d/${id}/screen.webp`,
 		fullUrl: `/media/d/${id}/full.webp`
@@ -62,5 +65,34 @@ describe('photosToReplace', () => {
 
 		expect(photosToReplace(rows, 'dreamt').map((i) => i.id)).toEqual(['d1', 'd2']);
 		expect(photosToReplace(rows, 'achieved').map((i) => i.id)).toEqual(['a']);
+	});
+});
+
+describe('photoStyle', () => {
+	const at = (focusX: number, focusY: number, zoom: number) => ({ focusX, focusY, zoom });
+
+	it('says nothing at all for a photograph nobody has moved', () => {
+		// The default is what `object-fit: cover` already does, and an identity
+		// transform on five full-screen tiles is five layers bought for nothing.
+		expect(photoStyle(at(0.5, 0.5, 1))).toBe('');
+		expect(photoStyle(null)).toBe('');
+	});
+
+	it('is the object-position the point means', () => {
+		expect(photoStyle(at(0.25, 0.75, 1))).toBe('object-position:25% 75%;');
+	});
+
+	it('scales around the point it is looking at', () => {
+		// The origin is the point, so what is being looked at stays where it is
+		// while the picture grows around it.
+		expect(photoStyle(at(0.5, 0.5, 2))).toBe('transform:scale(2);transform-origin:50% 50%;');
+		expect(photoStyle(at(0.2, 0.4, 1.5))).toBe(
+			'object-position:20% 40%;transform:scale(1.5);transform-origin:20% 40%;'
+		);
+	});
+
+	it('takes numbers that cannot mean anything back to something that can', () => {
+		expect(photoStyle(at(-1, 5, 0.2))).toBe('object-position:0% 100%;');
+		expect(photoStyle(at(Number.NaN, 0.5, Number.NaN))).toBe('');
 	});
 });

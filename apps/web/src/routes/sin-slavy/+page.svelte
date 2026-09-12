@@ -15,7 +15,7 @@
 	import { listBoard } from '$lib/api/client';
 	import { achievedDreams } from '$lib/dreams/board';
 	import { formatDate } from '$lib/dreams/format';
-	import { photosOf } from '$lib/dreams/photos';
+	import { photoStyle, photosOf } from '$lib/dreams/photos';
 	import { connection } from '$lib/offline/status.svelte';
 	import Icon from '$lib/ui/Icon.svelte';
 	import TabBar from '$lib/ui/TabBar.svelte';
@@ -68,6 +68,7 @@
 								class="dream__img"
 								src={photos.dreamt.screenUrl}
 								alt=""
+								style={photoStyle(photos.dreamt)}
 								loading="lazy"
 								decoding="async"
 							/>
@@ -77,6 +78,7 @@
 								class="dream__img"
 								src={photos.achieved.screenUrl}
 								alt=""
+								style={photoStyle(photos.achieved)}
 								loading="lazy"
 								decoding="async"
 							/>
@@ -100,6 +102,7 @@
 								class="dream__img"
 								src={photo.screenUrl}
 								alt=""
+								style={photoStyle(photo)}
 								loading="lazy"
 								decoding="async"
 							/>

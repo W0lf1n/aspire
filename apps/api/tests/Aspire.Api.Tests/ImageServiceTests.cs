@@ -192,4 +192,102 @@ public sealed class ImageServiceTests : IDisposable
         Assert.False(await _images.RemoveAsync(other, image!.Id));
         Assert.Single(await _db.DreamImages.ToListAsync());
     }
+
+    // ── where a photograph is looked at (D54) ───────────────────────────────
+
+    private async Task<(Dream Dream, DreamImage Image)> APhotograph()
+    {
+        var dream = await ADream();
+        using var upload = Png(8, 8);
+        var (image, _) = await _images.AddAsync(dream, upload, upload.Length);
+        return (dream, image!);
+    }
+
+    [Fact]
+    public async Task A_new_photograph_is_the_middle_and_all_of_it()
+    {
+        var (_, image) = await APhotograph();
+
+        Assert.Equal(DreamImage.Centre, image.FocusX);
+        Assert.Equal(DreamImage.Centre, image.FocusY);
+        Assert.Equal(DreamImage.NoZoom, image.Zoom);
+    }
+
+    [Fact]
+    public async Task An_upload_can_arrive_already_positioned()
+    {
+        // On the add screen there is no dream to hang a second request on, so
+        // the crop travels with the photograph.
+        var dream = await ADream();
+        using var upload = Png(8, 8);
+
+        var (image, problem) = await _images.AddAsync(
+            dream, upload, upload.Length, DreamImageKind.Dreamt, new FocalInput(0.25, 0.75, 1.5));
+
+        Assert.Null(problem);
+        Assert.Equal(0.25, image!.FocusX);
+        Assert.Equal(0.75, image.FocusY);
+        Assert.Equal(1.5, image.Zoom);
+    }
+
+    [Fact]
+    public async Task Moving_it_keeps_what_was_not_sent()
+    {
+        var (dream, image) = await APhotograph();
+        await _images.MoveAsync(dream, image.Id, new FocalInput(0.2, 0.8, 2.0));
+
+        var (moved, problem) = await _images.MoveAsync(dream, image.Id, new FocalInput(0.4, null, null));
+
+        Assert.Null(problem);
+        Assert.Equal(0.4, moved!.FocusX);
+        Assert.Equal(0.8, moved.FocusY);
+        Assert.Equal(2.0, moved.Zoom);
+    }
+
+    [Fact]
+    public async Task Moving_it_touches_no_file()
+    {
+        // The crop is metadata, which is why it is instant and why it is right
+        // for every shape at once.
+        var (dream, image) = await APhotograph();
+        await _images.ProcessAsync(image.Id);
+        var screen = _media.PathOf(dream.Id, image.Id, "screen");
+        var written = File.GetLastWriteTimeUtc(screen);
+
+        await _images.MoveAsync(dream, image.Id, new FocalInput(0, 1, 3));
+
+        Assert.True(File.Exists(screen));
+        Assert.Equal(written, File.GetLastWriteTimeUtc(screen));
+    }
+
+    [Theory]
+    [InlineData(-0.1, 0.5, 1.0, "Výřez je mimo fotku.")]
+    [InlineData(1.1, 0.5, 1.0, "Výřez je mimo fotku.")]
+    [InlineData(0.5, 2.0, 1.0, "Výřez je mimo fotku.")]
+    [InlineData(0.5, 0.5, 0.5, "Přiblížení je mezi 1 a 3.")]
+    [InlineData(0.5, 0.5, 4.0, "Přiblížení je mezi 1 a 3.")]
+    public async Task A_crop_that_is_not_one_earns_a_sentence(
+        double x, double y, double zoom, string expected)
+    {
+        var (dream, image) = await APhotograph();
+
+        var (moved, problem) = await _images.MoveAsync(dream, image.Id, new FocalInput(x, y, zoom));
+
+        Assert.Null(moved);
+        Assert.Equal(expected, problem);
+        var untouched = await _db.DreamImages.AsNoTracking().FirstAsync(i => i.Id == image.Id);
+        Assert.Equal(DreamImage.Centre, untouched.FocusX);
+    }
+
+    [Fact]
+    public async Task Another_dream_cannot_move_it()
+    {
+        var (_, image) = await APhotograph();
+        var other = await ADream();
+
+        var (moved, problem) = await _images.MoveAsync(other, image.Id, new FocalInput(0, 0, 1));
+
+        Assert.Null(moved);
+        Assert.Null(problem);
+    }
 }

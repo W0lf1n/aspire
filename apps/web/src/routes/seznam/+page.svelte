@@ -35,7 +35,7 @@
 	import { createDream, listBoard } from '$lib/api/client';
 	import { describeError } from '$lib/api/errors';
 	import { listOrder } from '$lib/dreams/board';
-	import { photoOf } from '$lib/dreams/photos';
+	import { photoOf, photoStyle } from '$lib/dreams/photos';
 	import { listLine } from '$lib/dreams/rules';
 	import { SEARCH_FROM, searchDreams } from '$lib/dreams/search';
 	import { connection } from '$lib/offline/status.svelte';
@@ -180,7 +180,14 @@
 				<a class="row row--press" href={resolve('/sen/[id]', { id: dream.id })}>
 					<span class="row__no">{place.get(dream.id)}</span>
 					{#if photo}
-						<img class="circle shot" src={photo.thumbUrl} alt="" loading="lazy" decoding="async" />
+						<img
+							class="circle shot"
+							src={photo.thumbUrl}
+							alt=""
+							style={photoStyle(photo)}
+							loading="lazy"
+							decoding="async"
+						/>
 					{:else}
 						<!-- No photograph yet: the sky stands in for it, as it does on a tile. -->
 						<span class="circle circle--sky" aria-hidden="true"></span>

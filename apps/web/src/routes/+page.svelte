@@ -55,7 +55,7 @@
 	} from '$lib/dreams/board';
 	import { formatAnniversary } from '$lib/dreams/format';
 	import { focusDreams, readReel, saveReel, type Reel } from '$lib/dreams/focus';
-	import { photoOf } from '$lib/dreams/photos';
+	import { photoOf, photoStyle } from '$lib/dreams/photos';
 	import { CATEGORY_LABEL, FOCUS_MAX, STATUS_BADGE } from '$lib/dreams/rules';
 	import { photographDone, replacePhotograph } from '$lib/dreams/upload';
 	import { downscale } from '$lib/images/downscale';
@@ -457,6 +457,7 @@
 							class="dream__img"
 							{src}
 							alt=""
+							style={busy ? '' : photoStyle(photo)}
 							loading={Math.abs(index - at) <= 1 ? 'eager' : 'lazy'}
 							decoding="async"
 						/>

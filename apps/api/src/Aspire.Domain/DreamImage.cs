@@ -25,6 +25,31 @@ public sealed class DreamImage
     public int Width { get; set; }
     public int Height { get; set; }
 
+    /// <summary>
+    /// Where this photograph is looked at, across and down, and how far in
+    /// (D54). 0.5 · 0.5 · 1 is the middle and all of it, which is what every
+    /// photograph taken before this was stored as.
+    ///
+    /// They are <c>object-position</c> percentages, 0 to 1, so the client sets
+    /// two custom properties and does no arithmetic, and
+    /// <see cref="Media.FocalCrop"/> works the same window out for a collage
+    /// cell. Metadata rather than a cropped file: every surface crops to a
+    /// different shape — a screen, a 4:5 print, a 40 px circle, a collage cell
+    /// — and pixels cropped for one of them are wrong for the other three.
+    /// </summary>
+    public double FocusX { get; set; } = Centre;
+    public double FocusY { get; set; } = Centre;
+    public double Zoom { get; set; } = NoZoom;
+
+    public const double Centre = 0.5;
+    public const double NoZoom = 1.0;
+
+    /// <summary>
+    /// As close as it goes. Past three the screen size is being stretched on a
+    /// phone, and the point of this is a better crop, not a worse picture.
+    /// </summary>
+    public const double MaxZoom = 3.0;
+
     public DateTimeOffset? ProcessedAt { get; set; }
     public DateTimeOffset CreatedAt { get; set; }
 }

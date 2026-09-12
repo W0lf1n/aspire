@@ -197,10 +197,16 @@ public static class DreamEndpoints
         // by default, the achieved one when the dream came true (D28). A
         // dream's status is not checked — a status can change after, and the
         // answer to that must never be deleting somebody's photograph.
+        // `focusX`, `focusY` and `zoom` ride in the query, because a
+        // photograph is positioned before it is sent: on the add screen there
+        // is no dream yet to hang a second request on (D54).
         app.MapPost("/api/v1/dreams/{id:guid}/images", async (
             Guid id,
             IFormFile file,
             string? kind,
+            double? focusX,
+            double? focusY,
+            double? zoom,
             HttpContext http,
             DeviceAuth auth,
             DreamService dreams,
@@ -219,12 +225,39 @@ public static class DreamEndpoints
             if (dream is null) return Results.NotFound();
 
             await using var upload = file.OpenReadStream();
-            var (image, problem) = await images.AddAsync(dream, upload, file.Length, asked, ct);
+            var (image, problem) = await images.AddAsync(
+                dream, upload, file.Length, asked, new FocalInput(focusX, focusY, zoom), ct);
             if (image is null) return Results.Problem(problem, statusCode: 400);
 
             // 202: the row is there, the sizes follow. `Ready` says when.
             return Results.Accepted(null, DreamImageDto.From(image));
         }).DisableAntiforgery(); // A bearer token, not a cookie: there is nothing to forge.
+
+        // Where an existing photograph is looked at (D54). The files on disk
+        // are untouched — the crop is metadata, so this is instant and costs
+        // no resize.
+        app.MapPut("/api/v1/dreams/{id:guid}/images/{imageId:guid}", async (
+            Guid id,
+            Guid imageId,
+            FocalInput input,
+            HttpContext http,
+            DeviceAuth auth,
+            DreamService dreams,
+            ImageService images,
+            CancellationToken ct) =>
+        {
+            var device = await auth.ResolveAsync(http.Request.Headers.Authorization, ct);
+            if (device is null) return Results.Unauthorized();
+
+            var dream = await dreams.FindAsync(device.BoardId, id, ct);
+            if (dream is null) return Results.NotFound();
+
+            var (image, problem) = await images.MoveAsync(dream, imageId, input, ct);
+            if (problem is not null) return Results.Problem(problem, statusCode: 400);
+            if (image is null) return Results.NotFound();
+
+            return Results.Ok(DreamImageDto.From(image));
+        });
 
         app.MapDelete("/api/v1/dreams/{id:guid}/images/{imageId:guid}", async (
             Guid id,

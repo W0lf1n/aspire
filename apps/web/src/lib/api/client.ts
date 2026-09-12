@@ -13,6 +13,7 @@ import type {
 	DreamImage,
 	DreamImageKind,
 	DreamInput,
+	FocalInput,
 	HealthResponse,
 	NudgeInput,
 	NudgeOffsetInput,
@@ -163,14 +164,41 @@ export function markShown(id: string): Promise<void> {
  * The kind says which of the two it is — the dreamt one by default, the
  * achieved one when the dream came true (D28).
  */
+/**
+ * The photograph, and where it is looked at (D54). The crop rides in the
+ * query because a picture is positioned before it is sent: on the add screen
+ * there is no dream yet to hang a second request on.
+ */
 export function uploadImage(
 	dreamId: string,
 	photo: Blob,
-	kind: DreamImageKind = 'dreamt'
+	kind: DreamImageKind = 'dreamt',
+	focal?: FocalInput
 ): Promise<DreamImage> {
 	const body = new FormData();
 	body.append('file', photo, 'photo.jpg');
-	return call<DreamImage>(`/dreams/${dreamId}/images?kind=${kind}`, { method: 'POST', body });
+
+	const query = new URLSearchParams({ kind });
+	if (focal?.focusX !== undefined) query.set('focusX', String(focal.focusX));
+	if (focal?.focusY !== undefined) query.set('focusY', String(focal.focusY));
+	if (focal?.zoom !== undefined) query.set('zoom', String(focal.zoom));
+
+	return call<DreamImage>(`/dreams/${dreamId}/images?${query}`, { method: 'POST', body });
+}
+
+/**
+ * Where an existing photograph is looked at. The files on disk are untouched
+ * — the crop is metadata, so this is instant and costs no resize.
+ */
+export function moveImage(
+	dreamId: string,
+	imageId: string,
+	focal: FocalInput
+): Promise<DreamImage> {
+	return call<DreamImage>(`/dreams/${dreamId}/images/${imageId}`, {
+		method: 'PUT',
+		body: JSON.stringify(focal)
+	});
 }
 
 /**
