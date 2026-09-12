@@ -346,6 +346,15 @@ runs a bare command in a container that is already up, so `board` there is
 stderr line about `libgssapi_krb5.so.2` — which is unrelated Npgsql noise the
 API prints on every start.
 
+**EF stores a `Guid` as UPPERCASE text in SQLite**, and SQLite compares text
+case-sensitively. Staging a row in `aspire.db` by hand with a lowercase id —
+python's `uuid.uuid4()` gives one — makes a row that is there, that `sqlite3`
+finds, and that EF never joins to: the dream came back from `/api/v1/dreams`
+with `images: []` and nothing failed anywhere. `select id from dreams limit 1`
+shows the case the file actually uses. While staging, also note that
+`category` is nullable but `''` is not a category: `DreamCategoryNames.Parse`
+throws `ArgumentOutOfRangeException` and the whole endpoint 500s.
+
 **The web batch in `docker build` runs from the repository root**, because
 the client imports `@aspire/contracts`. `docker build -f apps/web/Dockerfile .`,
 never from `apps/web`.
