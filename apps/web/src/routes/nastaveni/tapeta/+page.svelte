@@ -11,12 +11,14 @@
 	import type { Dream } from '@aspire/contracts';
 	import { listBoard, wallpaper } from '$lib/api/client';
 	import { describeError } from '$lib/api/errors';
+	import { pickDaily } from '$lib/dreams/board';
 	import { photoOf } from '$lib/dreams/photos';
 	import {
 		MAX_ON_WALLPAPER,
 		canvasFor,
 		toggleChosen,
-		wallpaperCandidates
+		wallpaperCandidates,
+		wallpaperPick
 	} from '$lib/dreams/wallpaper';
 	import { connection } from '$lib/offline/status.svelte';
 	import AppBar from '$lib/ui/AppBar.svelte';
@@ -38,7 +40,14 @@
 		let live = true;
 		listBoard()
 			.then(({ dreams: rows }) => {
-				if (live) dreams = rows;
+				if (!live) return;
+				dreams = rows;
+				// The screen opens on a collage rather than on a question: the
+				// day's dream and the ones with the most fuel, already chosen
+				// (D58). Worked out once, here, because the pick draws at
+				// random among dreams never shown and a derived value that
+				// moves is a choice that rearranges itself under a thumb.
+				chosen = wallpaperPick(rows, pickDaily(rows)?.id ?? null).map((dream) => dream.id);
 			})
 			.catch(() => {
 				if (live) dreams = [];
@@ -115,8 +124,8 @@
 		</section>
 	{:else}
 		<p class="hint">
-			Vyber až {MAX_ON_WALLPAPER} snů. Skládají se v pořadí, ve kterém je ťukneš, na plochu velkou jako
-			displej tohohle telefonu.
+			Dnešní sny už jsou vybrané — ťuknutím je měníš. Skládají se v pořadí, ve kterém je ťukneš, na
+			plochu velkou jako displej tohohle telefonu.
 		</p>
 
 		<!--

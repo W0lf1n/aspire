@@ -58,22 +58,22 @@ Two accents, `--signal` (ember, acts) and `--dusk` (marks), one gradient
 
 ## Routes
 
-| Route                   | Screen                                                                                                                                                                                                                                        |
-| ----------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `/`                     | Nástěnka. Two reels behind a segment — Vše, a pager of everything ahead with the day's pick then a shuffle, and Teď, the ten in his own order (D53). Five tiles at a time; a tile with no photograph carries the pill that gives it one (D52) |
-| `/seznam`               | Seznam. Every dream as a line, newest first; ＋ opens a sheet of five fields (D44)                                                                                                                                                            |
-| `/ted`                  | Teď. The ten on the second reel, numbered, ordered with arrows; ＋ opens a sheet of the rest (D53)                                                                                                                                            |
-| `/pridat`               | Přidat sen. The dream's form (`DreamForm`) with an ember pill; `?url=` fills the link sheet, which is where a shared pin lands (D56)                                                                                                          |
-| `/sen/[id]`             | One dream: the tile, the facts, the heart, Upravit and Smazat                                                                                                                                                                                 |
-| `/sen/[id]/upravit`     | The same form with the saved values; back is the dream                                                                                                                                                                                        |
-| `/sin-slavy`            | Síň slávy. The achieved dreams, the most recent first; the pair                                                                                                                                                                               |
-| `/nastaveni`            | The hub: Vzhled, Upozornění, Tapeta, Stahování, Párování, the version and _Obnovit aplikaci_                                                                                                                                                  |
-| `/nastaveni/upozorneni` | Upozornění. Off / daily / weekdays, and the hour                                                                                                                                                                                              |
-| `/nastaveni/tapeta`     | Tapeta. Up to six dreams onto a lock-screen collage                                                                                                                                                                                           |
-| `/nastaveni/vzhled`     | systém / světlý / tmavý                                                                                                                                                                                                                       |
-| `/nastaveni/stahovani`  | How much of the board is kept offline: co prolistuješ / na wifi / vždy celá, and what it takes up                                                                                                                                             |
-| `/nastaveni/parovani`   | The code and a device name; paired, Odpojit                                                                                                                                                                                                   |
-| `/styleguide`           | Tokens and components, both themes. Unlinked                                                                                                                                                                                                  |
+| Route                   | Screen                                                                                                                                                                                                                                                                                                                                   |
+| ----------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `/`                     | Nástěnka. Two reels behind a segment — Vše, a pager of everything ahead with the day's pick then a shuffle, and Teď, the ten in his own order (D53). Five tiles at a time; a tile with no photograph carries the pill that gives it one (D52); the heart is a glass circle with no number, filled on a dream that has been fuelled (D58) |
+| `/seznam`               | Seznam. Every dream as a line, newest first; ＋ opens a sheet of five fields (D44)                                                                                                                                                                                                                                                       |
+| `/ted`                  | Teď. The ten on the second reel, numbered, ordered with arrows; ＋ opens a sheet of the rest (D53)                                                                                                                                                                                                                                       |
+| `/pridat`               | Přidat sen. The dream's form (`DreamForm`) with an ember pill; `?url=` fills the link sheet, which is where a shared pin lands (D56)                                                                                                                                                                                                     |
+| `/sen/[id]`             | One dream: the tile, the facts, the heart, Upravit and Smazat                                                                                                                                                                                                                                                                            |
+| `/sen/[id]/upravit`     | The same form with the saved values; back is the dream                                                                                                                                                                                                                                                                                   |
+| `/sin-slavy`            | Síň slávy. The achieved dreams, the most recent first; the pair                                                                                                                                                                                                                                                                          |
+| `/nastaveni`            | The hub: Vzhled, Upozornění, Tapeta, Stahování, Párování, the version and _Obnovit aplikaci_                                                                                                                                                                                                                                             |
+| `/nastaveni/upozorneni` | Upozornění. Off / daily / weekdays, and the hour                                                                                                                                                                                                                                                                                         |
+| `/nastaveni/tapeta`     | Tapeta. Up to six dreams onto a lock-screen collage                                                                                                                                                                                                                                                                                      |
+| `/nastaveni/vzhled`     | systém / světlý / tmavý                                                                                                                                                                                                                                                                                                                  |
+| `/nastaveni/stahovani`  | How much of the board is kept offline: co prolistuješ / na wifi / vždy celá, and what it takes up                                                                                                                                                                                                                                        |
+| `/nastaveni/parovani`   | The code and a device name; paired, Odpojit                                                                                                                                                                                                                                                                                              |
+| `/styleguide`           | Tokens and components, both themes. Unlinked                                                                                                                                                                                                                                                                                             |
 
 The bar is five slots: Nástěnka · Seznam · ⊕ · Síň slávy · Nastavení, and
 `--slots` on `.tabbar` is the one number they are worked out from.
@@ -91,8 +91,8 @@ grows the window and what keeps the neighbouring photographs eager.
 Vitest, node environment, `requireAssertions: true`. `nav.test.ts`,
 `settings.test.ts`, `api/pairing.test.ts`, `dreams/rules.test.ts` (what a
 dream may be, and its line in the Seznam), `dreams/board.test.ts` (the reel
-and its shuffle, the daily pick, the area filter, the Seznam's order, the
-tile's line, the anniversary), `ui/pager.test.ts` (the paging
+and its shuffle, the daily pick and the fuel that decides it, the area filter,
+the Seznam's order, the tile's line, the anniversary), `ui/pager.test.ts` (the paging
 arithmetic: the fence, the wheel's reach in three delta modes, the keys, the
 glide's curve) and `ui/pager.wiring.test.ts` (the pager itself, on a fake
 scroll region and a frame queue the test turns by hand), `dreams/format.test.ts`,
@@ -104,7 +104,8 @@ axis there is nothing more of to see),
 in, only its own kind, and what happens when the sizes never come),
 `dreams/focus.test.ts` (who is on Teď and in what order, and that the ten
 are full at ten),
-`dreams/wallpaper.test.ts` (who can be on a collage, and how big it is),
+`dreams/wallpaper.test.ts` (who can be on a collage, which six it starts
+with, and how big it is),
 `push/schedule.test.ts` (the nudge's time both ways, and why the nudge
 cannot be offered here — browser, server, permission, in that order),
 `images/downscale.test.ts`, `offline/cache.test.ts` (what is kept, in what

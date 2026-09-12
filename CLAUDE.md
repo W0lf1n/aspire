@@ -2,7 +2,7 @@
 
 Guidance for Claude Code working in this repository.
 
-**Last revised:** 2026-09-12 · M7 closed, D51–D57 · 248 web tests · 318 API tests
+**Last revised:** 2026-09-12 · M7 closed, D51–D58 · 262 web tests · 328 API tests
 
 ---
 
@@ -45,8 +45,10 @@ on everything a dream says about itself (D49), and a note that says when a
 dream is already written down without ever stopping it being written again
 (D50). §22 is M6, three of its five built: the late nudge
 was the urgency and now says so in the log (D51), a tile without a photograph
-is where that photograph is asked for (D52), and the anniversary is the
-morning's notification on the one morning a year a dream has one (D57). §23 is
+is where that photograph is asked for (D52), the anniversary is the
+morning's notification on the one morning a year a dream has one (D57), and
+the heart has a job: it shortens the wait for the dream it is tapped on, and
+its count comes off the tile (D58). §23 is
 M7, done — two reels, a photograph from a link, and the photograph's own edges.
 §24 is M8, planned and not started: the photographs at scale — the reel drawn
 at the rung the phone is, the encoder tuned once, the thumb under the picture,
@@ -238,14 +240,20 @@ scripts/             check-bundle.mjs, and invite.sh — a board and its code
     `focus_x` · `focus_y` · `zoom` on the row, `photoStyle` on the client and
     `FocalCrop` on the server, and every surface that shows a photograph
     reads them (D54). The three files on disk are never re-cut.
-17. **A morning is one notification, and the anniversary outranks it.**
+17. **The heart's one job is the wait.** `fuel = days since shown ×
+    (1 + min(likes, 10) / 10)` picks the day's dream and orders the automatic
+    wallpaper, in `dreams/board.ts` and in `DailyPick.cs`, counting whole days
+    so two phones cannot disagree (D58). Nothing else reads the count, the
+    reel's tile shows no number, and the cap is not negotiable: without it the
+    loved dreams take every morning and the board stops turning over.
+18. **A morning is one notification, and the anniversary outranks it.**
     `Aspire.Domain/Anniversary.cs` is asked before `DailyPick`, and when it
     answers, that is the nudge instead — „Před rokem“ over „Splnil se ti sen
     „X“.“, the achieved photograph, and no `last_shown_at` stamp, because the
     day's pick was never put in front of anybody (D57). It is the same rule as
     `anniversaryToday` in `board.ts` and the two tests mirror each other case
     for case.
-18. **There are two reels, and only Vše is shuffled.** Teď is at most ten
+19. **There are two reels, and only Vše is shuffled.** Teď is at most ten
     dreams in the person's own order, `focusRank` on the dream and
     `dreams/focus.ts` on the client (D53). The day's pick and its `shown`
     stamp belong to Vše alone: a board opened on Teď has put no dream in

@@ -13,14 +13,21 @@ public sealed class DailyPickTests
     private const int Prague = 120;
     private static readonly DateTimeOffset Now = new(2026, 9, 10, 5, 0, 0, TimeSpan.Zero);
 
-    private static Dream Dream(string title, DateTimeOffset? shown = null, DreamStatus status = DreamStatus.Dreaming) =>
+    private static Dream Dream(
+        string title,
+        DateTimeOffset? shown = null,
+        DreamStatus status = DreamStatus.Dreaming,
+        int likes = 0,
+        int order = 0) =>
         new()
         {
             Id = Guid.NewGuid(),
             BoardId = "board",
             Title = title,
             Status = status,
-            LastShownAt = shown
+            LastShownAt = shown,
+            Likes = likes,
+            SortOrder = order
         };
 
     [Fact]
@@ -55,11 +62,83 @@ public sealed class DailyPickTests
     }
 
     [Fact]
-    public void Once_every_dream_has_had_a_turn_the_oldest_is_next()
+    public void Once_every_dream_has_had_a_turn_the_one_with_the_most_fuel_is_next()
     {
         var rows = new[] { Dream("yesterday", Now.AddDays(-1)), Dream("week", Now.AddDays(-7)) };
 
         Assert.Equal("week", DailyPick.From(rows, Now, Prague)!.Title);
+    }
+
+    // ── the heart's one job (D58) ───────────────────────────────────────────
+
+    [Fact]
+    public void Ten_hearts_halve_the_wait_and_the_eleventh_does_nothing()
+    {
+        // Ten days loved equals twenty unloved, and a tie falls to board
+        // order — which is the unloved one, first in the list.
+        var waited = Dream("waited", Now.AddDays(-20), order: 0);
+        var loved = Dream("loved", Now.AddDays(-10), likes: 10, order: 1);
+
+        Assert.Equal("waited", DailyPick.From([waited, loved], Now, Prague)!.Title);
+        Assert.Equal("loved", DailyPick.From([Dream("waited", Now.AddDays(-7)), loved], Now, Prague)!.Title);
+
+        // Past the cap the number keeps going up and the pick stops listening.
+        var adored = Dream("loved", Now.AddDays(-10), likes: 500, order: 1);
+        Assert.Equal("waited", DailyPick.From([waited, adored], Now, Prague)!.Title);
+    }
+
+    [Fact]
+    public void A_dream_nobody_has_seen_still_comes_before_the_most_loved_one()
+    {
+        var rows = new[] { Dream("loved", Now.AddDays(-10), likes: 10), Dream("never") };
+
+        Assert.Equal("never", DailyPick.From(rows, Now, Prague, new Random(1))!.Title);
+    }
+
+    [Fact]
+    public void The_day_holds_even_when_another_dream_has_more_fuel()
+    {
+        var rows = new[]
+        {
+            Dream("today", Now.AddHours(-1)),
+            Dream("loved", Now.AddDays(-20), likes: 10)
+        };
+
+        Assert.Equal("today", DailyPick.From(rows, Now, Prague)!.Title);
+    }
+
+    [Theory]
+    // Seven days, no hearts: the days themselves.
+    [InlineData(7, 0, 7.0)]
+    // One heart is a tenth more, ten are double, and above ten nothing moves.
+    [InlineData(7, 1, 7.7)]
+    [InlineData(7, 10, 14.0)]
+    [InlineData(7, 99, 14.0)]
+    // Shown today: no days waited, so no fuel whatever the hearts say.
+    [InlineData(0, 10, 0.0)]
+    public void Fuel_is_the_days_waited_times_what_the_hearts_add(int days, int likes, double expected)
+    {
+        var dream = Dream("d", Now.AddDays(-days), likes: likes);
+
+        Assert.Equal(expected, DailyPick.FuelOf(dream, Now, Prague), 6);
+    }
+
+    [Fact]
+    public void A_dream_nobody_has_seen_is_the_most_overdue_there_is()
+    {
+        Assert.Equal(double.PositiveInfinity, DailyPick.FuelOf(Dream("never"), Now, Prague));
+    }
+
+    [Fact]
+    public void Fuel_counts_whole_days_so_two_devices_cannot_disagree()
+    {
+        // The same local day, half a minute apart. Hours elapsed would differ;
+        // whole days cannot, and the phone works this out for itself (D36).
+        var dream = Dream("d", Now.AddDays(-7));
+        var later = Now.AddSeconds(30);
+
+        Assert.Equal(DailyPick.FuelOf(dream, Now, Prague), DailyPick.FuelOf(dream, later, Prague));
+        Assert.Equal(7.0, DailyPick.FuelOf(dream, later, Prague), 6);
     }
 
     [Fact]

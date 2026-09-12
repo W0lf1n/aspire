@@ -1782,3 +1782,63 @@ the Czech are checked together rather than one of them being checked twice.
 
 It cannot be seen working before September 2027, when the first dream on the
 board has an anniversary. That is what the worker test is for.
+
+---
+
+### D58 — A heart shortens the wait, and ten of them halve it
+
+`POST /dreams/{id}/likes` has counted since M1 and no rule has ever read the
+number. The tile and the dream's screen showed it and nothing else happened,
+which makes it a score — and a score on a photograph is exactly what §2's
+third principle keeps off the board. Either the heart does something or it
+should not be there.
+
+**The rule, in both languages:**
+
+```
+fuel = days since shown × (1 + min(likes, 10) / 10)
+```
+
+The daily pick keeps the shape D25 gave it — a dream already shown today
+holds all day, a dream never shown comes before any that has — and where the
+*oldest* used to win, the most fuel wins now.
+
+- **Ten hearts double it**, so a loved dream comes round twice as often as one
+  with none: twenty days unloved and ten days at ten hearts are the same
+  number. The eleventh heart does nothing.
+- **The cap is the point, not a detail.** With no ceiling, ten loved dreams
+  would take every morning between them and the rest of the board would never
+  come back — D25's habituation with extra steps, which is the thing the daily
+  pick exists to prevent.
+- **Whole days, counted as the device counts days**, not hours elapsed. Two
+  phones on one board work the pick out separately and must agree without
+  being told (D36); a difference of seconds between their clocks must not be
+  able to decide a morning. Ties fall to board order for the same reason.
+- **Nothing else reads the count.** The tail of the reel is still a uniform
+  shuffle (D30). One rule, one place to find out whether the heart speaks too
+  loudly, and a fortnight of real swiping to say.
+
+**The wallpaper reads the same rule.** `wallpaperPick` is the day's dream
+first when it has a photograph, then the reel's dreams with a ready dreamt
+photograph in fuel order, and Tapeta opens on those six already chosen instead
+of on an empty grid — a lock screen is a thing you want to be right before you
+are asked anything. `wallpaperCandidates` stays as it was for the choice by
+hand, the wall included: a dream already lived is exactly the kind you want on
+a lock screen, but what is *automatic* should be what is still ahead.
+
+**The count leaves the reel tile** — PLAN.md §8's eighth question, answered
+yes. The tap stays, with the haptic, and the tile keeps the one bit that
+matters: the heart is filled on a dream that has been fuelled at all and an
+outline on one that has not. Filled in `--photo-ink` rather than in the ember,
+because the accent stays off a photograph and the interface steps back there;
+the ember heart and the number are both on the dream's own screen, where the
+facts are. The count stays in the button's accessible name, because a tap with
+no visible change needs to be answerable to something.
+
+Two things found while writing it down. The plan's own worked example was
+wrong arithmetic — „a hundred days with no hearts equals nine hearts and ten“
+is true of no cap at all, and the sentence is fixed in place. And the C# twin
+of `wallpaperPick` is **not** here, though §22.2 listed it: its only caller is
+the keyed link §22.5 has not built yet, and a rule with no caller is a rule
+that drifts from its twin unnoticed. It arrives with the endpoint that needs
+it.

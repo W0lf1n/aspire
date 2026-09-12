@@ -6,8 +6,9 @@
  * Seven rules live here. The reel is what is not yet achieved (PLAN §3.2): a
  * dream marked splněno leaves the swipe and turns up in the Síň slávy, so
  * the board stays what is still ahead. And the daily pick is the tile the
- * reel opens on — the dream shown least recently — so the board is a
- * different one each morning and the wall never becomes wallpaper.
+ * reel opens on — the dream with the most fuel, which is how long it has
+ * waited weighted by its hearts (D58) — so the board is a different one each
+ * morning and the wall never becomes wallpaper.
  *
  * The pick is worked out here rather than on the server: the board already
  * carries `lastShownAt` for every dream, so all the server is asked for is
@@ -118,10 +119,61 @@ export function shownToday(iso: string | null, now: Date = new Date()): boolean 
 }
 
 /**
+ * The most hearts that count. Above ten the number keeps going up and the
+ * pick stops listening, and that cap is the point rather than a detail: with
+ * no ceiling, ten loved dreams would take every morning between them and the
+ * rest of the board would never come back — which is D25's habituation with
+ * extra steps (D58).
+ */
+export const LIKES_CAP = 10;
+
+/**
+ * How overdue a dream is, as the heart weighs it: whole days since it was
+ * last in front of somebody, times what the hearts add (D58).
+ *
+ *     days since shown × (1 + min(likes, 10) / 10)
+ *
+ * Ten hearts double it, so a loved dream comes round twice as often as one
+ * with none and the eleventh heart does nothing. Never shown at all is
+ * `Infinity`, which is the truth — nothing is more overdue than a dream
+ * nobody has seen — though the daily pick answers that case itself, at
+ * random, before it gets here (D25).
+ *
+ * Whole days, counted as the device counts days, rather than hours elapsed:
+ * two phones on the same board must agree about which dream is the day's, and
+ * a difference of seconds between their clocks must not be able to decide it.
+ */
+export function fuel(dream: Pick<Dream, 'lastShownAt' | 'likes'>, now: Date = new Date()): number {
+	if (dream.lastShownAt === null) return Infinity;
+	return daysSince(dream.lastShownAt, now) * (1 + counted(dream.likes) / LIKES_CAP);
+}
+
+/** Hearts as the pick reads them: none below zero, none above the cap. */
+function counted(likes: number): number {
+	return Number.isFinite(likes) ? Math.min(Math.max(likes, 0), LIKES_CAP) : 0;
+}
+
+/** Whole days between a stamp and now, as the device counts days. */
+function daysSince(iso: string, now: Date): number {
+	const days = (midnight(now) - midnight(new Date(iso))) / 86_400_000;
+	return Math.max(0, days);
+}
+
+/** The day a stamp falls in, as a number of days. `Date.UTC` has no summer time. */
+function midnight(date: Date): number {
+	return Date.UTC(date.getFullYear(), date.getMonth(), date.getDate());
+}
+
+/**
  * The dream the board opens with: the one already shown today when there is
  * one — so the pick holds all day, and two devices on the same board agree
- * on it — and otherwise the least recently shown, at random among those
- * never shown at all (PLAN §5).
+ * on it — otherwise one never shown at all, at random, and otherwise the one
+ * with the most fuel (PLAN §5, D58).
+ *
+ * Fuel rather than the oldest stamp is the heart's one job: a dream you keep
+ * tapping is a dream you want in front of you more often, and this is the
+ * only rule on the board that reads the count. Ties fall to board order, so
+ * the answer is the same on every device without anybody storing it.
  */
 export function pickDaily(
 	dreams: Dream[],
@@ -138,9 +190,7 @@ export function pickDaily(
 	if (never.length > 0)
 		return never[Math.min(Math.floor(random() * never.length), never.length - 1)];
 
-	return candidates.reduce((oldest, dream) =>
-		stamp(dream.lastShownAt) < stamp(oldest.lastShownAt) ? dream : oldest
-	);
+	return candidates.reduce((best, dream) => (fuel(dream, now) > fuel(best, now) ? dream : best));
 }
 
 /**

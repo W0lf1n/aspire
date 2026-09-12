@@ -437,7 +437,8 @@
 			The reel: one dream the size of the screen, edge to edge, the day's
 			pick first. The whole picture opens the dream; the heart on it is
 			the one control, above the link, so a tap on it is a like and a tap
-			anywhere else is the dream.
+			anywhere else is the dream — and a heart tapped is the dream coming
+			round sooner, which is the only thing the count is for (D58).
 		-->
 		<section class="reel" style:--band="{band}px" bind:this={region} aria-label="Sny">
 			{#each shown as dream, index (dream.id)}
@@ -478,15 +479,24 @@
 							<p class="dream__why" class:dream__say={line.said}>{line.text}</p>
 						{/if}
 						<div class="reel__acts">
+							<!--
+								The heart, and no number beside it (D58). The count is a
+								measurement, and a measurement on a photograph is the one
+								thing §2's third principle keeps off the board; it is read
+								on the dream's own screen, where the facts are. What the
+								tile says is the one bit that matters — whether this dream
+								has been fuelled at all — and the tap answers with the
+								haptic and a heart that fills.
+							-->
 							<button
 								type="button"
-								class="btn btn--photo"
+								class="btn btn--photo reel__fuel"
+								class:reel__fuel--lit={dream.likes > 0}
 								onclick={() => like(dream)}
 								disabled={!connection.online}
-								aria-label="Palivo"
+								aria-label={`Palivo: ${dream.likes}`}
 							>
 								<Icon name="heart" size={18} stroke={2} />
-								{dream.likes}
 							</button>
 
 							{#if !photo}
@@ -788,6 +798,19 @@
 		gap: var(--space-2);
 		margin-top: var(--space-2);
 		pointer-events: auto;
+	}
+
+	/* The heart alone is a circle, not a pill with nothing in it. */
+	.reel__fuel {
+		width: 40px;
+		padding: 0;
+	}
+
+	/* Fuelled at least once: the heart fills. White rather than ember, because
+	   the accent stays off a photograph and the interface steps back there
+	   (rule 4) — the ember heart is on the dream's own screen. */
+	.reel__fuel--lit :global(svg) {
+		fill: var(--photo-ink);
 	}
 
 	.reel__pick--busy {

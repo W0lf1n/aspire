@@ -81,7 +81,9 @@ phone camera, the library, or a pasted URL.
 1. Instant: cold open to a dream image in under a second, offline.
 2. Visual: the image fills the screen; words are a title and one line.
 3. Emotional, not analytical: no progress bars on the board, achievement
-   celebrated rather than measured.
+   celebrated rather than measured. The heart is the one count there is, and
+   it is not shown on a photograph — it works by bringing a dream round
+   sooner rather than by going up (D58).
 4. Frictionless input: a dream from the phone in three taps.
 5. Private: his dreams, his server.
 

@@ -8,6 +8,7 @@
  */
 
 import type { Dream } from '@aspire/contracts';
+import { fuel, reelDreams } from './board';
 import { photoOf } from './photos';
 
 /**
@@ -28,6 +29,42 @@ export const MAX_CANVAS_EDGE = 4096;
  */
 export function wallpaperCandidates(dreams: Dream[]): Dream[] {
 	return dreams.filter((dream) => photoOf(dream, 'dreamt') !== null);
+}
+
+/**
+ * The six the screen starts with: the day's dream first when it has a
+ * photograph, then the dreams with the most fuel — how long each has waited,
+ * weighted by its hearts, which is the same rule the daily pick reads (D58).
+ *
+ * A screen that opens on an empty choice asks a question nobody wants at that
+ * moment: a lock screen is a thing you want to already be right. These six
+ * are the board's own answer, and every one of them is one tap from being
+ * swapped for another.
+ *
+ * The reel only, and only photographs whose sizes are ready. The wall is left
+ * out here, though `wallpaperCandidates` keeps it for the choice by hand: what
+ * is automatic should be what is still ahead, because that is what a lock
+ * screen is for. The order is fixed — no shuffle — so the choice does not
+ * rearrange itself under a thumb between two taps.
+ */
+export function wallpaperPick(
+	dreams: Dream[],
+	pickedId: string | null = null,
+	count: number = MAX_ON_WALLPAPER,
+	now: Date = new Date()
+): Dream[] {
+	const candidates = reelDreams(dreams).filter((dream) => photoOf(dream, 'dreamt') !== null);
+	const picked = candidates.find((dream) => dream.id === pickedId) ?? null;
+
+	const rest = candidates
+		.filter((dream) => dream !== picked)
+		.map((dream) => ({ dream, fuel: fuel(dream, now) }))
+		// Equal first, so two dreams never shown — both of them `Infinity` —
+		// fall to board order rather than to arithmetic that has no answer.
+		.sort((a, b) => (a.fuel === b.fuel ? a.dream.sortOrder - b.dream.sortOrder : b.fuel - a.fuel))
+		.map((ranked) => ranked.dream);
+
+	return (picked ? [picked, ...rest] : rest).slice(0, Math.max(0, count));
 }
 
 /**

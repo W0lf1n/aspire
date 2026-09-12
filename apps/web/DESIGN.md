@@ -686,7 +686,13 @@ snapping region moves the one under the thumb.
 A tile's controls are one wrapping row at the foot of `.dream__body`, the
 only part of it that takes a tap: the heart, and — on a tile whose dream has
 no photograph — a `.btn--photo` label with the camera that opens the phone's
-own picker (D52). The picked file shows on the tile from the tap, before the
+own picker (D52). The heart is a 40 px glass circle with no number beside it
+(D58): a count is a measurement and a measurement does not go on a
+photograph, so the reel shows the one bit that matters — the glyph is filled
+`--photo-ink` on a dream that has been fuelled at all, and an outline on one
+that has not. White rather than ember, because the accent stays off a
+photograph; the ember heart is on the dream's own screen, which is also where
+the number is read. The count stays in the button's accessible name. The picked file shows on the tile from the tap, before the
 server has made its sizes, so the sky becomes the picture immediately; the
 pill reads „Ukládám…“ while it does and is gone once there is a photograph.
 Replacing one is still the dream's own screen, where there is room to look at

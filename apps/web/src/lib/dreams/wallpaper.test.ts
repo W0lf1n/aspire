@@ -6,7 +6,8 @@ import {
 	MIN_CANVAS_EDGE,
 	canvasFor,
 	toggleChosen,
-	wallpaperCandidates
+	wallpaperCandidates,
+	wallpaperPick
 } from './wallpaper';
 
 function image(id: string, kind: DreamImage['kind'], ready: boolean): DreamImage {
@@ -72,6 +73,72 @@ describe('wallpaperCandidates', () => {
 		];
 
 		expect(wallpaperCandidates(rows).map((d) => d.id)).toEqual(['done']);
+	});
+});
+
+describe('wallpaperPick', () => {
+	const NOW = new Date('2026-09-10T09:00:00Z');
+	const A_WEEK_AGO = '2026-09-03T09:00:00Z';
+	const TEN_DAYS_AGO = '2026-08-31T09:00:00Z';
+
+	/** A dream with a ready photograph, which is the only kind that can be on one. */
+	function shot(id: string, over: Partial<Dream> = {}): Dream {
+		return dream(id, [image(`i-${id}`, 'dreamt', true)], over);
+	}
+
+	it('puts the dream of the day first, then the ones with the most fuel', () => {
+		const rows = [
+			shot('week', { lastShownAt: A_WEEK_AGO, sortOrder: 0 }),
+			shot('picked', { lastShownAt: '2026-09-10T07:00:00Z', sortOrder: 1 }),
+			shot('loved', { lastShownAt: A_WEEK_AGO, likes: 10, sortOrder: 2 })
+		];
+
+		expect(wallpaperPick(rows, 'picked', 3, NOW).map((d) => d.id)).toEqual([
+			'picked',
+			'loved',
+			'week'
+		]);
+	});
+
+	it('takes the dreams nobody has seen before any that have been', () => {
+		const rows = [
+			shot('loved', { lastShownAt: TEN_DAYS_AGO, likes: 10 }),
+			shot('never', { sortOrder: 1 })
+		];
+
+		expect(wallpaperPick(rows, null, 2, NOW).map((d) => d.id)).toEqual(['never', 'loved']);
+	});
+
+	it('falls to board order between two nobody has seen', () => {
+		const rows = [shot('second', { sortOrder: 2 }), shot('first', { sortOrder: 1 })];
+
+		expect(wallpaperPick(rows, null, 2, NOW).map((d) => d.id)).toEqual(['first', 'second']);
+	});
+
+	it('leaves out an achieved dream, and one whose photograph is not ready', () => {
+		const rows = [
+			shot('ahead', { lastShownAt: A_WEEK_AGO }),
+			shot('done', { status: 'achieved', achievedAt: A_WEEK_AGO }),
+			dream('waiting', [image('w', 'dreamt', false)], { lastShownAt: TEN_DAYS_AGO })
+		];
+
+		expect(wallpaperPick(rows, null, 6, NOW).map((d) => d.id)).toEqual(['ahead']);
+	});
+
+	it('never hands back more than the collage holds', () => {
+		const rows = Array.from({ length: 9 }, (_, i) => shot(`d${i}`, { sortOrder: i }));
+
+		expect(wallpaperPick(rows, null, undefined, NOW)).toHaveLength(MAX_ON_WALLPAPER);
+	});
+
+	it('is nothing at all when no dream ahead has a photograph', () => {
+		expect(wallpaperPick([dream('none', [])], null, 6, NOW)).toEqual([]);
+	});
+
+	it('ignores a pick that cannot be on one', () => {
+		const rows = [shot('ahead', { lastShownAt: A_WEEK_AGO }), dream('none', [])];
+
+		expect(wallpaperPick(rows, 'none', 6, NOW).map((d) => d.id)).toEqual(['ahead']);
 	});
 });
 

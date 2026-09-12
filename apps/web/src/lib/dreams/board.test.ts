@@ -1,10 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import type { Dream } from '@aspire/contracts';
 import {
+	LIKES_CAP,
 	achievedDreams,
 	anniversaryToday,
 	byCategory,
 	categoriesOnBoard,
+	fuel,
 	listOrder,
 	pickDaily,
 	reelDreams,
@@ -19,6 +21,8 @@ const NOW = new Date('2026-09-10T09:00:00Z');
 const TODAY = '2026-09-10T09:00:00Z';
 const YESTERDAY = '2026-09-09T09:00:00Z';
 const A_WEEK_AGO = '2026-09-03T09:00:00Z';
+const TEN_DAYS_AGO = '2026-08-31T09:00:00Z';
+const TWENTY_DAYS_AGO = '2026-08-21T09:00:00Z';
 
 function dream(id: string, over: Partial<Dream> = {}): Dream {
 	return {
@@ -288,6 +292,67 @@ describe('pickDaily', () => {
 		];
 
 		expect(pickDaily(rows, NOW, first)?.id).toBe('yesterday');
+	});
+
+	it('lets the hearts jump the queue, and the cap hold it', () => {
+		// Ten hearts double the fuel, so ten days loved beats twenty unloved
+		// by nothing at all — and a tie falls to board order, which is the
+		// unloved one. Eleven hearts change nothing; ten is the ceiling.
+		const waited = dream('waited', { lastShownAt: TWENTY_DAYS_AGO, sortOrder: 0 });
+		const loved = dream('loved', { lastShownAt: TEN_DAYS_AGO, likes: 10, sortOrder: 1 });
+
+		expect(pickDaily([waited, loved], NOW, first)?.id).toBe('waited');
+		expect(pickDaily([dream('waited', { lastShownAt: A_WEEK_AGO }), loved], NOW, first)?.id).toBe(
+			'loved'
+		);
+		expect(
+			pickDaily([waited, dream('loved', { lastShownAt: TEN_DAYS_AGO, likes: 99 })], NOW, first)?.id
+		).toBe('waited');
+	});
+
+	it('still takes one never shown before the most loved dream on the board', () => {
+		const rows = [dream('loved', { lastShownAt: TEN_DAYS_AGO, likes: 10 }), dream('never')];
+
+		expect(pickDaily(rows, NOW, first)?.id).toBe('never');
+	});
+
+	it('holds all day even when another dream has more fuel', () => {
+		const rows = [
+			dream('today', { lastShownAt: TODAY }),
+			dream('loved', { lastShownAt: TWENTY_DAYS_AGO, likes: 10 })
+		];
+
+		expect(pickDaily(rows, NOW, first)?.id).toBe('today');
+	});
+});
+
+describe('fuel', () => {
+	it('is the days waited, and nothing on a dream shown today', () => {
+		expect(fuel(dream('a', { lastShownAt: A_WEEK_AGO }), NOW)).toBe(7);
+		expect(fuel(dream('a', { lastShownAt: TODAY }), NOW)).toBe(0);
+	});
+
+	it('doubles at the cap and never goes past it', () => {
+		const ten = dream('a', { lastShownAt: A_WEEK_AGO, likes: LIKES_CAP });
+
+		expect(fuel(ten, NOW)).toBe(14);
+		expect(fuel(dream('a', { lastShownAt: A_WEEK_AGO, likes: 500 }), NOW)).toBe(14);
+		// One heart is a tenth more, not a doubling: the ladder is gradual.
+		expect(fuel(dream('a', { lastShownAt: A_WEEK_AGO, likes: 1 }), NOW)).toBeCloseTo(7.7);
+	});
+
+	it('is everything for a dream nobody has seen', () => {
+		expect(fuel(dream('a'), NOW)).toBe(Infinity);
+	});
+
+	it('counts whole days, so two phones a few seconds apart agree', () => {
+		// Hours elapsed would differ here; whole days cannot. Two devices on
+		// one board have to open on the same dream without being told (D36).
+		const shown = dream('a', { lastShownAt: A_WEEK_AGO });
+		const early = fuel(shown, new Date('2026-09-10T12:00:00Z'));
+
+		expect(early).toBeGreaterThan(0);
+		expect(fuel(shown, new Date('2026-09-10T12:00:30Z'))).toBe(early);
 	});
 });
 

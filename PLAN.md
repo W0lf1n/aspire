@@ -1,6 +1,6 @@
 # Aspire — Project Plan
 
-Status: M0–M5 done · M7 done · M6 part-done (§22.1, §22.3, §22.4) · M8 planned (§24) · Owner: Petr · Created: 2026-09-09 · Revised: 2026-09-12
+Status: M0–M5 done · M7 done · M6 part-done (§22.1–§22.4) · M8 planned (§24) · Owner: Petr · Created: 2026-09-09 · Revised: 2026-09-12
 
 Third app in the personal self-improvement trio (Prosper → Planner → **Aspire**, the dreamboard). Building first. Standalone. No integration with the others for now.
 
@@ -126,7 +126,7 @@ Daily pick rule: `ORDER BY last_shown_at NULLS FIRST, random() LIMIT 1` among st
 | M3 | Hall of Fame + affirmations | Done 2026-09-10 (§12): affirmation, before/after, anniversary. Voice memo dropped (§8.4) | done |
 | M4 | Wallpaper export | Done 2026-09-10 (§14): collage renderer, the phone's own canvas, share or save | done |
 | M5 | Daily nudge | Done 2026-09-11 (§15): subscription, schedule, the crypto by hand, the morning notification | done |
-| M6 | The review's four, and the late nudge | Started 2026-09-12 (§22). In: the nudge is urgent and reports its offset (D51), a sky tile takes a photograph (D52), the anniversary is the morning's nudge (D57). Left: the heart weighing the pick, the lock screen refreshing itself | 4 sessions |
+| M6 | The review's four, and the late nudge | Started 2026-09-12 (§22). In: the nudge is urgent and reports its offset (D51), a sky tile takes a photograph (D52), the anniversary is the morning's nudge (D57), the heart weighs the pick and the wallpaper (D58). Left: the lock screen refreshing itself | 4 sessions |
 | M7 | Teď, a link, and the crop | Done 2026-09-12 (§23): the second reel of ten in his order (D53), a focal point and zoom per photograph (D54), a photograph from a pasted link (D56) | done |
 
 Smallest of the three apps. Good candidate to build **first** if you want a quick win, or **second** right after Planner MVP — both are one-month projects at weekend pace.
@@ -156,9 +156,10 @@ Answered ones are struck through; the reasoning is in `docs/DECISIONS.md`.
 5. ~~Czech / English UI?~~ — answered 2026-09-09: Czech UI, English code, like Prosper (D2).
 6. ~~Will Zuzana use it too (shared board vs. separate accounts)?~~ — answered 2026-09-10: boards are tenants, each with its own pairing code and still no accounts; she gets her own board, or a device on Petr's, by which code she types (D21).
 7. ~~Build order~~ — decided: Aspire first.
-8. **Does the heart's count leave the reel tile** once the heart weights the
-   pick (§22.2)? Recommended yes: the tap stays, the number is read on the
-   dream's own screen, and a photograph carries one thing fewer.
+8. ~~Does the heart's count leave the reel tile once the heart weights the
+   pick (§22.2)?~~ — answered 2026-09-12: yes. The tap stays with its haptic,
+   the tile keeps one bit — filled heart or outline — and the number is read
+   on the dream's own screen, where the facts are (D58).
 9. **What is the second reel called** (§23.1)? Recommended „Teď“ — a state
    rather than a number, one syllable, reads with sním · plním. „Top 10“
    says how many, which the cap already enforces.
@@ -536,13 +537,13 @@ a milestone either: it is one column, one field and one note.
 
 ## 22. M6 — the review's four, and the nudge that came late · 2026-09-12
 
-**§22.1, §22.3 and §22.4 are built** (D51, D52, D57). The order was the order
-to build in: the late nudge was a bug and went first; the tile was the hour it
-looked like; the anniversary was the hour it looked like too, though it cannot
-fire before September 2027. What is left is the heart (§22.2, one rule in two
-languages, and the one item that wants a fortnight of real swiping before it is
-tuned) and the lock screen (§22.5, the largest, waiting on a one-minute check
-on the phone).
+**§22.1 through §22.4 are built** (D51, D52, D57, D58). The order was the
+order to build in: the late nudge was a bug and went first; the tile was the
+hour it looked like; the anniversary was the hour it looked like too, though it
+cannot fire before September 2027; and the heart now has its one job, which
+wants a fortnight of real swiping before anybody says whether it speaks too
+loudly. What is left is the lock screen (§22.5, the largest, waiting on a
+one-minute check on the phone).
 Each item says what it decides, so `docs/DECISIONS.md` gets its entry the day
 the item lands.
 
@@ -626,7 +627,7 @@ One thing the plan did not foresee: the offset's own test caught `FindAsync`
 reading through the change tracker after an `ExecuteUpdate` write, which is
 D34's lesson about `DueAsync` in the method next door. It reads untracked now.
 
-### 22.2 The heart gets a job
+### 22.2 The heart gets a job — done 2026-09-12
 
 **What is true today.** `POST /dreams/{id}/likes` counts, the tile and the
 dream's screen show the count, and no rule reads it — not `pickDaily`, not
@@ -650,8 +651,10 @@ deterministic, so two devices holding the same board agree without a
 stamp; ties fall to `sortOrder` as before. The same numbers in
 `dreams/board.ts` and `Aspire.Domain/DailyPick.cs`, because the nudge
 names a dream while the phone is asleep (D36), each with the test: a dream
-with no hearts and a hundred days equals one with nine hearts and ten; a
-dream stamped today is never picked twice; never-shown still comes first.
+with no hearts and twenty days equals one with ten hearts and ten — the
+number in the first draft of this line was arithmetic no cap produces, and
+the rule above is what was built; a dream stamped today is never picked
+twice; never-shown still comes first.
 
 **The wallpaper reads the same rule.** `wallpaperPick(dreams, 6)` — the
 day's pick first when it has a photograph, then by fuel among the reel's
@@ -673,7 +676,16 @@ find out whether it speaks too loudly.
 (+test), `Aspire.Domain/DailyPick.cs` and `DailyPickTests.cs`, a
 `WallpaperPick` beside it, `routes/+page.svelte`,
 `routes/nastaveni/tapeta/+page.svelte`, `apps/web/DESIGN.md` (the reel's
-heart), `PRODUCT.md`. **Decides** D53. **Size:** half a day.
+heart), `PRODUCT.md`. **Decided** D58 — D53 was spent on the two reels while
+this sat in the plan. **Took** half a day, and answered §8's eighth question
+yes: the number is off the tile, the heart filled on a dream that has been
+fuelled and an outline on one that has not.
+
+Two departures. The `WallpaperPick` in C# is **not** built: its only caller is
+§22.5's keyed link, and a rule with no caller drifts from its twin without
+anybody noticing, so it arrives with the endpoint that needs it. And the fill
+is `--photo-ink`, not the ember — the accent stays off a photograph (rule 4),
+and the ember heart is already on the dream's own screen.
 
 ### 22.3 A sky tile asks for its photograph — done 2026-09-12
 
@@ -769,7 +781,8 @@ missing in one iOS 16 beta and came back, so the check is whether it is in
 building and step 2 waits.
 
 **1. Six without being told which.** `GET /api/v1/wallpaper` with no
-`dreams` answers with today's six — `WallpaperPick` from §22.2: the day's
+`dreams` answers with today's six — `WallpaperPick`, the C# twin of §22.2's
+`wallpaperPick`, built here because this is its only caller (D58): the day's
 pick first, then by fuel among the reel's dreams with a ready dreamt
 photograph — without stamping anything, because a lock screen is not the
 board opening. An optional `offset` names the device's day; it is a static
@@ -818,9 +831,8 @@ automatic six are the reel's and not the wall's, and the link is the key.
 sentence, given a photograph from the phone or from a link, cropped where the
 person wants it, and put on a second reel of ten in their own order.
 
-**What is left in this plan is §22's remainder** — the heart weighing the
-pick, and the lock screen refreshing itself — and §3.7's share link, which was
-never a milestone. The signed link §22.5 needs is the same mechanism §3.7
+**What is left in this plan is §22's remainder** — the lock screen refreshing
+itself — and §3.7's share link, which was never a milestone. The signed link §22.5 needs is the same mechanism §3.7
 wants, so the two go together.
 
 ### 23.1 Two reels: Vše · Teď — done 2026-09-12
