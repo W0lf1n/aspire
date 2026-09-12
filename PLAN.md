@@ -1,6 +1,6 @@
 # Aspire — Project Plan
 
-Status: M0–M5 done · M7 done · M6 part-done (§22.1–§22.4) · M8 planned (§24) · Owner: Petr · Created: 2026-09-09 · Revised: 2026-09-12
+Status: M0–M7 done · M8 planned (§24) · Owner: Petr · Created: 2026-09-09 · Revised: 2026-09-12
 
 Third app in the personal self-improvement trio (Prosper → Planner → **Aspire**, the dreamboard). Building first. Standalone. No integration with the others for now.
 
@@ -126,7 +126,7 @@ Daily pick rule: `ORDER BY last_shown_at NULLS FIRST, random() LIMIT 1` among st
 | M3 | Hall of Fame + affirmations | Done 2026-09-10 (§12): affirmation, before/after, anniversary. Voice memo dropped (§8.4) | done |
 | M4 | Wallpaper export | Done 2026-09-10 (§14): collage renderer, the phone's own canvas, share or save | done |
 | M5 | Daily nudge | Done 2026-09-11 (§15): subscription, schedule, the crypto by hand, the morning notification | done |
-| M6 | The review's four, and the late nudge | Started 2026-09-12 (§22). In: the nudge is urgent and reports its offset (D51), a sky tile takes a photograph (D52), the anniversary is the morning's nudge (D57), the heart weighs the pick and the wallpaper (D58). Left: the lock screen refreshing itself | 4 sessions |
+| M6 | The review's four, and the late nudge | Done 2026-09-12 (§22): the nudge is urgent and reports its offset (D51), a sky tile takes a photograph (D52), the anniversary is the morning's nudge (D57), the heart weighs the pick and the wallpaper (D58), and the lock screen refreshes itself from a link that is its own key (D59, D60) | done |
 | M7 | Teď, a link, and the crop | Done 2026-09-12 (§23): the second reel of ten in his order (D53), a focal point and zoom per photograph (D54), a photograph from a pasted link (D56) | done |
 
 Smallest of the three apps. Good candidate to build **first** if you want a quick win, or **second** right after Planner MVP — both are one-month projects at weekend pace.
@@ -169,9 +169,10 @@ Answered ones are struck through; the reasoning is in `docs/DECISIONS.md`.
 11. **Does a linked picture come back to the phone, or get imported on the
     server** (§23.3)? Recommended back to the phone: one endpoint, a preview
     before the dream exists, the same upload and the same crop editor.
-12. **How does the morning automation get in** (§22.5)? Recommended a link
-    that is its own key, made and revoked from Tapeta; the alternative is
-    the device token typed into a Shortcut.
+12. ~~How does the morning automation get in (§22.5)?~~ — answered
+    2026-09-12: a link that is its own key, made and revoked from Tapeta. A
+    device token typed into a Shortcut is a token out of the app and a typo
+    away from a wallpaper that silently never changes (D60).
 13. **Should the nudge prefer Teď** once there is a Teď (§23.1)? Open;
     default no — the nudge stays the day's pick from the whole reel until a
     fortnight of using both says otherwise.
@@ -537,13 +538,13 @@ a milestone either: it is one column, one field and one note.
 
 ## 22. M6 — the review's four, and the nudge that came late · 2026-09-12
 
-**§22.1 through §22.4 are built** (D51, D52, D57, D58). The order was the
+**All five are built** (D51, D52, D57, D58, D59, D60), and the order was the
 order to build in: the late nudge was a bug and went first; the tile was the
 hour it looked like; the anniversary was the hour it looked like too, though it
-cannot fire before September 2027; and the heart now has its one job, which
-wants a fortnight of real swiping before anybody says whether it speaks too
-loudly. What is left is the lock screen (§22.5, the largest, waiting on a
-one-minute check on the phone).
+cannot fire before September 2027; the heart got its one job, which wants a
+fortnight of real swiping before anybody says whether it speaks too loudly; and
+the lock screen now refreshes itself, which was the largest and the one with a
+key in it.
 Each item says what it decides, so `docs/DECISIONS.md` gets its entry the day
 the item lands.
 
@@ -764,7 +765,7 @@ about `last_sent_on` was right, and the reason it is right is that „shown“ i
 word about the board's own turn, so tomorrow names the dream today would
 have.
 
-### 22.5 A lock screen that refreshes itself
+### 22.5 A lock screen that refreshes itself — done 2026-09-12
 
 **Why.** §3.5's purpose is the dream seen a hundred times a day without
 opening anything. Built as a one-time export, the same six dreams are the
@@ -805,7 +806,9 @@ sets the picture; it needs a way in. Two ways, one recommended:
   exists to copy. The key is the capability: whoever holds the link holds
   the lock screen, nothing else, and one tap makes a new one. It is also
   the mechanism §3.7's share link needs — a per-dream key the same way —
-  so the last line in the plan comes almost free.
+  so the last line in the plan comes almost free. Built: `BoardLinks` is the
+  shape, and a `DreamLinks` beside it is the same 32 bytes against a dream's
+  row instead of a board's (D60).
 
 **3. The screen says how.** Tapeta gains „Každé ráno sama“: the link with a
 copy button, and the steps in Czech — Zkratky → Automatizace → Denně v 6:55
@@ -816,12 +819,23 @@ and the one sentence about a photo wallpaper. Around a megabyte of JPEG at
 **Files.** `Wallpaper/WallpaperEndpoints.cs`, a `WallpaperPick` in
 `Aspire.Domain` (+test), `Board.cs` and migration `LinkKey`, a
 `Boards/LinkEndpoints.cs`, `Contracts.cs` and `packages/contracts`
-(`LinkResponse { url }`), `lib/api/client.ts`, `lib/dreams/wallpaper.ts`
+(`LinkResponse`), `lib/api/client.ts`, `lib/dreams/wallpaper.ts`
 (+test), `routes/nastaveni/tapeta/+page.svelte`, `apps/api/README.md`,
-`docs/DEPLOYMENT.md`. **Decides** two numbers after the last one taken — D55 and
-D56 went to the laptop's database and the link fetcher while this waited: the
-automatic six are the reel's and not the wall's, and the link is the key.
-**Size:** two sessions; the largest of §22.
+`docs/DEPLOYMENT.md`. **Decided** D59 (the automatic six are the reel's, not
+the wall's) and D60 (the link is the key) — D55 and D56 went to the laptop's
+database and the link fetcher while this waited. **Took** one session rather
+than two.
+
+Four things the plan did not say. The contract carries the **path**, not the
+whole URL: the browser knows its own origin for certain, and the server behind
+nginx would be reading its own scheme out of a header a client can set. The
+fence is **ten a minute per address**, not one a minute per key — the cost
+being fenced is the rendering, which an address pays for whichever key it
+presents, and a 429 to a phone's automation is exactly the silent failure this
+was built to avoid. `access_log off` on that path in nginx, because the key is
+in it and an access log is the most copied file on a box. And Tapeta already
+opened on today's six from §22.2, so the „Dnešních šest“ pill became what it
+should have been: a way back, shown only when the choice has moved.
 
 ---
 
@@ -831,8 +845,8 @@ automatic six are the reel's and not the wall's, and the link is the key.
 sentence, given a photograph from the phone or from a link, cropped where the
 person wants it, and put on a second reel of ten in their own order.
 
-**What is left in this plan is §22's remainder** — the lock screen refreshing
-itself — and §3.7's share link, which was never a milestone. The signed link §22.5 needs is the same mechanism §3.7
+**What is left in this plan** is §3.7's share link, which was never a
+milestone, and §24's M8. The signed link §22.5 needs is the same mechanism §3.7
 wants, so the two go together.
 
 ### 23.1 Two reels: Vše · Teď — done 2026-09-12

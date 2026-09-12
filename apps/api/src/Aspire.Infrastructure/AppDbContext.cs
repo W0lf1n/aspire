@@ -23,6 +23,11 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
             entity.Property(b => b.Id).HasMaxLength(64);
             entity.Property(b => b.Name).HasMaxLength(Board.NameMaxLength);
             entity.Property(b => b.CodeHash).HasMaxLength(Board.CodeHashMaxLength);
+            entity.Property(b => b.LinkKey).HasMaxLength(Board.LinkKeyMaxLength);
+            // The lock-screen link arrives with no board on it, so the key is
+            // how the board is found — and unique, so one key is one board
+            // (D60). Null is „no link“, and many boards may have none.
+            entity.HasIndex(b => b.LinkKey).IsUnique();
         });
 
         model.Entity<Dream>(entity =>

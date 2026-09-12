@@ -15,6 +15,7 @@ import type {
 	DreamInput,
 	FocalInput,
 	HealthResponse,
+	LinkResponse,
 	NudgeInput,
 	NudgeOffsetInput,
 	NudgeSettings,
@@ -221,6 +222,9 @@ export function moveImage(
  * they were chosen, which is the order they appear on it. Nothing is stored
  * on the server: the image is made from the files already there and handed
  * straight back, and where it goes next is the phone's business.
+ *
+ * With no ids at all the server answers with today's six, by the same rule
+ * this device works out for itself (D59).
  */
 export async function wallpaper(
 	dreamIds: string[],
@@ -233,6 +237,23 @@ export async function wallpaper(
 	});
 	const response = await send(`/wallpaper?${query}`);
 	return response.blob();
+}
+
+// ── the lock screen that refreshes itself (D60) ─────────────────────────────
+
+/** The board's link, or `{ path: null }` when it has never made one. */
+export function boardLink(): Promise<LinkResponse> {
+	return call<LinkResponse>('/board/link');
+}
+
+/** A new key, which also stops the old link opening anything. */
+export function makeBoardLink(): Promise<LinkResponse> {
+	return call<LinkResponse>('/board/link', { method: 'POST' });
+}
+
+/** No link at all. Revoking one that is not there is not a failure. */
+export function revokeBoardLink(): Promise<void> {
+	return call<void>('/board/link', { method: 'DELETE' });
 }
 
 // ── the morning nudge (PLAN.md §3.6) ────────────────────────────

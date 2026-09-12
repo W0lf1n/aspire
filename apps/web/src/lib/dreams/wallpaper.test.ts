@@ -7,6 +7,7 @@ import {
 	canvasFor,
 	toggleChosen,
 	wallpaperCandidates,
+	wallpaperLink,
 	wallpaperPick
 } from './wallpaper';
 
@@ -139,6 +140,30 @@ describe('wallpaperPick', () => {
 		const rows = [shot('ahead', { lastShownAt: A_WEEK_AGO }), dream('none', [])];
 
 		expect(wallpaperPick(rows, 'none', 6, NOW).map((d) => d.id)).toEqual(['ahead']);
+	});
+});
+
+describe('wallpaperLink', () => {
+	const CANVAS = { width: 1179, height: 2556 };
+
+	it('carries the canvas and the day of the phone it was copied on', () => {
+		expect(wallpaperLink('https://sny.example', '/api/v1/w/abc', CANVAS, 120)).toBe(
+			'https://sny.example/api/v1/w/abc?width=1179&height=2556&offset=120'
+		);
+	});
+
+	it('says a negative offset as one, rather than as an escape', () => {
+		// `-` is not escaped in a query value, and a Shortcut is holding this
+		// string by hand: anything that needs decoding is a typo waiting.
+		expect(wallpaperLink('https://sny.example', '/w/k', CANVAS, -300)).toContain('offset=-300');
+	});
+
+	it('is a URL the browser itself can parse back', () => {
+		const url = new URL(wallpaperLink('https://sny.example', '/api/v1/w/abc', CANVAS, 0));
+
+		expect(url.pathname).toBe('/api/v1/w/abc');
+		expect(url.searchParams.get('offset')).toBe('0');
+		expect(url.searchParams.get('width')).toBe('1179');
 	});
 });
 

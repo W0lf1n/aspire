@@ -32,9 +32,14 @@ more than store rows.
 | `POST`   | `/api/v1/nudge/offset` | `{ endpoint, utcOffsetMinutes }`; moves the offset on a subscription that exists, makes none, 204. Sent on every open and resume (D51) |
 | `DELETE` | `/api/v1/nudge` | `?endpoint=`; 204 |
 | `GET`    | `/api/v1/images/fetch` | `?url=`; the picture behind a link as a JPEG at most 2048 px, made on request and kept nowhere. Public addresses only, three redirects, 10 s, 10 MB; 20 a minute per address (D56) |
-| `GET`    | `/api/v1/wallpaper` | `?dreams=<id,…>&width&height`; the lock-screen collage as JPEG, made on request and kept nowhere (D33) |
+| `GET`    | `/api/v1/wallpaper` | `?dreams=<id,…>&width&height&offset`; the lock-screen collage as JPEG, made on request and kept nowhere (D33). With no `dreams` it is today's six, and it stamps nothing (D59) |
+| `GET`    | `/api/v1/board/link` | This board's lock-screen link as `{ path }`, or `{ path: null }` (D60) |
+| `POST`   | `/api/v1/board/link` | A new key, which also stops the old link opening anything; `{ path }` |
+| `DELETE` | `/api/v1/board/link` | No link at all; 204, and 204 again when there was none |
+| `GET`    | `/api/v1/w/{key}` | Today's six as a JPEG, **with no token** — the key in the path is the whole permission (D60). `?width&height&offset`; `no-store`; 404 for a key that opens nothing; 10 a minute per address |
 
-Everything but `health` and `pair` needs `Authorization: Bearer <token>`.
+Everything but `health`, `pair` and `w/{key}` needs
+`Authorization: Bearer <token>`.
 The wire types live in `packages/contracts` and are mirrored in
 `Contracts.cs`; enums travel kebab-case (`in-progress`). A bad input is a
 400 problem whose `detail` is the Czech sentence the screen shows.

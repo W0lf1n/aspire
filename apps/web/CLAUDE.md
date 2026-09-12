@@ -105,7 +105,7 @@ in, only its own kind, and what happens when the sizes never come),
 `dreams/focus.test.ts` (who is on Teď and in what order, and that the ten
 are full at ten),
 `dreams/wallpaper.test.ts` (who can be on a collage, which six it starts
-with, and how big it is),
+with, the link the morning automation is given, and how big it is),
 `push/schedule.test.ts` (the nudge's time both ways, and why the nudge
 cannot be offered here — browser, server, permission, in that order),
 `images/downscale.test.ts`, `offline/cache.test.ts` (what is kept, in what

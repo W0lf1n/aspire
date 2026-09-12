@@ -177,6 +177,21 @@ export interface PushKeyResponse {
 	publicKey: string;
 }
 
+// ── GET · POST · DELETE /api/v1/board/link ─────────────────────────────────
+
+/**
+ * The board's lock-screen link, or none (D60).
+ *
+ * The path rather than the whole URL: the client is served from this origin
+ * and knows it for certain, while the server behind nginx would be reading its
+ * own scheme out of a header somebody else can set. The screen puts the two
+ * together and adds this phone's canvas and offset, because the link is static
+ * and whatever it carries is what the morning automation will ask for.
+ */
+export interface LinkResponse {
+	path: string | null;
+}
+
 // ── PUT /api/v1/focus ───────────────────────────────────────────────────────
 
 /**

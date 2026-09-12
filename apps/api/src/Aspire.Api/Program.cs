@@ -50,6 +50,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 });
 
 builder.Services.AddScoped<DeviceAuth>();
+builder.Services.AddScoped<BoardLinks>();
 builder.Services.AddScoped<DreamService>();
 builder.Services.AddScoped<NudgeService>();
 
@@ -132,6 +133,19 @@ const string PairPolicy = "pair";
 const string FetchPolicy = "fetch";
 
 /// <summary>
+/// The lock-screen link renders a collage of six full-size photographs on
+/// every hit, with no token in front of it — so the clock is what keeps that
+/// work bounded (D60). Per address rather than per key: the cost being fenced
+/// is the rendering, which an address pays for whichever key it presents, and
+/// the key itself is 32 random bytes that nothing is going to guess.
+///
+/// Ten a minute rather than the one a fetch a morning needs, because a 429 to
+/// a phone's automation is a wallpaper that silently never changes, and a
+/// browser opening the link to check it often asks twice.
+/// </summary>
+const string LinkPolicy = "wallpaper-link";
+
+/// <summary>
 /// Attempts an hour on the pairing endpoint as a whole, from everywhere. A
 /// guess spread across many addresses is the one attack per-address counting
 /// does not touch; twenty is more pairing than a household does in a year.
@@ -172,6 +186,17 @@ builder.Services.AddRateLimiter(options =>
         _ => new FixedWindowRateLimiterOptions
         {
             PermitLimit = 20,
+            Window = TimeSpan.FromMinutes(1),
+            QueueLimit = 0
+        }));
+
+    options.AddPolicy(LinkPolicy, http => RateLimitPartition.GetFixedWindowLimiter(
+        ClientAddress.PartitionKey(
+            http.Request.Headers["X-Real-IP"].FirstOrDefault(),
+            http.Connection.RemoteIpAddress),
+        _ => new FixedWindowRateLimiterOptions
+        {
+            PermitLimit = 10,
             Window = TimeSpan.FromMinutes(1),
             QueueLimit = 0
         }));
@@ -292,7 +317,8 @@ app.MapPost("/api/v1/pair", async (
 // the lock-screen collage in Wallpaper/WallpaperEndpoints.cs.
 app.MapDreams();
 app.MapImageFetch(FetchPolicy);
-app.MapWallpaper();
+app.MapWallpaper(LinkPolicy);
+app.MapBoardLink();
 app.MapNudges();
 app.Run();
 return 0;

@@ -300,6 +300,46 @@ cd /opt/aspire/deploy && docker compose exec api ls -la /data/media
 
 ---
 
+## The lock screen that refreshes itself
+
+Nastavení → Tapeta → *Každé ráno sama* makes a link, and the link is its own
+permission (D60): whoever holds it gets one collage of that board's six
+dreams for the day, and nothing else — no dreams to read, no writes, no
+token. It is the only thing in this app besides `pair` that answers without
+`Authorization`.
+
+What that means for the box:
+
+- **The key is in the path**, so `location ^~ /api/v1/w/` in
+  `deploy/nginx/app.conf` turns `access_log` off for it. A capability written
+  into a log file is a capability handed to whoever reads, rotates or copies
+  that file. If you add logging in front of nginx — Cloudflare, a reverse
+  proxy on another host — it needs the same treatment or the link is in
+  somebody else's log.
+- **It renders on every hit**: six full-size photographs decoded, cropped and
+  drawn. Ten a minute per address in the API and the same in nginx.
+- **Revoking is one tap.** *Nový* replaces the key, *Zrušit* removes it; the
+  old link 404s immediately either way. There is nothing to clean up.
+
+To see whether a board has one, and to take it away from the box rather than
+from the phone:
+
+```bash
+cd /opt/aspire/deploy && docker compose exec db psql -U aspire -d aspire -c 'select id, name, link_key is not null as has_link from boards;'
+```
+
+```bash
+cd /opt/aspire/deploy && docker compose exec db psql -U aspire -d aspire -c "update boards set link_key = null where name = 'petr';"
+```
+
+The phone's half is Zkratky → Automatizace → Denně v 6:55 → *Získat obsah
+URL* → *Nastavit tapetu* (zamčená obrazovka, bez náhledu), with *Zeptat se
+před spuštěním* off. The wallpaper has to be a plain photo wallpaper rather
+than a shuffle, or the Shortcut has nothing to overwrite. The screen says all
+of this in Czech; it is here because it is the half that is not in the app.
+
+---
+
 ## Pairing a device
 
 The shape is Prosper's, without the address: open the site, add it to the

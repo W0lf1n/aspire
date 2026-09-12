@@ -76,6 +76,16 @@ public sealed record NudgeDto(NudgeMode Mode, int AtMinutes)
 public sealed record PushKeyResponse(string PublicKey);
 
 /// <summary>
+/// The board's lock-screen link, or none (D60).
+///
+/// The path rather than the whole URL: the client is served from this origin
+/// and knows it for certain, while the server behind nginx would be reading
+/// its own scheme out of a header somebody else can set. The screen puts the
+/// two together, and adds this phone's canvas and offset.
+/// </summary>
+public sealed record LinkResponse(string? Path);
+
+/// <summary>
 /// Where a photograph is looked at, and how close (D54). Everything optional,
 /// so a field left out keeps what the photograph already has.
 /// </summary>

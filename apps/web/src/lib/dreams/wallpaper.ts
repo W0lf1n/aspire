@@ -90,6 +90,30 @@ function edge(value: number): number {
 }
 
 /**
+ * The whole link the morning automation is given (D60): the board's path, and
+ * this phone's canvas and day baked into it.
+ *
+ * Baked in because the link is static — whatever it carries is what will be
+ * asked for every morning from now on, and there is nobody awake at 6:55 to
+ * supply a screen size. The origin is the browser's own, which it knows for
+ * certain; the server behind nginx would be reading its own scheme out of a
+ * header somebody else can set.
+ */
+export function wallpaperLink(
+	origin: string,
+	path: string,
+	canvas: { width: number; height: number },
+	utcOffsetMinutes: number
+): string {
+	const query = new URLSearchParams({
+		width: String(canvas.width),
+		height: String(canvas.height),
+		offset: String(Math.trunc(utcOffsetMinutes))
+	});
+	return `${origin}${path}?${query}`;
+}
+
+/**
  * A dream added to the choice or taken out of it, in the order it was
  * chosen — which is the order it appears on the collage, so the person is
  * arranging it as they tap. Adding past the limit changes nothing: the

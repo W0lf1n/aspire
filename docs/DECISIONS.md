@@ -1842,3 +1842,95 @@ of `wallpaperPick` is **not** here, though §22.2 listed it: its only caller is
 the keyed link §22.5 has not built yet, and a rule with no caller is a rule
 that drifts from its twin unnoticed. It arrives with the endpoint that needs
 it.
+
+---
+
+### D59 — The automatic six are the reel's, not the wall's
+
+`GET /api/v1/wallpaper` with no `dreams` is today's six rather than an error:
+`WallpaperPick`, the twin of the rule the Tapeta screen already starts from
+(D58) — the day's dream first, then by fuel — so the phone and the server
+answer the same question the same way, and the person sees on the screen what
+the automation will fetch at 6:55.
+
+- **The reel only.** `wallpaperCandidates` keeps the wall for the choice by
+  hand, because a dream already lived is exactly the kind you want on a lock
+  screen. But what is chosen *for* somebody should be what is still ahead:
+  a lock screen is the surface §3.5 exists to put a future in front of.
+- **It stamps nothing.** A lock screen is not the board opening, and „shown“
+  is a word about the board's own turn (D25, D36). If fetching the collage
+  marked a dream shown, the automation would quietly spend the morning's pick
+  before the person woke up, and the board would open on a different dream
+  than the one it was about to.
+- **Fixed order, no shuffle.** Two fetches of one morning have to be one
+  wallpaper. The randomness the daily pick uses among dreams never shown is
+  the only thing that can move it, and only on a board where nothing has been
+  shown yet — which is a board that has not been used, not a board in use.
+
+The old „Vyber aspoň jeden sen.“ is gone with it: no dreams named now means
+the six, on both roads in.
+
+---
+
+### D60 — The lock-screen link is its own key
+
+§3.5's purpose is the dream seen a hundred times a day without opening
+anything. Built as a one-time export, the same six dreams stay on the lock
+screen until somebody remembers Nastavení exists — and a picture seen a
+hundred times a day stops being seen inside a week. That is the habituation
+D25 and D30 fight on the reel, on the surface that habituates fastest.
+
+So the phone fetches a new collage every morning by itself. Shortcuts can run
+a URL at a time of day and set the picture from it; what it cannot do is hold
+a bearer token without somebody typing one into it by hand, and a token typed
+by hand is a token out of the app and a typo away from a wallpaper that
+silently never changes.
+
+**The link carries its own key.** `boards.link_key`: 32 bytes from the
+operating system's randomness, base64url, unique, and `GET /api/v1/w/{key}`
+answers with that board's six and nothing else.
+
+- **The key is the whole permission**, and it is exactly one collage wide. No
+  dreams to read, no writes, no token, no way from it to anything else. A link
+  that leaks costs six photographs a day until it is replaced, and replacing
+  it is one tap: `POST` makes a new key over the old one, so making is also
+  revoking and there is only ever one to keep track of.
+- **Not hashed, unlike the pairing code.** A code is twelve digits somebody
+  types, so a dump of the table is worth guessing against and PBKDF2 earns its
+  milliseconds (D21). This is 256 bits nothing guesses, and it has to be looked
+  up by rather than compared against, because the request arrives with no board
+  attached to it at all.
+- **It stays out of the access log.** `location ^~ /api/v1/w/` in nginx turns
+  logging off for that path. A capability in a log file is a capability handed
+  to whoever reads, rotates or copies the file — and an access log is the most
+  copied file on a box.
+- **Ten a minute per address**, in the API and again in nginx. The fence is
+  for the rendering — six full-size photographs decoded, cropped and drawn on
+  every hit — not for the key, which needs none. Per address rather than per
+  key, because the cost is paid by an address whichever key it presents; and
+  ten rather than the one a morning needs, because a 429 to a phone's
+  automation is the silent failure this was built to avoid.
+- **`no-store`**, so nothing between the server and the phone keeps yesterday's
+  morning.
+- **404 for a key that opens nothing**, with no sentence: „revoked“ and „never
+  existed“ must not be two different answers.
+
+**What comes back to the client is the path, not the URL.** The browser knows
+its own origin for certain; the server behind nginx would be reading its own
+scheme out of a header a client can set. The screen puts the two together and
+bakes in this phone's canvas and offset, because the link is static and
+whatever it carries is what will be asked for every morning from now on.
+
+The screen says the rest in Czech — Zkratky → Automatizace → Denně v 6:55 →
+*Získat obsah URL* → *Nastavit tapetu* — including the two things that make it
+fail silently: the wallpaper has to be a plain photo wallpaper rather than a
+shuffle, and *Zeptat se před spuštěním* has to be off.
+
+Checked end to end against a running server: the link answers a request with no
+`Authorization` header at all with a 107 kB JPEG at exactly the phone's canvas,
+a wrong key and a revoked key both 404, an impossible offset is a 400, and
+making a new link stops the old one in the same request.
+
+This is also the mechanism §3.7's share link wants — a key per dream rather
+than per board, the same shape — so the last line of the plan comes nearly
+free.

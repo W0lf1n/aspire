@@ -2,7 +2,7 @@
 
 Guidance for Claude Code working in this repository.
 
-**Last revised:** 2026-09-12 · M7 closed, D51–D58 · 262 web tests · 328 API tests
+**Last revised:** 2026-09-12 · M6 and M7 closed, D51–D60 · 265 web tests · 342 API tests
 
 ---
 
@@ -43,12 +43,13 @@ second person's whole onboarding (D46). §21 gives the list a shape: every
 line numbered with its place in the whole list (D48), a field that narrows it
 on everything a dream says about itself (D49), and a note that says when a
 dream is already written down without ever stopping it being written again
-(D50). §22 is M6, three of its five built: the late nudge
-was the urgency and now says so in the log (D51), a tile without a photograph
-is where that photograph is asked for (D52), the anniversary is the
-morning's notification on the one morning a year a dream has one (D57), and
-the heart has a job: it shortens the wait for the dream it is tapped on, and
-its count comes off the tile (D58). §23 is
+(D50). §22 is M6, done: the late nudge was the urgency and
+now says so in the log (D51), a tile without a photograph is where that
+photograph is asked for (D52), the anniversary is the morning's notification on
+the one morning a year a dream has one (D57), the heart has a job — it shortens
+the wait for the dream it is tapped on, and its count comes off the tile
+(D58) — and the lock screen refreshes itself, from six the board chooses (D59)
+through a link that is its own key (D60). §23 is
 M7, done — two reels, a photograph from a link, and the photograph's own edges.
 §24 is M8, planned and not started: the photographs at scale — the reel drawn
 at the rung the phone is, the encoder tuned once, the thumb under the picture,
@@ -163,13 +164,16 @@ apps/web/src/
                       cache-first, the board network-first (D24).
 
 apps/api/src/
-├─ Aspire.Api/             Program.cs (minimal APIs), Auth/, Boards/, Dreams/,
+├─ Aspire.Api/             Program.cs (minimal APIs), Auth/, Boards/ (the
+│                          board commands, and the lock-screen link that is
+│                          its own key — D60), Dreams/,
 │                          Images/ (the queue and the worker), Wallpaper/
 │                          (the lock-screen collage), Nudges/ (the morning
 │                          notification and its worker), Contracts.cs
-├─ Aspire.Domain/          Board, Dream, DreamImage, Device, and the two rules
-│                          the nudge needs while the phone is asleep —
-│                          DailyPick and Anniversary (D57). No EF.
+├─ Aspire.Domain/          Board, Dream, DreamImage, Device, and the rules a
+│                          sleeping phone cannot work out for itself —
+│                          DailyPick, Anniversary (D57) and WallpaperPick
+│                          (D59). No EF.
 └─ Aspire.Infrastructure/  AppDbContext, Media/ (the store, the resize, the
                           collage, the focal crop), Net/ (which addresses may
                           be reached, and the picture behind a link — D56),
@@ -240,20 +244,26 @@ scripts/             check-bundle.mjs, and invite.sh — a board and its code
     `focus_x` · `focus_y` · `zoom` on the row, `photoStyle` on the client and
     `FocalCrop` on the server, and every surface that shows a photograph
     reads them (D54). The three files on disk are never re-cut.
-17. **The heart's one job is the wait.** `fuel = days since shown ×
+17. **The lock-screen link is a capability and is treated as one.**
+    `GET /api/v1/w/{key}` is the only route besides `pair` that answers with no
+    token: 32 random bytes in the path, one collage wide, `no-store`, 404 with
+    no sentence for a key that opens nothing, and `access_log off` in nginx
+    because the key is in the path (D60). Making a new one revokes the old.
+    Anything else that ever answers without a token inherits that bargain.
+18. **The heart's one job is the wait.** `fuel = days since shown ×
     (1 + min(likes, 10) / 10)` picks the day's dream and orders the automatic
     wallpaper, in `dreams/board.ts` and in `DailyPick.cs`, counting whole days
     so two phones cannot disagree (D58). Nothing else reads the count, the
     reel's tile shows no number, and the cap is not negotiable: without it the
     loved dreams take every morning and the board stops turning over.
-18. **A morning is one notification, and the anniversary outranks it.**
+19. **A morning is one notification, and the anniversary outranks it.**
     `Aspire.Domain/Anniversary.cs` is asked before `DailyPick`, and when it
     answers, that is the nudge instead — „Před rokem“ over „Splnil se ti sen
     „X“.“, the achieved photograph, and no `last_shown_at` stamp, because the
     day's pick was never put in front of anybody (D57). It is the same rule as
     `anniversaryToday` in `board.ts` and the two tests mirror each other case
     for case.
-19. **There are two reels, and only Vše is shuffled.** Teď is at most ten
+20. **There are two reels, and only Vše is shuffled.** Teď is at most ten
     dreams in the person's own order, `focusRank` on the dream and
     `dreams/focus.ts` on the client (D53). The day's pick and its `shown`
     stamp belong to Vše alone: a board opened on Teď has put no dream in
