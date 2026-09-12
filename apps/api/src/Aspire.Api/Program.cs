@@ -1,4 +1,6 @@
-﻿using System.Text.Json;
+﻿using System.Net;
+using System.Net.Sockets;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.RateLimiting;
 using Aspire.Api;
@@ -10,6 +12,7 @@ using Aspire.Api.Nudges;
 using Aspire.Api.Wallpaper;
 using Aspire.Infrastructure;
 using Aspire.Infrastructure.Media;
+using Aspire.Infrastructure.Net;
 using Aspire.Infrastructure.Push;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.AspNetCore.RateLimiting;
@@ -66,6 +69,45 @@ builder.Services.AddHttpClient<WebPushSender>(client =>
     client.Timeout = TimeSpan.FromSeconds(15));
 builder.Services.AddHostedService<NudgeWorker>();
 
+// The link fetcher's own client, which can only reach the public internet.
+// The check is in `ConnectCallback` rather than before the request, because
+// a name checked and then resolved again is a name that can answer
+// differently the second time — the socket is opened to an address that
+// passed, and to no other (D56).
+builder.Services.AddHttpClient<ImageFetcher>(client =>
+    {
+        client.Timeout = TimeSpan.FromSeconds(10);
+        client.MaxResponseContentBufferSize = ImageFetcher.MaxBytes;
+    })
+    .ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler
+    {
+        // Walked by hand, so every hop's address is checked (D56).
+        AllowAutoRedirect = false,
+        AutomaticDecompression = DecompressionMethods.All,
+        ConnectTimeout = TimeSpan.FromSeconds(5),
+        ConnectCallback = async (context, ct) =>
+        {
+            var addresses = await Dns.GetHostAddressesAsync(context.DnsEndPoint.Host, ct);
+            var reachable = addresses.Where(PrivateAddress.IsPublic).ToArray();
+            if (reachable.Length == 0)
+            {
+                throw new HttpRequestException("That address is not on the public internet.");
+            }
+
+            var socket = new Socket(SocketType.Stream, ProtocolType.Tcp) { NoDelay = true };
+            try
+            {
+                await socket.ConnectAsync(reachable, context.DnsEndPoint.Port, ct);
+                return new NetworkStream(socket, ownsSocket: true);
+            }
+            catch
+            {
+                socket.Dispose();
+                throw;
+            }
+        }
+    });
+
 builder.Services.AddSingleton<ImageQueue>();
 builder.Services.AddHostedService<ImageWorker>();
 builder.Services.AddScoped<ImageService>();
@@ -80,6 +122,14 @@ builder.Services.AddScoped<ImageService>();
 // fence is `limit_req` in `deploy/nginx/app.conf`, one layer out, because a
 // limiter living in this process resets every time the process restarts.
 const string PairPolicy = "pair";
+
+/// <summary>
+/// Fetching a picture from a link makes this server open a connection to
+/// somewhere else, so it is fenced by a clock as well as by a token (D56).
+/// Twenty a minute is far more than a person pasting links needs and far less
+/// than anything worth borrowing the server for.
+/// </summary>
+const string FetchPolicy = "fetch";
 
 /// <summary>
 /// Attempts an hour on the pairing endpoint as a whole, from everywhere. A
@@ -112,6 +162,17 @@ builder.Services.AddRateLimiter(options =>
             PermitLimit = 5,
             Window = TimeSpan.FromMinutes(1),
             // No queue: a pairing attempt that has to wait is a wrong guess.
+            QueueLimit = 0
+        }));
+
+    options.AddPolicy(FetchPolicy, http => RateLimitPartition.GetFixedWindowLimiter(
+        ClientAddress.PartitionKey(
+            http.Request.Headers["X-Real-IP"].FirstOrDefault(),
+            http.Connection.RemoteIpAddress),
+        _ => new FixedWindowRateLimiterOptions
+        {
+            PermitLimit = 20,
+            Window = TimeSpan.FromMinutes(1),
             QueueLimit = 0
         }));
 });
@@ -230,6 +291,7 @@ app.MapPost("/api/v1/pair", async (
 // The dreams and their photographs live in Dreams/DreamEndpoints.cs, and
 // the lock-screen collage in Wallpaper/WallpaperEndpoints.cs.
 app.MapDreams();
+app.MapImageFetch(FetchPolicy);
 app.MapWallpaper();
 app.MapNudges();
 app.Run();

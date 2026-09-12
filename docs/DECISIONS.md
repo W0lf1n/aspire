@@ -1662,3 +1662,73 @@ the same problem: `pnpm dev` alone proxies to a port with nothing behind it,
 and `ECONNREFUSED 127.0.0.1:5300` in the Vite log is not obviously „you did
 not start the other one“. No new dependency — pnpm runs both scripts from one
 regex.
+
+---
+
+## M7 · 2026-09-12 — a photograph from a link
+
+### D56 — The server fetches a linked picture, and may only reach the internet
+
+PLAN.md §4 has wanted „paste URL“ since M0 and nothing ever built it, because
+the phone cannot: an image on another origin is not readable by script, and a
+Pinterest pin's page is not readable at all. So the server fetches it — which
+means this app now makes requests somebody else chose the target of, and that
+is the most dangerous thing in it.
+
+- **The address is refused, not the name.** A name resolves to whatever it
+  likes, and can resolve to something different the second time it is asked;
+  checking the URL and then letting the stack resolve it again is a check that
+  can be walked past. The socket is opened in a `ConnectCallback` that
+  resolves the host itself, keeps only the addresses `PrivateAddress.IsPublic`
+  allows, and connects to those — so there is no window between the check and
+  the connection.
+- **Everything not obviously public is refused**, rather than a list of
+  known-bad ranges: loopback, the three private blocks, carrier-grade NAT,
+  link-local — which is where a cloud provider keeps its credentials —
+  multicast, the reserved and documentation ranges, and the same set again
+  for IPv6 including an IPv4 address wearing an IPv6 coat. The list of things
+  reachable from inside a network is not one anybody finishes writing.
+- **Redirects are walked by hand**, at most three, with every hop checked. A
+  host answering 302 to `http://169.254.169.254/` is the whole trick, and
+  `AllowAutoRedirect` would follow it before anybody looked.
+- **http and https only, ports 80 and 443 only**, ten seconds, ten megabytes
+  — the upload's own cap — and a content type that is an image or a page.
+- **One sentence for every failure.** „Z tohohle odkazu fotku nedostanu.“ A
+  message that said *which* address was refused, or what a host answered,
+  would turn this endpoint into a way to ask the internet questions from
+  inside the VPS and read the answers back.
+- **A content type is a claim; ImageSharp reading the header is the fact**, so
+  what comes back goes through the same gate an upload does before anything
+  is done with it. It is re-encoded to JPEG at 2048 px with the metadata
+  stripped, exactly as an upload would be: whatever was in somebody else's
+  file does not get served from ours.
+- **A page is read for `og:image`, then `twitter:image`**, with a regular
+  expression over its head — rule 3 reaches the API, and ImageSharp is its one
+  media dependency. The page is never kept, never shown, and never rendered.
+  On `i.pinimg.com` the sized path is swapped for `originals` and tried first,
+  because `og:image` often names a 736 px copy and that is visibly soft
+  full-bleed on a phone; strictly best-effort, with the named one tried after.
+- **The picture comes back to the phone** rather than being put on a dream.
+  On the add screen there is no dream yet, so there would be nothing to put it
+  on; and coming back here means it takes the same road a picked file does —
+  the preview, the crop editor (D54), the same upload. One endpoint, no second
+  write path, and nothing on the server to undo if somebody changes their mind.
+- **Paired devices only, and twenty a minute per address.** A token is the
+  first fence; the clock is the second, because this one makes the server work
+  on request.
+- **A shared link fills the field and waits.** Android's share sheet reaches
+  `/pridat` through `share_target` in the manifest, and anything on the phone
+  can hand the app a URL — so it is pasted into the sheet for a person to
+  send, never fetched on arrival.
+
+Two things the real internet taught in the first five minutes. A news page is
+megabytes of script and the tag is in the first few kilobytes, so the read cap
+now truncates a page instead of refusing it — refusing big pages meant
+refusing most of the web. And the failure sentence was landing on the screen
+*underneath* the open sheet, where nobody could read it; it belongs where the
+thing that failed was asked for.
+
+Checked against the live internet: a Wikipedia article's `og:image` came back
+as a 354 kB JPEG, the same picture by its direct URL did too, and the metadata
+address, a private address, localhost by name and a cloud metadata hostname
+were all refused in milliseconds without a connection being made.

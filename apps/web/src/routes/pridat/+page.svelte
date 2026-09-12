@@ -13,6 +13,7 @@
 	 */
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
+	import { page } from '$app/state';
 	import type { Dream, DreamInput } from '@aspire/contracts';
 	import { createDream, listBoard, updateDream, uploadImage } from '$lib/api/client';
 	import { describeError } from '$lib/api/errors';
@@ -25,6 +26,16 @@
 
 	const locked = $derived(connection.online ? '' : 'Bez připojení se sen nedá přidat.');
 	let photo = $state<Blob | null>(null);
+
+	/**
+	 * A link shared into the app from another one (D56). Android's share sheet
+	 * lands here through `share_target` in the manifest; on a phone that has
+	 * no such thing, pasting into the sheet is the same road. `text` is the
+	 * fallback because some apps put the link there rather than in `url`.
+	 */
+	const shared = $derived(
+		page.url.searchParams.get('url') ?? page.url.searchParams.get('text') ?? null
+	);
 
 	/** Where the picked photograph is looked at, chosen before it is sent (D54). */
 	let focal = $state<Focal>({ ...CENTRED });
@@ -82,6 +93,7 @@
 	<AppBar title="Přidat sen" />
 	<PhotoPicker
 		wide
+		sharedLink={shared}
 		busy={busy || !!locked}
 		onpick={(picked, at) => {
 			photo = picked;

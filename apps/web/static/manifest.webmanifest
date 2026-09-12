@@ -17,5 +17,10 @@
 		{ "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
 		{ "src": "/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
 	],
-	"shortcuts": [{ "name": "Přidat sen", "short_name": "Přidat", "url": "/pridat" }]
+	"shortcuts": [{ "name": "Přidat sen", "short_name": "Přidat", "url": "/pridat" }],
+	"share_target": {
+		"action": "/pridat",
+		"method": "GET",
+		"params": { "title": "title", "text": "text", "url": "url" }
+	}
 }

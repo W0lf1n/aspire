@@ -1,6 +1,6 @@
 # Aspire — Project Plan
 
-Status: M0–M5 done · M6 and M7 started, §22.1, §22.3 and Teď in (§22–§23) · M8 planned (§24) · Owner: Petr · Created: 2026-09-09 · Revised: 2026-09-12
+Status: M0–M5 done · M7 done · M6 part-done (§22.1, §22.3) · M8 planned (§24) · Owner: Petr · Created: 2026-09-09 · Revised: 2026-09-12
 
 Third app in the personal self-improvement trio (Prosper → Planner → **Aspire**, the dreamboard). Building first. Standalone. No integration with the others for now.
 
@@ -127,7 +127,7 @@ Daily pick rule: `ORDER BY last_shown_at NULLS FIRST, random() LIMIT 1` among st
 | M4 | Wallpaper export | Done 2026-09-10 (§14): collage renderer, the phone's own canvas, share or save | done |
 | M5 | Daily nudge | Done 2026-09-11 (§15): subscription, schedule, the crypto by hand, the morning notification | done |
 | M6 | The review's four, and the late nudge | Started 2026-09-12 (§22). In: the nudge is urgent and reports its offset (D51), a sky tile takes a photograph (D52). Left: the anniversary as the nudge, the heart weighing the pick, the lock screen refreshing itself | 4 sessions |
-| M7 | Teď, a link, and the crop | Started 2026-09-12 (§23). In: the second reel of ten, in his order, chosen and ordered on its own screen (D53). Left: a focal point and zoom per photograph, a photograph from a Pinterest link | 4 sessions |
+| M7 | Teď, a link, and the crop | Done 2026-09-12 (§23): the second reel of ten in his order (D53), a focal point and zoom per photograph (D54), a photograph from a pasted link (D56) | done |
 
 Smallest of the three apps. Good candidate to build **first** if you want a quick win, or **second** right after Planner MVP — both are one-month projects at weekend pace.
 
@@ -794,12 +794,16 @@ largest of §22.
 
 ---
 
-## 23. M7 — Teď, a link, and the photograph's own edges · 2026-09-12
+## 23. M7 — Teď, a link, and the photograph's own edges · 2026-09-12 · done
 
-**§23.1, §23.2 and §23.4 are built** (D53, D54). What is left is the link
-import (§23.3), whose picture now has somewhere to land: the crop editor is
-there, so a photograph fetched from a Pinterest link is positioned the same
-way a picked one is.
+**All four are built** (D53, D54, D56). A dream can now be written as a
+sentence, given a photograph from the phone or from a link, cropped where the
+person wants it, and put on a second reel of ten in their own order.
+
+**What is left in this plan is §22's remainder** — the anniversary as the
+morning's nudge, the heart weighing the pick, the lock screen refreshing
+itself — and §3.7's share link, which was never a milestone. The signed link
+§22.5 needs is the same mechanism §3.7 wants, so the two go together.
 
 ### 23.1 Two reels: Vše · Teď — done 2026-09-12
 
@@ -882,7 +886,7 @@ board do not earn a two-phase write to prevent a tie. And §23.1 wanted an
 empty Teď to be its own page *and* `focus.ts` to fall back to Vše; the page
 won, because somebody who taps Teď is owed an answer about Teď.
 
-### 23.3 A photograph from a link
+### 23.3 A photograph from a link — done 2026-09-12
 
 **Can it be done.** A pin's page — `cz.pinterest.com/pin/<id>/`, or a
 `pin.it/<short>` link that redirects to one — carries an `og:image` meta
@@ -933,8 +937,14 @@ Zuzana's phone if it is one.
 tag) with `ImageFetcherTests` through a fake handler and HTML fixtures,
 `Images/ImageFetchEndpoints.cs`, `Program.cs` (`AddHttpClient`),
 `lib/api/client.ts`, `lib/ui/PhotoPicker.svelte`, `lib/api/errors.ts`,
-`static/manifest.webmanifest`, `apps/api/README.md`. **Decides** D59.
-**Size:** one session, plus whatever Pinterest's wall costs that day.
+`static/manifest.webmanifest`, `apps/api/README.md`. **Decided** D56, not the
+planned D59. **Took** one session. Pinterest's wall cost nothing in the end —
+the fence and the parsing were the work, and both were proved against the live
+internet rather than only against fixtures. Two things the plan had wrong: the
+read cap must *truncate* a page rather than refuse it, because a news page is
+megabytes of script and refusing big pages means refusing most of the web; and
+the failure sentence has to be said inside the sheet, not handed to the screen
+underneath it where the sheet hides it.
 
 ### 23.4 The crop is his — done 2026-09-12
 

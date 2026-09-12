@@ -12,15 +12,25 @@
 	 * picture picked here is positioned before the dream may even exist — or
 	 * saves against the photograph that is already there.
 	 */
+	import { fetchImageFromUrl } from '$lib/api/client';
+	import { describeError } from '$lib/api/errors';
 	import { photoStyle } from '$lib/dreams/photos';
 	import { downscale } from '$lib/images/downscale';
 	import { CENTRED, type Focal } from '$lib/images/focal';
 	import CropEditor from './CropEditor.svelte';
 	import Icon from './Icon.svelte';
+	import Sheet from './Sheet.svelte';
 
 	interface Props {
 		/** What is there now: the saved photograph's URL, or nothing. */
 		current?: string | null;
+		/**
+		 * A link to start the sheet with — a pin shared to the app from
+		 * another one (D56). It fills the field and opens the sheet; it never
+		 * fetches on its own, because anything on the phone can hand us one
+		 * and a fetch is the server opening a connection.
+		 */
+		sharedLink?: string | null;
 		/** Where the saved photograph is looked at (D54). */
 		focal?: Focal;
 		title?: string;
@@ -38,6 +48,7 @@
 
 	let {
 		current = null,
+		sharedLink = null,
 		focal = CENTRED,
 		title = '',
 		why = '',
@@ -51,6 +62,29 @@
 	let preview = $state<string | null>(null);
 	let reading = $state(false);
 	let placing = $state(false);
+
+	/** Whether the link sheet is up, and what is typed in it. */
+	let asking = $state(false);
+	let link = $state('');
+
+	/**
+	 * Why the last link gave nothing, said inside the sheet.
+	 *
+	 * Not through `onproblem`: that sentence lands on the screen underneath,
+	 * which while the sheet is up is a sentence nobody can see. A failure
+	 * belongs where the thing that failed was asked for.
+	 */
+	let problem = $state('');
+
+	/** A link shared in from another app opens the sheet with it ready to take. */
+	$effect(() => {
+		const shared = sharedLink?.trim();
+		if (shared) {
+			link = shared;
+			problem = '';
+			asking = true;
+		}
+	});
 
 	const shown = $derived(preview ?? current);
 	const label = $derived(reading ? 'Čtu fotku…' : shown ? 'Vyměnit fotku' : 'Vybrat fotku');
@@ -99,6 +133,34 @@
 		onmove?.(chosen);
 	}
 
+	/**
+	 * The picture behind a pasted link (D56). The server fetches it — the
+	 * phone cannot read another origin's image, and cannot read a pin's page
+	 * at all — and what comes back is treated exactly like a picked file,
+	 * down to opening the editor on it.
+	 */
+	async function take() {
+		if (reading || link.trim().length === 0) return;
+
+		reading = true;
+		try {
+			const fetched = await fetchImageFromUrl(link);
+			// Already 2048 from the server, so this only settles the format.
+			const photo = await downscale(fetched);
+			if (preview) URL.revokeObjectURL(preview);
+			preview = URL.createObjectURL(photo);
+			at = { ...CENTRED };
+			onpick(photo, at);
+			asking = false;
+			link = '';
+			placing = true;
+		} catch (e) {
+			problem = describeError(e);
+		} finally {
+			reading = false;
+		}
+	}
+
 	$effect(() => () => {
 		if (preview) URL.revokeObjectURL(preview);
 	});
@@ -139,6 +201,20 @@
 					Posunout
 				</button>
 			{/if}
+
+			<button
+				type="button"
+				class="btn btn--photo"
+				onclick={() => {
+					link = '';
+					problem = '';
+					asking = true;
+				}}
+				disabled={busy || reading}
+			>
+				<Icon name="link" size={18} stroke={1.8} />
+				Z odkazu
+			</button>
 		</div>
 	</div>
 </article>
@@ -155,6 +231,46 @@
 		oncancel={() => (placing = false)}
 	/>
 {/if}
+
+<Sheet open={asking} title="Fotka z odkazu" onclose={() => (asking = false)}>
+	<label class="field">
+		<span class="field__label">Odkaz na obrázek nebo pin</span>
+		<input
+			class="field__input"
+			type="url"
+			inputmode="url"
+			bind:value={link}
+			placeholder="https://cz.pinterest.com/pin/…"
+			autocomplete="off"
+			autocapitalize="off"
+			spellcheck="false"
+			disabled={reading}
+		/>
+	</label>
+
+	{#if problem}
+		<p class="note" role="alert">{problem}</p>
+	{:else}
+		<p class="hint">
+			Zkopíruj odkaz na pin nebo přímo na obrázek. Fotku stáhne server a uloží ji k tobě — ze
+			stránky si nebere nic jiného.
+		</p>
+	{/if}
+
+	<div class="actions actions--fill">
+		<button type="button" class="btn" onclick={() => (asking = false)} disabled={reading}>
+			Zrušit
+		</button>
+		<button
+			type="button"
+			class="btn btn--accent"
+			onclick={take}
+			disabled={reading || link.trim().length === 0}
+		>
+			{reading ? 'Stahuju…' : 'Vzít'}
+		</button>
+	</div>
+</Sheet>
 
 <style>
 	.picker {

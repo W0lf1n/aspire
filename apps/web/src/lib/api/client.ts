@@ -187,6 +187,21 @@ export function uploadImage(
 }
 
 /**
+ * The picture behind a link, as a JPEG this device can treat exactly like a
+ * file somebody picked (D56).
+ *
+ * The server fetches it because the phone cannot: an image on another origin
+ * is not readable by script, and a Pinterest page is not readable at all. It
+ * comes back here rather than going straight onto a dream, so it takes the
+ * same road as a picked file — the preview, the crop editor, the same upload
+ * — and so that pasting a link before the dream exists works at all.
+ */
+export async function fetchImageFromUrl(url: string): Promise<Blob> {
+	const response = await send(`/images/fetch?url=${encodeURIComponent(url.trim())}`);
+	return response.blob();
+}
+
+/**
  * Where an existing photograph is looked at. The files on disk are untouched
  * — the crop is metadata, so this is instant and costs no resize.
  */

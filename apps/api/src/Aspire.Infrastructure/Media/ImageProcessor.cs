@@ -1,4 +1,5 @@
 using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Formats.Jpeg;
 using SixLabors.ImageSharp.Formats.Webp;
 using SixLabors.ImageSharp.Processing;
 
@@ -46,6 +47,40 @@ public static class ImageProcessor
         {
             if (source.CanSeek) source.Position = 0;
         }
+    }
+
+    /// <summary>
+    /// One photograph, upright, stripped of its metadata and no longer than
+    /// <paramref name="longestEdge"/>, written as JPEG (D56).
+    ///
+    /// What the link fetcher hands back: the client then treats it exactly
+    /// like a file somebody picked, and its own downscale finds nothing left
+    /// to do. JPEG rather than WebP because it is what a picked file is, and
+    /// the client's path from there has one shape.
+    /// </summary>
+    public static async Task DownscaleAsync(
+        Stream source,
+        Stream destination,
+        int longestEdge,
+        CancellationToken ct = default)
+    {
+        using var image = await Image.LoadAsync(source, ct);
+        image.Mutate(x => x.AutoOrient());
+        // The same stripping an upload gets: a picture from somebody else's
+        // site carries somebody else's metadata, and it is served from ours.
+        image.Metadata.ExifProfile = null;
+        image.Metadata.XmpProfile = null;
+        image.Metadata.IptcProfile = null;
+
+        var scale = Math.Min(1.0, (double)longestEdge / Math.Max(image.Width, image.Height));
+        if (scale < 1.0)
+        {
+            image.Mutate(x => x.Resize(
+                Math.Max(1, (int)Math.Round(image.Width * scale)),
+                Math.Max(1, (int)Math.Round(image.Height * scale))));
+        }
+
+        await image.SaveAsync(destination, new JpegEncoder { Quality = 86 }, ct);
     }
 
     /// <param name="pathFor">Where each size goes, by its name.</param>

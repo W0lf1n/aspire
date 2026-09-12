@@ -162,8 +162,9 @@ apps/api/src/
 │                          notification and its worker), Contracts.cs
 ├─ Aspire.Domain/          Board, Dream, DreamImage, Device. No EF.
 └─ Aspire.Infrastructure/  AppDbContext, Media/ (the store, the resize, the
-                          collage), Push/ (RFC 8291 + 8292, by hand),
-                          Migrations/
+                          collage, the focal crop), Net/ (which addresses may
+                          be reached, and the picture behind a link — D56),
+                          Push/ (RFC 8291 + 8292, by hand), Migrations/
 apps/api/tests/Aspire.Api.Tests/   xUnit, SQLite in memory
 
 packages/contracts/  the wire types; mirrored in Contracts.cs
@@ -222,11 +223,15 @@ scripts/             check-bundle.mjs, and invite.sh — a board and its code
     gesture on top of the browser's own snapping (D40). Anything that adds
     height to that scroll region — a mark, a header, a gap — breaks the
     arithmetic, and the guarantee with it.
-15. **A photograph is cropped by a point and a zoom, never by a file.**
+15. **The link fetcher may only reach the public internet.** Every address is
+    checked in the client's own `ConnectCallback`, every redirect hop with it,
+    and every failure is one sentence that says nothing about what was found
+    (D56). Anything added to `Net/` inherits that bargain.
+16. **A photograph is cropped by a point and a zoom, never by a file.**
     `focus_x` · `focus_y` · `zoom` on the row, `photoStyle` on the client and
     `FocalCrop` on the server, and every surface that shows a photograph
     reads them (D54). The three files on disk are never re-cut.
-16. **There are two reels, and only Vše is shuffled.** Teď is at most ten
+17. **There are two reels, and only Vše is shuffled.** Teď is at most ten
     dreams in the person's own order, `focusRank` on the dream and
     `dreams/focus.ts` on the client (D53). The day's pick and its `shown`
     stamp belong to Vše alone: a board opened on Teď has put no dream in

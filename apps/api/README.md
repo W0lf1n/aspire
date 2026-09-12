@@ -31,6 +31,7 @@ more than store rows.
 | `PUT`    | `/api/v1/nudge` | `NudgeInput` in; `off` deletes the subscription. 503 with no key pair |
 | `POST`   | `/api/v1/nudge/offset` | `{ endpoint, utcOffsetMinutes }`; moves the offset on a subscription that exists, makes none, 204. Sent on every open and resume (D51) |
 | `DELETE` | `/api/v1/nudge` | `?endpoint=`; 204 |
+| `GET`    | `/api/v1/images/fetch` | `?url=`; the picture behind a link as a JPEG at most 2048 px, made on request and kept nowhere. Public addresses only, three redirects, 10 s, 10 MB; 20 a minute per address (D56) |
 | `GET`    | `/api/v1/wallpaper` | `?dreams=<id,…>&width&height`; the lock-screen collage as JPEG, made on request and kept nowhere (D33) |
 
 Everything but `health` and `pair` needs `Authorization: Bearer <token>`.
@@ -215,6 +216,26 @@ the EF in-memory provider: this code relies on a unique index, and the
 in-memory provider does not honour one. They cover pairing, token hashing,
 name trimming, and which address the pairing limiter counts a request
 against.
+
+---
+
+## Fetching a picture from a link
+
+`/api/v1/images/fetch` is the one endpoint that makes this server open a
+connection somewhere else, so it is also the one with a fence around it
+(D56). `Net/PrivateAddress.cs` decides which addresses are on the public
+internet; `Net/ImageFetcher.cs` does the rest — scheme, port, three redirects
+walked by hand so every hop is checked, ten seconds, ten megabytes, and a
+content type that is an image or a page.
+
+The check lives in the client's `ConnectCallback` in `Program.cs`, not before
+the request: a name checked and then resolved again is a name that can answer
+differently the second time. The socket is opened to an address that passed
+and to no other.
+
+Every failure is the same Czech sentence on purpose. A message naming the
+address or the status would make this a way to ask the internet questions
+from inside the VPS and read the answers.
 
 ---
 

@@ -709,6 +709,16 @@ sit. Its picture is the only element in the app with `touch-action: none`.
 Three `.btn--photo` pills sit at the foot — Zrušit · Na střed · Hotovo, the
 last one ember — and the hint rides at the top in `.glass`.
 
+### The photo picker
+The dream's tile with the picture in it, and a wrapping row of `.btn--photo`
+pills under the words: *Vybrat fotku* (a `<label>` over a hidden file input),
+*Posunout* once there is a picture (D54), and *Z odkazu* always (D56). The
+link opens a `Sheet` with one `.field`, a `.hint` saying what the server does
+with it, and Zrušit · Vzít — the button reading „Stahuju…“ while it waits. A
+link that gives nothing replaces the hint with a `.note` in the sheet itself,
+because a sentence handed to the screen underneath is a sentence the sheet is
+covering.
+
 ### The pair (Síň slávy)
 A dream with both photographs stands them side by side: two 4:5 halves in a
 `1fr 1fr` grid with a 2 px seam, the pair owning one 20 px radius and the
