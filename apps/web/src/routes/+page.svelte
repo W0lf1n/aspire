@@ -118,8 +118,12 @@
 		if (lastPreview) URL.revokeObjectURL(lastPreview);
 	});
 
-	/** Whether a tile can be given a photograph right now. */
-	const canPick = $derived(picking === null && connection.online);
+	/**
+	 * Whether a tile can be given a photograph right now. Only this half is
+	 * the board's: the tile's own control wears `use:writes`, which is where
+	 * the connection is remembered (D67).
+	 */
+	const canPick = $derived(picking === null);
 
 	/**
 	 * The order this opening of the reel is in: the pick, then a shuffle.

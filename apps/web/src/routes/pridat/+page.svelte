@@ -22,9 +22,10 @@
 	import PhotoPicker from '$lib/ui/PhotoPicker.svelte';
 	import { toast } from '$lib/ui/toast.svelte';
 	import { connection } from '$lib/offline/status.svelte';
+	import { cannot } from '$lib/offline/writes.svelte';
 	import { CENTRED, type Focal } from '$lib/images/focal';
 
-	const locked = $derived(connection.online ? '' : 'Bez připojení se sen nedá přidat.');
+	const locked = $derived(cannot(connection.online, 'add'));
 	let photo = $state<Blob | null>(null);
 
 	/**

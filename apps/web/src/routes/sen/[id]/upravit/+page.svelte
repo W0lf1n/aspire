@@ -17,8 +17,9 @@
 	import DreamForm from '$lib/ui/DreamForm.svelte';
 	import { toast } from '$lib/ui/toast.svelte';
 	import { connection } from '$lib/offline/status.svelte';
+	import { cannot } from '$lib/offline/writes.svelte';
 
-	const locked = $derived(connection.online ? '' : 'Bez připojení se sen nedá uložit.');
+	const locked = $derived(cannot(connection.online, 'save'));
 	let dream = $state<Dream | null>(null);
 	let busy = $state(false);
 	let error = $state('');

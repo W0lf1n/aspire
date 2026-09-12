@@ -13,6 +13,7 @@
 	import { DEFAULT_AT_MINUTES, MODE_LABEL, fromClock, toClock } from '$lib/push/schedule';
 	import { current, turnOff, turnOn, unavailable } from '$lib/push/nudge';
 	import { connection } from '$lib/offline/status.svelte';
+	import { writes } from '$lib/offline/writes.svelte';
 	import AppBar from '$lib/ui/AppBar.svelte';
 	import TabBar from '$lib/ui/TabBar.svelte';
 	import { toast } from '$lib/ui/toast.svelte';
@@ -114,7 +115,7 @@
 						type="button"
 						class="seg__item"
 						aria-pressed={mode === value}
-						disabled={busy || !loaded || !connection.online}
+						use:writes={() => busy || !loaded}
 						onclick={() => choose(value)}
 					>
 						{MODE_LABEL[value]}
@@ -128,7 +129,7 @@
 					class="field__input"
 					type="time"
 					value={clock}
-					disabled={busy || !loaded || !connection.online}
+					use:writes={() => busy || !loaded}
 					onchange={(event) => retime(event.currentTarget.value)}
 				/>
 				<span class="field__hint">

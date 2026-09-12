@@ -20,7 +20,7 @@
 	import { photoComing, photoOf, photoStyle, reelUrl } from '$lib/dreams/photos';
 	import { tileLine } from '$lib/dreams/board';
 	import { CATEGORY_LABEL, STATUS_BADGE } from '$lib/dreams/rules';
-	import { connection } from '$lib/offline/status.svelte';
+	import { writes } from '$lib/offline/writes.svelte';
 	import Icon from '$lib/ui/Icon.svelte';
 
 	interface Props {
@@ -37,7 +37,11 @@
 		 * later (D52).
 		 */
 		preview?: string | null;
-		/** Whether a tile can be given a photograph at all right now. */
+		/**
+		 * Whether a photograph can be started at all: false while another
+		 * upload is in flight. The connection half of the lock is `writes`'s,
+		 * not the caller's.
+		 */
 		canPick?: boolean;
 		onlike: (dream: Dream) => void;
 		onpick: (dream: Dream, event: Event) => void;
@@ -114,7 +118,7 @@
 				class="btn btn--photo reel__fuel"
 				class:reel__fuel--lit={dream.likes > 0}
 				onclick={() => onlike(dream)}
-				disabled={!connection.online}
+				use:writes
 				aria-label={`Palivo: ${dream.likes}`}
 			>
 				<Icon name="heart" size={18} stroke={2} />
@@ -148,7 +152,7 @@
 						type="file"
 						accept="image/*"
 						onchange={(event) => onpick(dream, event)}
-						disabled={!canPick}
+						use:writes={() => !canPick}
 					/>
 				</label>
 			{/if}

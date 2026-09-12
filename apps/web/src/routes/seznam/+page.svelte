@@ -40,6 +40,7 @@
 	import { listLine } from '$lib/dreams/rules';
 	import { SEARCH_FROM, searchDreams } from '$lib/dreams/search';
 	import { connection } from '$lib/offline/status.svelte';
+	import { cannot, writes } from '$lib/offline/writes.svelte';
 	import DreamForm from '$lib/ui/DreamForm.svelte';
 	import Icon from '$lib/ui/Icon.svelte';
 	import Sheet from '$lib/ui/Sheet.svelte';
@@ -80,7 +81,7 @@
 	const searchable = $derived(rows.length >= SEARCH_FROM);
 	const searching = $derived(searchable && query.trim().length > 0);
 
-	const locked = $derived(connection.online ? '' : 'Bez připojení se sen nedá přidat.');
+	const locked = $derived(cannot(connection.online, 'add'));
 
 	$effect(() => {
 		let live = true;
@@ -133,13 +134,7 @@
 <main class="page">
 	<div class="head">
 		<h1 class="title">Seznam</h1>
-		<button
-			type="button"
-			class="round"
-			onclick={open}
-			disabled={!connection.online}
-			aria-label="Nový sen"
-		>
+		<button type="button" class="round" onclick={open} use:writes aria-label="Nový sen">
 			<Icon name="plus" size={22} stroke={2} />
 		</button>
 	</div>
