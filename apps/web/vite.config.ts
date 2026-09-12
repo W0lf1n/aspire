@@ -35,6 +35,8 @@ export default defineConfig({
 	test: {
 		expect: { requireAssertions: true },
 		projects: [
+			// The rules, in node: everything this app decides lives in a `.ts`
+			// module a component imports, and this is where those are checked.
 			{
 				extends: './vite.config.ts',
 				test: {
@@ -42,6 +44,23 @@ export default defineConfig({
 					environment: 'node',
 					include: ['src/**/*.{test,spec}.{js,ts}'],
 					exclude: ['src/**/*.svelte.{test,spec}.{js,ts}']
+				}
+			},
+			// The components, in a DOM: what a screen actually renders from
+			// those rules, and what a tap on it does (D68). `happy-dom` rather
+			// than a real browser — the one dev dependency this buys, against
+			// Playwright's download — because what is asked here is which
+			// element is on the page, not how it paints.
+			{
+				extends: './vite.config.ts',
+				// Svelte ships a server build and a browser one, and the server
+				// build's `mount` only knows how to say it is not the browser.
+				// This is what picks the other half.
+				resolve: { conditions: ['browser'] },
+				test: {
+					name: 'client',
+					environment: 'happy-dom',
+					include: ['src/**/*.svelte.{test,spec}.{js,ts}']
 				}
 			}
 		]
