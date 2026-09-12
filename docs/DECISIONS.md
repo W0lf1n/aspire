@@ -1484,3 +1484,37 @@ quarter was spent in the push service's queue, because of one word.
 What this does not change: the two-hour grace window stays (D34). A deploy
 over breakfast should still send the morning's dream, and the window is why
 the 11th's nudge went at 09:11 rather than not at all.
+
+### D52 — A tile without a photograph is where that photograph is asked for
+
+A dream written as a sentence in the Seznam is saved with no picture (D44),
+and the reel is what that costs: a full-screen tile of words on a gradient,
+with one control on it, the heart. The way to give it a photograph was two
+screens away — open the dream, then the picker. It is on the tile now.
+
+- **Where the gap is noticed is where it is closed.** The reel is the screen
+  whose whole promise is the photograph (§2), so a tile that is missing one
+  is the best possible moment to ask: the person is looking at the dream,
+  thinking about it, and the phone's own library is one tap away.
+- **The picture appears on the tap, not eight seconds later.** The downscaled
+  file becomes an object URL and the tile shows it while the upload, the
+  resize and the three sizes happen behind it. The URL is let go of when the
+  next pick makes one or when the screen goes — never the moment the upload
+  finishes, because the real photograph and the preview swap on a later frame
+  and a URL revoked between the two blanks the tile.
+- **The pill is gone once there is a photograph.** Replacing one stays on the
+  dream's own screen, where there is room to look at what is there first. A
+  reel tile offers the thing that is missing and nothing else.
+- **The sequence moved to `dreams/upload.ts`.** Out before in, and only its
+  own kind: a failed upload leaves the sky rather than the wrong picture, and
+  changing the dreamt photograph never takes the proof with it (D28). Two
+  screens do this now, and the order is the part that is easy to get wrong,
+  so it is one function with its own test — the API calls arrive as an
+  argument so the ordering can be checked without a browser.
+- **It adds no height to the scroll region.** The controls are a row inside
+  `.dream__body`, which is in the flow of a page that is exactly the
+  scrollport, so the snap offsets stay multiples of it and rule 14 holds.
+- **It rests without a signal**, like every write (D24).
+
+Checked end to end in the pane: a photograph picked on a sky tile uploads,
+polls twice, swaps the preview for `/media/…`, and takes the pill with it.

@@ -1,6 +1,6 @@
 # Aspire — Project Plan
 
-Status: M0–M5 done · M6–M7 proposed (§22–§23) · Owner: Petr · Created: 2026-09-09 · Revised: 2026-09-12
+Status: M0–M5 done · M6 started, §22.1 and §22.3 in (§22–§23) · Owner: Petr · Created: 2026-09-09 · Revised: 2026-09-12
 
 Third app in the personal self-improvement trio (Prosper → Planner → **Aspire**, the dreamboard). Building first. Standalone. No integration with the others for now.
 
@@ -126,7 +126,7 @@ Daily pick rule: `ORDER BY last_shown_at NULLS FIRST, random() LIMIT 1` among st
 | M3 | Hall of Fame + affirmations | Done 2026-09-10 (§12): affirmation, before/after, anniversary. Voice memo dropped (§8.4) | done |
 | M4 | Wallpaper export | Done 2026-09-10 (§14): collage renderer, the phone's own canvas, share or save | done |
 | M5 | Daily nudge | Done 2026-09-11 (§15): subscription, schedule, the crypto by hand, the morning notification | done |
-| M6 | The review's four, and the late nudge | Proposed 2026-09-12 (§22): the nudge fixed, the heart weighs the pick, a sky tile takes a photograph, the anniversary is the nudge, the lock screen refreshes itself | 4 sessions |
+| M6 | The review's four, and the late nudge | Started 2026-09-12 (§22). In: the nudge is urgent and reports its offset (D51), a sky tile takes a photograph (D52). Left: the anniversary as the nudge, the heart weighing the pick, the lock screen refreshing itself | 4 sessions |
 | M7 | Teď, a link, and the crop | Proposed 2026-09-12 (§23): a second reel of ten in his order, a photograph from a Pinterest link, a focal point and zoom per photograph | 4 sessions |
 
 Smallest of the three apps. Good candidate to build **first** if you want a quick win, or **second** right after Planner MVP — both are one-month projects at weekend pace.
@@ -525,13 +525,16 @@ a milestone either: it is one column, one field and one note.
 
 ---
 
-## 22. M6 — the review's four, and the nudge that came late · 2026-09-12 · proposed
+## 22. M6 — the review's four, and the nudge that came late · 2026-09-12
 
-Nothing here is built. The order is the order to build in: the late nudge is
-a bug and goes first; the tile and the anniversary are an hour each; the
-heart is one rule in two languages; the lock screen is the largest and
-waits on a one-minute check on the phone. Each item says what it decides,
-so `docs/DECISIONS.md` gets its entry the day the item lands.
+**§22.1 and §22.3 are built** (D51, D52). The order is the order to build in:
+the late nudge was a bug and went first; the tile was the hour it looked
+like; what is left is the anniversary (§22.4, an hour, though it cannot fire
+before September 2027), the heart (§22.2, one rule in two languages, and the
+one item that wants a fortnight of real swiping before it is tuned), and the
+lock screen (§22.5, the largest, waiting on a one-minute check on the phone).
+Each item says what it decides, so `docs/DECISIONS.md` gets its entry the day
+the item lands.
 
 ### 22.1 The nudge set for 7:00 arrived at 8:17 — done 2026-09-12
 
@@ -662,7 +665,7 @@ find out whether it speaks too loudly.
 `routes/nastaveni/tapeta/+page.svelte`, `apps/web/DESIGN.md` (the reel's
 heart), `PRODUCT.md`. **Decides** D53. **Size:** half a day.
 
-### 22.3 A sky tile asks for its photograph
+### 22.3 A sky tile asks for its photograph — done 2026-09-12
 
 **Why.** Since Seznam (D44), the fastest way to write a dream leaves it with
 no picture, and the reel fills with words on a gradient. A tile without a
@@ -689,8 +692,10 @@ sentences stay: „Fotka je na nástěnce“.
 
 **Files.** `lib/dreams/upload.ts` (+test), `routes/+page.svelte`,
 `routes/sen/[id]/+page.svelte`, `apps/web/DESIGN.md` (the reel).
-**Decides** D52 — a tile without a photograph is the way to give it one.
-**Size:** an hour or two.
+**Decided** D52 — a tile without a photograph is the way to give it one.
+**Took** an hour or two, as estimated, and the plan held: the only addition
+was letting go of the preview's object URL lazily rather than when the upload
+finishes, because the two pictures swap a frame apart.
 
 ### 22.4 The anniversary is the morning's nudge
 

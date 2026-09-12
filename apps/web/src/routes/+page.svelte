@@ -30,7 +30,15 @@
 	import { resolve } from '$app/paths';
 	import type { Dream } from '@aspire/contracts';
 	import { DREAM_CATEGORIES } from '@aspire/contracts';
-	import { ApiError, likeDream, listBoard, markShown } from '$lib/api/client';
+	import {
+		ApiError,
+		deleteImage,
+		getDream,
+		likeDream,
+		listBoard,
+		markShown,
+		uploadImage
+	} from '$lib/api/client';
 	import { describeError } from '$lib/api/errors';
 	import { readToken } from '$lib/api/token';
 	import {
@@ -48,6 +56,8 @@
 	import { formatAnniversary } from '$lib/dreams/format';
 	import { photoOf } from '$lib/dreams/photos';
 	import { CATEGORY_LABEL, STATUS_BADGE } from '$lib/dreams/rules';
+	import { photographDone, replacePhotograph } from '$lib/dreams/upload';
+	import { downscale } from '$lib/images/downscale';
 	import { aheadOf, prefetchOrder, rememberBoard } from '$lib/offline/cache';
 	import {
 		capFor,
@@ -77,6 +87,30 @@
 
 	/** The day's pick, chosen once when the board first arrives. */
 	let pickedId = $state<string | null>(null);
+
+	/**
+	 * The dream having its photograph taken, and what to show on its tile
+	 * while the server works (D52). The preview is the downscaled file itself,
+	 * so the sky becomes the picture on the tap rather than eight seconds
+	 * later — the upload, the resize and the three sizes all happen behind a
+	 * tile that already looks right.
+	 */
+	let picking = $state<{ id: string; preview: string } | null>(null);
+
+	/**
+	 * The last preview's object URL. Let go of when the next pick makes one or
+	 * when the screen goes, never the moment the upload finishes: the real
+	 * photograph and the preview swap on a later frame, and a URL revoked
+	 * between the two blanks the tile.
+	 */
+	let lastPreview: string | null = null;
+
+	$effect(() => () => {
+		if (lastPreview) URL.revokeObjectURL(lastPreview);
+	});
+
+	/** Whether a tile can be given a photograph right now. */
+	const canPick = $derived(picking === null && connection.online);
 
 	/**
 	 * The order this opening of the reel is in: the pick, then a shuffle.
@@ -276,6 +310,45 @@
 		}
 	}
 
+	/**
+	 * The photograph a dream on the reel did not have (D52).
+	 *
+	 * A dream written as a sentence in the Seznam arrives with no picture, and
+	 * the reel is where that is noticed — so it is where it gets fixed, rather
+	 * than two screens away. The sequence is the dream screen's own
+	 * (`dreams/upload.ts`): the file downscaled here, the old row of this kind
+	 * out, the new one in, and the dream asked for again until its sizes are
+	 * ready.
+	 */
+	async function takePhoto(dream: Dream, event: Event) {
+		const input = event.currentTarget as HTMLInputElement;
+		const file = input.files?.[0];
+		// Cleared so picking the same file twice is still a change event.
+		input.value = '';
+		if (!file || picking) return;
+
+		try {
+			const photo = await downscale(file);
+			if (lastPreview) URL.revokeObjectURL(lastPreview);
+			lastPreview = URL.createObjectURL(photo);
+			picking = { id: dream.id, preview: lastPreview };
+
+			const saved = await replacePhotograph(dream, photo, 'dreamt', {
+				deleteImage,
+				uploadImage,
+				getDream
+			});
+			dreams = dreams?.map((d) => (d.id === saved.id ? saved : d)) ?? null;
+			toast.show(photographDone('dreamt'));
+		} catch (e) {
+			toast.show(describeError(e));
+		} finally {
+			// The preview's URL outlives this on purpose; the tile is still
+			// pointing at it until the real photograph has rendered.
+			picking = null;
+		}
+	}
+
 	async function like(dream: Dream) {
 		try {
 			const liked = await likeDream(dream.id);
@@ -306,15 +379,19 @@
 			{#each shown as dream, index (dream.id)}
 				{@const photo = photoOf(dream, 'dreamt')}
 				{@const line = tileLine(dream)}
-				<article class="dream reel__tile" class:dream--sky={!photo}>
-					{#if photo}
+				{@const busy = picking?.id === dream.id}
+				<!-- The saved photograph, or the one being saved: a tile shows
+				     the picture from the moment it is picked (D52). -->
+				{@const src = (busy ? picking?.preview : null) ?? photo?.screenUrl ?? null}
+				<article class="dream reel__tile" class:dream--sky={!src}>
+					{#if src}
 						<!-- The dream on the screen and its two neighbours are
 						     fetched and decoded before they are reached; a
 						     photograph that decodes mid-swipe is the one thing
 						     that can make a reel stutter. -->
 						<img
 							class="dream__img"
-							src={photo.screenUrl}
+							{src}
 							alt=""
 							loading={Math.abs(index - at) <= 1 ? 'eager' : 'lazy'}
 							decoding="async"
@@ -335,16 +412,40 @@
 						{#if line.text}
 							<p class="dream__why" class:dream__say={line.said}>{line.text}</p>
 						{/if}
-						<button
-							type="button"
-							class="btn btn--photo reel__heart"
-							onclick={() => like(dream)}
-							disabled={!connection.online}
-							aria-label="Palivo"
-						>
-							<Icon name="heart" size={18} stroke={2} />
-							{dream.likes}
-						</button>
+						<div class="reel__acts">
+							<button
+								type="button"
+								class="btn btn--photo"
+								onclick={() => like(dream)}
+								disabled={!connection.online}
+								aria-label="Palivo"
+							>
+								<Icon name="heart" size={18} stroke={2} />
+								{dream.likes}
+							</button>
+
+							{#if !photo}
+								<!--
+									A dream written as a sentence in the Seznam has no
+									picture, and this is the screen that notices: the
+									pill is on the tile rather than two screens away
+									(D52). It is gone the moment there is a photograph
+									— replacing one is the dream's own screen, where
+									there is room to look at it first.
+								-->
+								<label class="btn btn--photo reel__pick" class:reel__pick--busy={busy}>
+									<Icon name="camera" size={18} stroke={1.8} />
+									{busy ? 'Ukládám…' : 'Přidat fotku'}
+									<input
+										class="reel__file"
+										type="file"
+										accept="image/*"
+										onchange={(event) => takePhoto(dream, event)}
+										disabled={!canPick}
+									/>
+								</label>
+							{/if}
+						</div>
 					</div>
 				</article>
 			{/each}
@@ -558,9 +659,31 @@
 		pointer-events: none;
 	}
 
-	.reel__heart {
+	/* The tile's controls: the heart, and the photo pill on a tile that has no
+	   photograph yet. A row, because they are the same kind of thing — the two
+	   things a dream can be given from the reel — and they wrap rather than
+	   squeeze on a narrow phone. Only this row takes a tap; the words above it
+	   fall through to the dream. */
+	.reel__acts {
+		display: flex;
+		flex-wrap: wrap;
+		gap: var(--space-2);
 		margin-top: var(--space-2);
 		pointer-events: auto;
+	}
+
+	.reel__pick--busy {
+		opacity: 0.6;
+	}
+
+	/* The real input, kept for the picker it opens and hidden from the eye;
+	   the label is the pill, as it is in `PhotoPicker`. */
+	.reel__file {
+		position: absolute;
+		width: 1px;
+		height: 1px;
+		opacity: 0;
+		pointer-events: none;
 	}
 
 	/* ── the chrome, floating ──────────────────────────────────────────── */

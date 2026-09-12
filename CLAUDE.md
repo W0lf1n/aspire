@@ -119,8 +119,10 @@ apps/web/src/
 │                  shows — search.ts — what typing in the Seznam looks in
 │                  and how Czech is folded before it does (D49) —
 │                  duplicates.ts — whether a dream being written is one
-│                  already written down (D50) — wallpaper.ts — who can be
-│                  on a collage and how big it is — and format.ts.
+│                  already written down (D50) — upload.ts — the order a
+│                  photograph replaces another in, which two screens do
+│                  (D52) — wallpaper.ts — who can be on a collage and how
+│                  big it is — and format.ts.
 ├─ lib/images/     downscale.ts — the photograph to 2048 px on the device.
 ├─ lib/offline/    status.svelte.ts — the connection flag every screen reads —
 │                  cache.ts, which fills and prunes the photo cache a window

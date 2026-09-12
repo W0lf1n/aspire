@@ -669,6 +669,17 @@ arrive when the reel is two dreams from the end of them, counted from the
 pager's own index. Nothing is removed from the top: taking a tile out of a
 snapping region moves the one under the thumb.
 
+A tile's controls are one wrapping row at the foot of `.dream__body`, the
+only part of it that takes a tap: the heart, and — on a tile whose dream has
+no photograph — a `.btn--photo` label with the camera that opens the phone's
+own picker (D52). The picked file shows on the tile from the tap, before the
+server has made its sizes, so the sky becomes the picture immediately; the
+pill reads „Ukládám…“ while it does and is gone once there is a photograph.
+Replacing one is still the dream's own screen, where there is room to look at
+it first. The row is inside the body, which is in the flow of a fixed-height
+page, so it adds nothing to the scroll region and the paging arithmetic
+stands.
+
 Empty, the board is a `.page` again, with the wordmark, the 4:5 sky tile and
 the anniversary back in the flow on `--dusk-wash`. There is nothing to swipe.
 

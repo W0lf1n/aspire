@@ -27,7 +27,8 @@
 	} from '$lib/api/client';
 	import { describeError } from '$lib/api/errors';
 	import { formatDate } from '$lib/dreams/format';
-	import { photoOf, photosOf, photosToReplace } from '$lib/dreams/photos';
+	import { photosOf } from '$lib/dreams/photos';
+	import { photographDone, replacePhotograph } from '$lib/dreams/upload';
 	import { CATEGORY_LABEL, STATUS_BADGE, STATUS_CLASS } from '$lib/dreams/rules';
 	import AppBar from '$lib/ui/AppBar.svelte';
 	import Icon from '$lib/ui/Icon.svelte';
@@ -88,24 +89,16 @@
 	}
 
 	/**
-	 * The new photograph replaces the old of the same kind: the old one goes
-	 * first, so a failed upload leaves the sky rather than the wrong picture,
-	 * and only its own kind goes — changing the dreamt photograph must not
-	 * take the proof with it. Then the dream is asked for again until the
-	 * sizes are ready — a second or so.
+	 * The new photograph replaces the old of the same kind. The sequence — out
+	 * before in, and only its own kind — is `dreams/upload.ts`, because the
+	 * reel does the same thing to a dream that has no photograph yet (D52).
 	 */
 	async function replacePhoto(picked: Blob, kind: DreamImageKind) {
 		if (!dream || uploading) return;
 		uploading = kind;
 		try {
-			for (const image of photosToReplace(dream, kind)) await deleteImage(dream.id, image.id);
-			await uploadImage(dream.id, picked, kind);
-			for (let attempt = 0; attempt < 10; attempt++) {
-				await new Promise((resolve) => setTimeout(resolve, 800));
-				dream = await getDream(dream.id);
-				if (photoOf(dream, kind)) break;
-			}
-			toast.show(kind === 'dreamt' ? 'Fotka je na nástěnce' : 'Skutečná fotka je u snu');
+			dream = await replacePhotograph(dream, picked, kind, { deleteImage, uploadImage, getDream });
+			toast.show(photographDone(kind));
 		} catch (e) {
 			toast.show(describeError(e));
 		} finally {
