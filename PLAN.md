@@ -1,6 +1,6 @@
 # Aspire — Project Plan
 
-Status: M0–M5 done · M7 done · M6 part-done (§22.1, §22.3) · M8 planned (§24) · Owner: Petr · Created: 2026-09-09 · Revised: 2026-09-12
+Status: M0–M5 done · M7 done · M6 part-done (§22.1, §22.3, §22.4) · M8 planned (§24) · Owner: Petr · Created: 2026-09-09 · Revised: 2026-09-12
 
 Third app in the personal self-improvement trio (Prosper → Planner → **Aspire**, the dreamboard). Building first. Standalone. No integration with the others for now.
 
@@ -126,7 +126,7 @@ Daily pick rule: `ORDER BY last_shown_at NULLS FIRST, random() LIMIT 1` among st
 | M3 | Hall of Fame + affirmations | Done 2026-09-10 (§12): affirmation, before/after, anniversary. Voice memo dropped (§8.4) | done |
 | M4 | Wallpaper export | Done 2026-09-10 (§14): collage renderer, the phone's own canvas, share or save | done |
 | M5 | Daily nudge | Done 2026-09-11 (§15): subscription, schedule, the crypto by hand, the morning notification | done |
-| M6 | The review's four, and the late nudge | Started 2026-09-12 (§22). In: the nudge is urgent and reports its offset (D51), a sky tile takes a photograph (D52). Left: the anniversary as the nudge, the heart weighing the pick, the lock screen refreshing itself | 4 sessions |
+| M6 | The review's four, and the late nudge | Started 2026-09-12 (§22). In: the nudge is urgent and reports its offset (D51), a sky tile takes a photograph (D52), the anniversary is the morning's nudge (D57). Left: the heart weighing the pick, the lock screen refreshing itself | 4 sessions |
 | M7 | Teď, a link, and the crop | Done 2026-09-12 (§23): the second reel of ten in his order (D53), a focal point and zoom per photograph (D54), a photograph from a pasted link (D56) | done |
 
 Smallest of the three apps. Good candidate to build **first** if you want a quick win, or **second** right after Planner MVP — both are one-month projects at weekend pace.
@@ -248,8 +248,10 @@ media cache keeps both so the wall is whole without a signal.
 
 **The anniversary** (§3.3, done): on the one morning a year a dream has one,
 the wall reaches the board — a single line above the reel, dusk-washed with
-a small trophy, the way back to the dream itself (D29). Push is M5's, so
-this is where an anniversary can be seen for now. The sentence's verb agrees
+a small trophy, the way back to the dream itself (D29). It is also the
+morning's notification since §22.4, replacing the day's dream on that one
+morning (D57); the line stays, because the board is where it is read by
+somebody who never turned notifications on. The sentence's verb agrees
 with *sen* rather than with the person, because a board is a pairing code
 and the server has never been told anybody's gender (D21).
 
@@ -534,12 +536,13 @@ a milestone either: it is one column, one field and one note.
 
 ## 22. M6 — the review's four, and the nudge that came late · 2026-09-12
 
-**§22.1 and §22.3 are built** (D51, D52). The order is the order to build in:
-the late nudge was a bug and went first; the tile was the hour it looked
-like; what is left is the anniversary (§22.4, an hour, though it cannot fire
-before September 2027), the heart (§22.2, one rule in two languages, and the
-one item that wants a fortnight of real swiping before it is tuned), and the
-lock screen (§22.5, the largest, waiting on a one-minute check on the phone).
+**§22.1, §22.3 and §22.4 are built** (D51, D52, D57). The order was the order
+to build in: the late nudge was a bug and went first; the tile was the hour it
+looked like; the anniversary was the hour it looked like too, though it cannot
+fire before September 2027. What is left is the heart (§22.2, one rule in two
+languages, and the one item that wants a fortnight of real swiping before it is
+tuned) and the lock screen (§22.5, the largest, waiting on a one-minute check
+on the phone).
 Each item says what it decides, so `docs/DECISIONS.md` gets its entry the day
 the item lands.
 
@@ -704,7 +707,7 @@ sentences stay: „Fotka je na nástěnce“.
 was letting go of the preview's object URL lazily rather than when the upload
 finishes, because the two pictures swap a frame apart.
 
-### 22.4 The anniversary is the morning's nudge
+### 22.4 The anniversary is the morning's nudge — done 2026-09-12
 
 **Why.** §3.3 asks for the reminder, and §12 left it as one line on the
 board „until push is M5's“. Push is built, and the worker still picks by
@@ -733,7 +736,21 @@ ignores it. The Czech is `rokem` for one and `lety` above it, as
 **Files.** `Aspire.Domain/Anniversary.cs` (+`AnniversaryTests.cs`),
 `Nudges/NudgeMessage.cs` (+test), `Nudges/NudgeWorker.cs`; a worker test
 with a fake sender if the test project can reach `SendDueAsync`.
-**Decides** D54. **Size:** an hour.
+**Decided** D57 — D54 was spent on the focal crop while this sat in the plan.
+**Took** the hour. The test project can reach `SendDueAsync`, and the fake
+sender turned out to be worth more than a fake: `NudgeWorkerTests` decrypts
+the body with the browser's half of RFC 8291, so the choice and the Czech are
+checked in one place rather than a mock being asked whether it was called.
+
+Two things the plan did not foresee, both of them already wrong. The payload's
+heading was carried in a field called `dream` while a field called `title`
+carried „Dnešní sen“, a constant no platform has ever shown — so the heading is
+`title` now and the old name is read second, which is what an anniversary
+needed before it could be headed by anything but the dream's own name. And the
+anniversary stamps nothing rather than merely nothing that matters: the line
+about `last_sent_on` was right, and the reason it is right is that „shown“ is a
+word about the board's own turn, so tomorrow names the dream today would
+have.
 
 ### 22.5 A lock screen that refreshes itself
 
@@ -788,9 +805,10 @@ and the one sentence about a photo wallpaper. Around a megabyte of JPEG at
 `Boards/LinkEndpoints.cs`, `Contracts.cs` and `packages/contracts`
 (`LinkResponse { url }`), `lib/api/client.ts`, `lib/dreams/wallpaper.ts`
 (+test), `routes/nastaveni/tapeta/+page.svelte`, `apps/api/README.md`,
-`docs/DEPLOYMENT.md`. **Decides** D55 (the automatic six are the reel's, not
-the wall's) and D56 (the link is the key). **Size:** two sessions; the
-largest of §22.
+`docs/DEPLOYMENT.md`. **Decides** two numbers after the last one taken — D55 and
+D56 went to the laptop's database and the link fetcher while this waited: the
+automatic six are the reel's and not the wall's, and the link is the key.
+**Size:** two sessions; the largest of §22.
 
 ---
 
@@ -800,10 +818,10 @@ largest of §22.
 sentence, given a photograph from the phone or from a link, cropped where the
 person wants it, and put on a second reel of ten in their own order.
 
-**What is left in this plan is §22's remainder** — the anniversary as the
-morning's nudge, the heart weighing the pick, the lock screen refreshing
-itself — and §3.7's share link, which was never a milestone. The signed link
-§22.5 needs is the same mechanism §3.7 wants, so the two go together.
+**What is left in this plan is §22's remainder** — the heart weighing the
+pick, and the lock screen refreshing itself — and §3.7's share link, which was
+never a milestone. The signed link §22.5 needs is the same mechanism §3.7
+wants, so the two go together.
 
 ### 23.1 Two reels: Vše · Teď — done 2026-09-12
 

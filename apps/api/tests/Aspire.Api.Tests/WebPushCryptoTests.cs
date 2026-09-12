@@ -48,15 +48,15 @@ public sealed class WebPushCryptoTests
     public void The_receiver_can_read_what_was_written_for_it()
     {
         // The other half of the example: decrypted with the user agent's own
-        // private key, following RFC 8188's header back out. A real browser
-        // does exactly this, so a round trip is the interoperability check
-        // the fixed vector cannot make on its own.
+        // private key in `PushEnvelope`, following RFC 8188's header back out.
+        // A real browser does exactly this, so a round trip is the
+        // interoperability check the fixed vector cannot make on its own.
         var body = WebPushCrypto.Encrypt(
             Encoding.UTF8.GetBytes(Plaintext),
             WebPushCrypto.FromBase64Url(ReceiverPublic),
             WebPushCrypto.FromBase64Url(AuthSecret));
 
-        Assert.Equal(Plaintext, Decrypt(body, ReceiverPublic, ReceiverPrivate, AuthSecret));
+        Assert.Equal(Plaintext, PushEnvelope.Open(body, ReceiverPublic, ReceiverPrivate, AuthSecret));
     }
 
     [Fact]
@@ -136,64 +136,5 @@ public sealed class WebPushCryptoTests
         Assert.DoesNotContain('=', publicKey);
         Assert.DoesNotContain('+', publicKey);
         Assert.DoesNotContain('/', publicKey);
-    }
-
-    // ── the user agent's side, for the round trip ───────────────────────────
-
-    /// <summary>
-    /// RFC 8188 §2 read backwards, with RFC 8291 §3.4's key derivation from
-    /// the receiver's point of view. Only the test needs it: the server never
-    /// decrypts anything.
-    /// </summary>
-    private static string Decrypt(byte[] body, string uaPublic, string uaPrivate, string authSecret)
-    {
-        var salt = body[..16];
-        var idlen = body[20];
-        var asPublic = body[21..(21 + idlen)];
-        var payload = body[(21 + idlen)..];
-
-        using var receiver = ECDiffieHellman.Create(WebPushCrypto.KeyPair(uaPublic, uaPrivate));
-        using var sender = ECDiffieHellman.Create(new ECParameters
-        {
-            Curve = ECCurve.NamedCurves.nistP256,
-            Q = new ECPoint { X = asPublic[1..33], Y = asPublic[33..65] }
-        });
-
-        var ecdhSecret = receiver.DeriveRawSecretAgreement(sender.PublicKey);
-
-        var keyInfo = Concat(
-            Encoding.ASCII.GetBytes("WebPush: info\0"),
-            WebPushCrypto.FromBase64Url(uaPublic),
-            asPublic,
-            [0x01]);
-        var ikm = HMACSHA256.HashData(WebPushCrypto.FromBase64Url(authSecret), ecdhSecret);
-        ikm = HMACSHA256.HashData(ikm, keyInfo);
-
-        var prk = HMACSHA256.HashData(salt, ikm);
-        var cek = HMACSHA256.HashData(prk, Encoding.ASCII.GetBytes("Content-Encoding: aes128gcm\0\x01"))[..16];
-        var nonce = HMACSHA256.HashData(prk, Encoding.ASCII.GetBytes("Content-Encoding: nonce\0\x01"))[..12];
-
-        var ciphertext = payload[..^16];
-        var tag = payload[^16..];
-        var record = new byte[ciphertext.Length];
-        using var aes = new AesGcm(cek, tag.Length);
-        aes.Decrypt(nonce, ciphertext, tag, record);
-
-        // The last byte is RFC 8188's delimiter, not the message.
-        Assert.Equal(0x02, record[^1]);
-        return Encoding.UTF8.GetString(record[..^1]);
-    }
-
-    private static byte[] Concat(params byte[][] parts)
-    {
-        var all = new byte[parts.Sum(p => p.Length)];
-        var at = 0;
-        foreach (var part in parts)
-        {
-            part.CopyTo(all, at);
-            at += part.Length;
-        }
-
-        return all;
     }
 }

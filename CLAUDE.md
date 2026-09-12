@@ -2,7 +2,7 @@
 
 Guidance for Claude Code working in this repository.
 
-**Last revised:** 2026-09-11 · M5 closed, D38–D50 · 207 web tests · 177 API tests
+**Last revised:** 2026-09-12 · M7 closed, D51–D57 · 248 web tests · 318 API tests
 
 ---
 
@@ -43,10 +43,15 @@ second person's whole onboarding (D46). §21 gives the list a shape: every
 line numbered with its place in the whole list (D48), a field that narrows it
 on everything a dream says about itself (D49), and a note that says when a
 dream is already written down without ever stopping it being written again
-(D50). §24 is M8, planned and not started: the photographs at scale — the
-reel drawn at the rung the phone is, the encoder tuned once, the thumb
-under the picture, and the rule for when the disk stops being enough.
-What is left besides it is §3.7's share link, which is not a milestone.
+(D50). §22 is M6, three of its five built: the late nudge
+was the urgency and now says so in the log (D51), a tile without a photograph
+is where that photograph is asked for (D52), and the anniversary is the
+morning's notification on the one morning a year a dream has one (D57). §23 is
+M7, done — two reels, a photograph from a link, and the photograph's own edges.
+§24 is M8, planned and not started: the photographs at scale — the reel drawn
+at the rung the phone is, the encoder tuned once, the thumb under the picture,
+and the rule for when the disk stops being enough. What is left besides it is
+§22's heart and lock screen, and §3.7's share link, which is not a milestone.
 
 ---
 
@@ -160,7 +165,9 @@ apps/api/src/
 │                          Images/ (the queue and the worker), Wallpaper/
 │                          (the lock-screen collage), Nudges/ (the morning
 │                          notification and its worker), Contracts.cs
-├─ Aspire.Domain/          Board, Dream, DreamImage, Device. No EF.
+├─ Aspire.Domain/          Board, Dream, DreamImage, Device, and the two rules
+│                          the nudge needs while the phone is asleep —
+│                          DailyPick and Anniversary (D57). No EF.
 └─ Aspire.Infrastructure/  AppDbContext, Media/ (the store, the resize, the
                           collage, the focal crop), Net/ (which addresses may
                           be reached, and the picture behind a link — D56),
@@ -231,7 +238,14 @@ scripts/             check-bundle.mjs, and invite.sh — a board and its code
     `focus_x` · `focus_y` · `zoom` on the row, `photoStyle` on the client and
     `FocalCrop` on the server, and every surface that shows a photograph
     reads them (D54). The three files on disk are never re-cut.
-17. **There are two reels, and only Vše is shuffled.** Teď is at most ten
+17. **A morning is one notification, and the anniversary outranks it.**
+    `Aspire.Domain/Anniversary.cs` is asked before `DailyPick`, and when it
+    answers, that is the nudge instead — „Před rokem“ over „Splnil se ti sen
+    „X“.“, the achieved photograph, and no `last_shown_at` stamp, because the
+    day's pick was never put in front of anybody (D57). It is the same rule as
+    `anniversaryToday` in `board.ts` and the two tests mirror each other case
+    for case.
+18. **There are two reels, and only Vše is shuffled.** Teď is at most ten
     dreams in the person's own order, `focusRank` on the dream and
     `dreams/focus.ts` on the client (D53). The day's pick and its `shown`
     stamp belong to Vše alone: a board opened on Teď has put no dream in

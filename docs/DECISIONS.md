@@ -1732,3 +1732,53 @@ Checked against the live internet: a Wikipedia article's `og:image` came back
 as a 354 kB JPEG, the same picture by its direct URL did too, and the metadata
 address, a private address, localhost by name and a cloud metadata hostname
 were all refused in milliseconds without a connection being made.
+
+---
+
+### D57 — On the one morning a year, the anniversary is the nudge
+
+PLAN.md §3.3 has wanted the anniversary reminder since M0 and §12 left it as
+one line over the reel „until push is M5's“. Push has been built since M5 and
+the worker still picked by `last_shown_at` and never read `achieved_at`, so the
+line was seen only by somebody who opened the app on the right day — which is
+the one thing a person who has stopped opening the app will not do.
+
+- **It replaces, never joins.** One nudge a morning is the whole bargain of
+  §3.6 — this app interrupts once and then leaves somebody alone — so a
+  morning cannot hold both today's dream and an anniversary. The anniversary
+  wins: tomorrow there is another daily dream, and there is not another first
+  anniversary of this one.
+- **„Před rokem“ over „Splnil se ti sen „Loď“.“** The heading is how long ago
+  and the line is what happened, the two reading as one sentence, which is
+  `formatAnniversary`'s sentence on the board split where a notification splits
+  it. `rokem` for one year and `lety` above it; the verb agrees with *sen*, so
+  the sentence is right for whoever is holding the phone (D21).
+- **The photograph is the achieved one**, the dreamt one where there is none.
+  The proof is the picture (D28) and this morning is about the proof.
+- **It stamps nothing but the subscription.** The dream is achieved, so it is
+  not on the reel and the pick cannot reach it; and „shown“ is a word about the
+  board's own turn (D25, D36). The board still opens on its own pick, and the
+  dream the nudge would have named is named tomorrow instead of being quietly
+  spent on a morning it was not shown.
+- **Two languages, one rule, mirrored test for mirrored test.**
+  `Aspire.Domain/Anniversary.cs` is `anniversaryToday` in `board.ts`: this day
+  and month in an earlier year, whole years and at least one, the most recently
+  achieved when two fall together, and 29 February on 29 February — because the
+  alternative is inventing a date it did not happen on. The day is the device's
+  own through its offset, as the pick's is, so an anniversary belongs to the
+  day the person is living in rather than to UTC's.
+
+Two things that were already wrong and are fixed by going near them. The
+payload's first field was called `dream` and carried the dream's title while a
+field called `title` carried the fixed word „Dnešní sen“ — which no platform
+has ever shown, because the service worker read `dream` as the heading and the
+constant was dead from the day it was written. The payload now carries the
+heading in `title` and nothing else, and the worker reads the old name second
+so a nudge encrypted in the seconds a deploy takes still says the dream's name.
+And the envelope was only ever tested as an envelope: `NudgeWorkerTests`
+decrypts what the phone would have received, using the browser's half of RFC
+8291 lifted out of `WebPushCryptoTests` into `PushEnvelope`, so the choice and
+the Czech are checked together rather than one of them being checked twice.
+
+It cannot be seen working before September 2027, when the first dream on the
+board has an anniversary. That is what the worker test is for.

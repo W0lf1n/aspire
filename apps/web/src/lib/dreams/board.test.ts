@@ -79,6 +79,16 @@ describe('anniversaryToday', () => {
 		expect(found?.dream.id).toBe('recent');
 		expect(found?.years).toBe(2);
 	});
+
+	it('keeps a 29 February anniversary on 29 February', () => {
+		// The alternative is inventing a date it did not happen on. The server
+		// says the same thing in `Anniversary.cs`, which the nudge reads (D57).
+		const leapling = dream('a', { status: 'achieved', achievedAt: '2024-02-29T12:00:00Z' });
+
+		expect(anniversaryToday([leapling], new Date('2028-02-29T08:00:00'))?.years).toBe(4);
+		expect(anniversaryToday([leapling], new Date('2027-02-28T08:00:00'))).toBeNull();
+		expect(anniversaryToday([leapling], new Date('2027-03-01T08:00:00'))).toBeNull();
+	});
 });
 
 describe('byCategory', () => {

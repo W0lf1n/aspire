@@ -58,9 +58,10 @@ public sealed class NudgeWorker(
     }
 
     /// <summary>
-    /// One round. Every device that is due gets the dream its board would
-    /// open on today — the same daily pick the reel uses, so the notification
-    /// and the board agree about what today's dream is.
+    /// One round. Every device that is due gets the dream its board would open
+    /// on today — the same daily pick the reel uses, so the notification and
+    /// the board agree about what today's dream is — except on the one morning
+    /// a year a dream has an anniversary, which is the news instead (D57).
     /// </summary>
     internal async Task SendDueAsync(DateTimeOffset utcNow, CancellationToken ct)
     {
@@ -73,19 +74,28 @@ public sealed class NudgeWorker(
         if (due.Count == 0) return;
 
         // One board's dreams are read once however many of its devices are
-        // due, because a household is several phones and one board.
-        var boards = new Dictionary<string, Dream?>();
+        // due, because a household is several phones and one board — and one
+        // board says one thing a morning, to every phone on it.
+        var boards = new Dictionary<string, Morning>();
 
         foreach (var subscription in due)
         {
             if (ct.IsCancellationRequested) return;
 
-            if (!boards.TryGetValue(subscription.BoardId, out var dream))
+            if (!boards.TryGetValue(subscription.BoardId, out var morning))
             {
                 var board = await dreams.ListAsync(subscription.BoardId, ct);
-                dream = DailyPick.From(board, utcNow, subscription.UtcOffsetMinutes);
-                boards[subscription.BoardId] = dream;
+                // The anniversary first, because it replaces rather than
+                // joins: one nudge a morning, and a dream that came true a
+                // year ago today outranks the dream it is somebody's turn to
+                // see (D57).
+                morning = Anniversary.Today(board, utcNow, subscription.UtcOffsetMinutes) is { } year
+                    ? new Morning(year.Dream, year.Years)
+                    : new Morning(DailyPick.From(board, utcNow, subscription.UtcOffsetMinutes), 0);
+                boards[subscription.BoardId] = morning;
             }
+
+            var dream = morning.Dream;
 
             // A board with nothing left to dream about has nothing to say at
             // seven in the morning. The stamp still goes on, so it is not
@@ -96,11 +106,15 @@ public sealed class NudgeWorker(
                 continue;
             }
 
+            var photographs = await images.OfDreamsAsync([dream.Id], ct);
+
             var result = await sender.SendAsync(
                 subscription.Endpoint,
                 subscription.P256dh,
                 subscription.Auth,
-                NudgeMessage.For(dream, await images.OfDreamsAsync([dream.Id], ct)),
+                morning.IsAnniversary
+                    ? NudgeMessage.ForAnniversary(dream, morning.Years, photographs)
+                    : NudgeMessage.For(dream, photographs),
                 keys.PublicKey,
                 keys.PrivateKey,
                 keys.Subject,
@@ -112,7 +126,16 @@ public sealed class NudgeWorker(
                     // Shown, in the sense that matters: it was put in front
                     // of the person. The board opens on the same dream when
                     // they tap it, and tomorrow's nudge is a different one.
-                    await dreams.MarkShownAsync(subscription.BoardId, dream.Id, ct);
+                    //
+                    // An anniversary stamps nothing: the dream is achieved, so
+                    // it is not on the reel and the pick cannot reach it, and
+                    // „shown“ is a word about the board's turn (D57). The
+                    // board still opens on its own pick, untouched.
+                    if (!morning.IsAnniversary)
+                    {
+                        await dreams.MarkShownAsync(subscription.BoardId, dream.Id, ct);
+                    }
+
                     await nudges.MarkSentAsync(subscription, utcNow, ct);
                     // One line per nudge, with the clock the person reads: a
                     // send used to leave no trace at all, so a notification
@@ -120,10 +143,11 @@ public sealed class NudgeWorker(
                     // sent late (D51). The endpoint is left out — it is the
                     // capability that can push to the phone.
                     log.LogInformation(
-                        "Nudged board {Board} with dream {Dream} at {Local:HH:mm} local.",
+                        "Nudged board {Board} with dream {Dream} at {Local:HH:mm} local{Years}.",
                         subscription.BoardId,
                         dream.Id,
-                        NudgeSchedule.LocalNow(utcNow, subscription.UtcOffsetMinutes));
+                        NudgeSchedule.LocalNow(utcNow, subscription.UtcOffsetMinutes),
+                        morning.IsAnniversary ? $" — its {morning.Years}-year anniversary" : string.Empty);
                     break;
 
                 case PushResult.Gone:
@@ -139,5 +163,14 @@ public sealed class NudgeWorker(
                     break;
             }
         }
+    }
+
+    /// <summary>
+    /// What a board has to say this morning: the dream, and how many years ago
+    /// it came true when that is the reason it is being said at all.
+    /// </summary>
+    private readonly record struct Morning(Dream? Dream, int Years)
+    {
+        public bool IsAnniversary => Years > 0;
     }
 }

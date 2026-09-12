@@ -88,8 +88,9 @@ sw.addEventListener('fetch', (event) => {
 });
 
 /**
- * The morning nudge. The payload is one dream, and the notification is its
- * photograph, its title and the line the tile would carry. A push with no
+ * The morning nudge. The payload is a heading, a line under it, a photograph
+ * and the dream to open — either today's dream with its affirmation, or an
+ * anniversary, „Před rokem“ over „Splnil se ti sen …“ (D57). A push with no
  * body, or one this does not understand, still shows something rather than
  * nothing: a silent failed notification is worse than a plain one, because
  * the browser will show its own if we show none.
@@ -99,7 +100,15 @@ sw.addEventListener('push', (event) => {
 });
 
 interface Nudge {
+	/** The notification's own heading. */
 	title?: string;
+	/**
+	 * The dream's title, which is where the heading came from until D57 — the
+	 * server put a fixed word in `title` and nothing ever showed it. Read
+	 * first, and absent from every payload since, so a nudge already encrypted
+	 * by the old server when a deploy lands still says the dream's name rather
+	 * than the word.
+	 */
 	dream?: string;
 	line?: string | null;
 	id?: string;
