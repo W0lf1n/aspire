@@ -1,6 +1,6 @@
 # Aspire — Project Plan
 
-Status: M0–M7 done · §3.7 done · M8 planned (§24) · Owner: Petr · Created: 2026-09-09 · Revised: 2026-09-12
+Status: M0–M8 done · §3.7 done · Owner: Petr · Created: 2026-09-09 · Revised: 2026-09-12
 
 Third app in the personal self-improvement trio (Prosper → Planner → **Aspire**, the dreamboard). Building first. Standalone. No integration with the others for now.
 
@@ -181,13 +181,11 @@ Answered ones are struck through; the reasoning is in `docs/DECISIONS.md`.
 13. **Should the nudge prefer Teď** once there is a Teď (§23.1)? Open;
     default no — the nudge stays the day's pick from the whole reel until a
     fortnight of using both says otherwise.
-14. **Which rung does the reel read on a phone** (§24.2)? Recommended
-    `full` at 2048, which exists for every photograph already, at about
-    350 kB a dream; the alternative is a new rung at 1600 for 250 kB and
-    a sweep to make it for the ones already there.
-15. **How full is a full board** (§24.6)? Recommended 2 GB, refused with
-    a sentence; a hundred dreams at two photographs is 150 MB, so it is a
-    ceiling on something other than dreaming.
+14. ~~**Which rung does the reel read on a phone** (§24.2)?~~ — answered
+    2026-09-12 as recommended: the 2048 file, `largeUrl` on the wire, on any
+    screen at 2× and up that has not asked to save data (D62).
+15. ~~**How full is a full board** (§24.6)?~~ — answered 2026-09-12: 2 GB,
+    a 409 with a sentence, and the number on Stahování first (D64).
 
 ## 9. M0 — what was built · 2026-09-09
 
@@ -1060,7 +1058,17 @@ element is asked directly now. And `setPointerCapture` throws on a pointer the
 browser has already released, so it is guarded. Neither would have shown up in
 a unit test, and both made the editor look finished and do nothing.
 
-## 24. M8 — the photographs at scale · 2026-09-12
+## 24. M8 — the photographs at scale · 2026-09-12 — done
+
+**Built 2026-09-12**, §24.4, §24.2 with §24.3 inside it, §24.5 and §24.6,
+in that order (D62, D63, D64, and D23 amended). Three things differ from the
+text below. §24.1's measurement on his phone did not happen — the change
+went in on the arithmetic, and `rungFor` is one line to revert if the phone
+disagrees. The board's number rides on a new `GET /api/v1/board` rather than
+"beside the name", because nothing answered `/board` before. And the
+cache's ceiling doubled to eighty files, because a dream is two files now.
+The decision numbers below were written when D60 was the highest; D61 went
+to §25 in between, so §24.2 is D62, §24.5 is D63 and §24.6 is D64.
 
 **The question.** Hundreds of photographs today, maybe video and audio one
 day: how does one VPS carry that without a rack behind it, and what is the
@@ -1120,7 +1128,7 @@ arm's length, §24.2 is dropped and `full` becomes the archive (§24.3)
 and nothing more. If he can — and the arithmetic says he can — §24.2 is
 the milestone's reason.
 
-### 24.2 The reel reads the rung the phone is
+### 24.2 The reel reads the rung the phone is — done 2026-09-12
 
 **What.** A screen chooses its rung from what the device is, in one place
 — `reelUrl(image)` in `dreams/photos.ts` beside `photoStyle` — and
@@ -1151,9 +1159,9 @@ and none of this touches them.
 
 **Files.** `lib/dreams/photos.ts` (+test), `lib/offline/cache.ts`
 (+test), `routes/+page.svelte`, `routes/sen/[id]/+page.svelte`,
-`apps/web/CLAUDE.md`. **Decides** D61. **Size:** half a session.
+`apps/web/CLAUDE.md`. **Decides** D62. **Size:** half a session.
 
-### 24.3 `full` stops being on the wire
+### 24.3 `full` stops being on the wire — done 2026-09-12
 
 **What.** Whether or not the reel reads it, `full` is either the reel's
 rung or the archive, and in neither case is it a thing a client should
@@ -1178,7 +1186,7 @@ a JPEG at 0.86 from a canvas is 700–900 kB at 2048. WebP wins.
 (rule 6), `lib/dreams/photos.ts`, the four `*.test.ts` fixtures that
 spell `fullUrl`, `apps/api/README.md`. **Size:** an hour, inside §24.2.
 
-### 24.4 The encoder, tuned once
+### 24.4 The encoder, tuned once — done 2026-09-12
 
 **What.** Three settings in `ImageProcessor`, each measured on five of his
 own photographs before it is kept — a beach, a face, a city at night, a
@@ -1217,7 +1225,7 @@ assertion per rung on the fixture, so a setting that regresses fails a
 test), `docs/DECISIONS.md` (D23 amended, not replaced). **Size:** half a
 session, most of it looking.
 
-### 24.5 The tile knows what is coming
+### 24.5 The tile knows what is coming — done 2026-09-12
 
 **What is true today.** Between the swipe and the photograph there is the
 sky (D26, D52), and on a slow connection the sky is what a swipe past the
@@ -1243,9 +1251,9 @@ free.
 
 **Files.** `routes/+page.svelte`, `lib/styles/app.css` (`.dream__under`),
 `lib/offline/cache.ts` (+test, the order), `apps/web/DESIGN.md`.
-**Size:** half a session. **Decides** D62.
+**Size:** half a session. **Decides** D63.
 
-### 24.6 The rule for the disk, and what video would need
+### 24.6 The rule for the disk, and what video would need — done 2026-09-12
 
 **What is measured.** Every upload writes a `bytes` column on
 `dream_images`, the sum of its files, set by the worker beside `width`
@@ -1292,7 +1300,7 @@ needs nothing but a row and a file. Neither is in this milestone.
 (+test for the cap), `Boards/`, `Contracts.cs` and `packages/contracts`,
 `routes/nastaveni/stahovani/+page.svelte`, `Program.cs` (`board`),
 `docs/DEPLOYMENT.md` (the rule and the runbook paragraph for the bucket).
-**Size:** one session. **Decides** D63.
+**Size:** one session. **Decides** D64.
 
 ### 24.7 What this does not change
 

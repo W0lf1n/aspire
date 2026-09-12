@@ -2,7 +2,7 @@
 
 Guidance for Claude Code working in this repository.
 
-**Last revised:** 2026-09-12 · M6, M7 and §3.7 closed, D51–D61 · 268 web tests · 356 API tests
+**Last revised:** 2026-09-12 · M6, M7, §3.7 and M8 closed, D51–D64 · 274 web tests · 364 API tests
 
 ---
 
@@ -53,10 +53,12 @@ through a link that is its own key (D60). §23 is
 M7, done — two reels, a photograph from a link, and the photograph's own edges.
 §25 closes §3.7, the last line of the plan
 that was never a milestone: a dream shared as a page this server writes, behind
-the same key (D61). §24 is M8, planned and not started: the photographs at
-scale — the reel drawn at the rung the phone is, the encoder tuned once, the
-thumb under the picture, and the rule for when the disk stops being enough. It
-is all that is left.
+the same key (D61). §24 is M8, done: the photographs at scale — the reel
+drawn at the rung the phone is (D62), the encoder tuned once (D23 amended),
+the thumb under the picture (D63), and a board that weighs what its
+photographs weigh, with two gigabytes as full and the rule for when the disk
+stops being enough decided rather than built (D64). Nothing is left in the
+plan.
 
 ---
 
@@ -139,7 +141,8 @@ apps/web/src/
 │                  focus.ts — Teď: which ten are on the second reel, in
 │                  what order, and which reel this device opens on (D53) —
 │                  photos.ts — which of a dream's two photographs a screen
-│                  shows — search.ts — what typing in the Seznam looks in
+│                  shows, and which rung the reel reads on this phone (D62)
+│                  — search.ts — what typing in the Seznam looks in
 │                  and how Czech is folded before it does (D49) —
 │                  duplicates.ts — whether a dream being written is one
 │                  already written down (D50) — upload.ts — the order a

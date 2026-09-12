@@ -41,20 +41,20 @@ owns the primitives. `DESIGN.md` beside this file is the system as built.
 Two accents, `--signal` (ember, acts) and `--dusk` (marks), one gradient
 `--dawn`, and `--photo-ink` over `--scrim` for type on a photograph.
 
-| Class                                                    | What it is                                                                                                       |
-| -------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
-| `.page`, `.title`                                        | The one scroll region of a tab screen; its name at 28 px in the flow                                             |
-| `.card`, `.card--press`, `--list`                        | White on the ground, 20 px corners; pressable; a card of rows                                                    |
-| `.dream`, `.dream--sky`, `--wide`                        | A photograph, 4:5, with `.dream__body` at its foot over the scrim; `photoStyle` says where it is looked at (D54) |
-| `.dream__say`                                            | The affirmation in the why's place on a tile: 500, full white                                                    |
-| `.row`, `.row__body`, `.row__end`                        | The list row: circle · title over sub · end slot                                                                 |
-| `.circle`                                                | 40 px identity circle; `--accent`, `--dusk`, `--sky`; `--sm` `--xs` `--lg`                                       |
-| `.badge`                                                 | 12 px pill: `--dreaming`, `--progress`, `--achieved`, `--photo`, `--tiny`                                        |
-| `.seg`, `.seg__item`                                     | The segmented pill, `aria-pressed` selects; `--soft` inside a card                                               |
-| `.chip`, `.chip--soft`, `.round`, `.glass`               | Glass on the ground: a filter chip (`--soft` inside a card), a 40 px round button, the surface                   |
-| `.btn`                                                   | Soft pill; `--primary`, `--accent`, `--photo`, `--card`, `--quiet`, `--danger`, `--sm`, `--lg`, `--block`        |
-| `.sheet`, `.sheet__panel`                                | A native `<dialog>` rising from the bottom edge; `Sheet.svelte` is its behaviour                                 |
-| `.toggle`, `.field`, `.facts`, `.well`, `.hint`, `.link` | The rest of the primitives                                                                                       |
+| Class                                                    | What it is                                                                                                                                                                            |
+| -------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `.page`, `.title`                                        | The one scroll region of a tab screen; its name at 28 px in the flow                                                                                                                  |
+| `.card`, `.card--press`, `--list`                        | White on the ground, 20 px corners; pressable; a card of rows                                                                                                                         |
+| `.dream`, `.dream--sky`, `--wide`                        | A photograph, 4:5, with `.dream__body` at its foot over the scrim; `photoStyle` says where it is looked at (D54); `.dream__under` is the thumb blurred under the reel's picture (D63) |
+| `.dream__say`                                            | The affirmation in the why's place on a tile: 500, full white                                                                                                                         |
+| `.row`, `.row__body`, `.row__end`                        | The list row: circle · title over sub · end slot                                                                                                                                      |
+| `.circle`                                                | 40 px identity circle; `--accent`, `--dusk`, `--sky`; `--sm` `--xs` `--lg`                                                                                                            |
+| `.badge`                                                 | 12 px pill: `--dreaming`, `--progress`, `--achieved`, `--photo`, `--tiny`                                                                                                             |
+| `.seg`, `.seg__item`                                     | The segmented pill, `aria-pressed` selects; `--soft` inside a card                                                                                                                    |
+| `.chip`, `.chip--soft`, `.round`, `.glass`               | Glass on the ground: a filter chip (`--soft` inside a card), a 40 px round button, the surface                                                                                        |
+| `.btn`                                                   | Soft pill; `--primary`, `--accent`, `--photo`, `--card`, `--quiet`, `--danger`, `--sm`, `--lg`, `--block`                                                                             |
+| `.sheet`, `.sheet__panel`                                | A native `<dialog>` rising from the bottom edge; `Sheet.svelte` is its behaviour                                                                                                      |
+| `.toggle`, `.field`, `.facts`, `.well`, `.hint`, `.link` | The rest of the primitives                                                                                                                                                            |
 
 ## Routes
 
@@ -111,7 +111,9 @@ beside it may say),
 `push/schedule.test.ts` (the nudge's time both ways, and why the nudge
 cannot be offered here — browser, server, permission, in that order),
 `images/downscale.test.ts`, `offline/cache.test.ts` (what is kept, in what
-order, a few at a time, the window ahead of the thumb and the ceiling),
+order — the thumb before the picture — at which rung, a few at a time, the
+window ahead of the thumb and the ceiling), `dreams/photos.test.ts` (which
+photograph a screen shows, and which rung the reel reads on this screen, D62),
 `offline/shell.test.ts` (which shell caches a new build may throw away, and
 which one it must keep) and `offline/policy.test.ts` (how much of the board a device keeps, and what an
 unreadable connection counts as); a new rule gets a test before it gets a

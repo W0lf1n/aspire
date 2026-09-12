@@ -306,6 +306,13 @@ M1's pipeline is PLAN.md §4's, with the details it left open decided:
 - **On a laptop the API serves `/media/`** with the same cache header, and
   Vite proxies it beside `/api`; in production nginx answers first and the
   API never sees a byte.
+- **Amended 2026-09-12 (PLAN.md §24.4).** Quality 75 for screen and full and
+  70 for the thumb rather than 82 throughout; libwebp's slowest method; a
+  Lanczos resample and a light sharpen after a downscale. Files written
+  before that day are what they were — the URLs are immutable and
+  re-encoding what is already served buys nothing. And `full` is on the
+  wire as `largeUrl`: the rung a phone reads on the reel (D62), not an
+  archive nobody asks for.
 
 ### D24 — Offline is read-only, and the service worker keeps three caches
 
@@ -1996,3 +2003,107 @@ with the name and the line over it; the card comes back as a 30 kB JPEG at
 exactly 1200×630; the head carries an absolute `og:image`, `og:title`, the
 affirmation as `og:description` and `summary_large_image`; the page has zero
 scripts and zero `<link>` elements; a wrong key and a revoked key both 404.
+
+### D62 — The reel reads the rung the phone is, and there is no `srcset`
+
+The reel is full-bleed on a portrait phone with `object-fit: cover`. A 3:4
+photograph at the 1280 rung is 960×1280, and on a 3× iPhone — 1290×2796
+device pixels — cover scales it by the larger of 1290/960 and 2796/1280,
+which is 2.2×; on a 2× phone it is 2.0×. Every photograph on the reel was
+drawn at twice its pixels, and the crop editor's zoom (D54) multiplied that.
+Instagram's stories are 1080×1920 on the same screens, a 1.5× stretch, and
+that is the most a photo app that lives on quality accepts. The 2048 file is
+1.4× and 1.2× on the same screens, and it already existed for every upload,
+written as the archive and read by nobody.
+
+- **A phone reads `large`, a laptop reads `screen`.** `rungFor` in
+  `dreams/photos.ts` is the one rule: the 2048 rung when
+  `devicePixelRatio` is 2 or more and Save Data is off, 1280 otherwise.
+  Every phone is 2× or 3×; a laptop at 1× and a person who asked the browser
+  to spend less get 1280, which is right for both. The reel, the dream's own
+  screen and the cache's prefetch read `reelUrl`; nothing picks a rung by
+  hand (rule 12).
+- **Not `srcset`.** The browser choosing per image would put a URL in the
+  cache that the prefetch never asked for, and D39's window is a promise
+  about bytes that a browser picking for itself would break. One
+  deterministic rule, the same on the tile and in `offline/cache.ts`, is
+  what keeps the swipe served from the cache.
+- **The cost is the compromise.** The reel's dream goes from 200 kB to
+  about 350 kB at D23's amended quality — the whole board on wifi from
+  20 MB to 35 MB, a morning of ten swipes from 2 MB to 3.5 MB. `policy.ts`
+  already says storing tens of megabytes is nothing and fetching them on a
+  metered plan is the question; the numbers change, the answer does not.
+  §8's fourteenth question, answered as recommended; the alternative was a
+  new 1600 rung and a sweep to make it for every photograph already there.
+- **`full` keeps its name on disk and becomes `largeUrl` on the wire.** A
+  year of cached URLs is a year of cached URLs (D23), and the collage and the
+  share card read the file by its name. The wire names the rung for what it
+  is to a phone.
+- **The wall, the circle, the nudge stay at `screen` and `thumb`.** A pair
+  at half width, a 40 px circle and a notification's picture have the pixels
+  they need.
+- **§24.1's measurement is his.** The arithmetic says the difference is
+  visible; the plan asked for one dream on his phone at both rungs before
+  the change, and the change went in on the arithmetic. If the phone says
+  otherwise, `rungFor` is one line to revert and nothing else moves.
+
+### D63 — The thumb goes under the reel's picture, blurred
+
+Between the swipe and the photograph there was the sky (D26, D52), and on a
+slow connection the sky is what a swipe past the window showed for a second.
+Pinterest paints each pin its dominant colour before the picture lands;
+Instagram draws a tiny blurred copy. This app had the tiny copy already:
+`thumb` is on the order of 25 kB, and on a device that has opened the Seznam
+it is in the cache.
+
+- **A second `<img>` in the same absolutely-positioned frame**, `.dream__under`,
+  blurred by CSS, bled 6 % past the frame so the blur has no soft edge, with
+  the same `photoStyle` as the picture so it is cropped to the same point;
+  the picture comes after it in the flow and covers it as it decodes. It
+  adds no height to the scroll region, so rule 14 stands.
+- **The sky stays for a dream with no photograph at all.** That is a
+  different sentence (D52), and the tile without a picture is where the
+  picture is asked for.
+- **The cache asks for the thumb before the picture of the same dream**, in
+  `tileUrls`, so on a metered window the shape arrives before the pixels.
+  `WINDOW_KEEP` goes from forty files to eighty: forty dreams' worth, two
+  files each. The whole board on wifi already fetched the thumbs for the
+  Seznam, so there the cost is nothing; a ten-swipe morning goes from
+  3.5 MB to 3.75.
+- **Not a dominant colour.** It is Pinterest's trick and it would be seven
+  bytes on the wire, but colour at scale is the sky and nowhere else
+  (rule 4), and a tile painted a photograph's own colour is a third accent.
+
+### D64 — A board weighs what its photographs weigh, and two gigabytes is full
+
+PLAN.md §7 said "500 MB per user" and it was never built; it would also have
+been wrong, because a hundred dreams at two photographs is about 150 MB and
+a board is meant to reach a hundred (D30).
+
+- **`dream_images.bytes`**, the sum of the three files, written by the worker
+  beside `width` and `height`; migration `Bytes`. The worker's sweep weighs
+  the rows made before the column existed, once, from the disk. A board's
+  size is one sum over the column rather than a walk of the volume, which is
+  why the column exists.
+- **Two gigabytes a board**, `ImageService.MaxBoardBytes`: the number at
+  which something other than dreaming is happening. The upload's own length
+  counts as what is arriving, and a board at the ceiling answers 409 with
+  „Nástěnka je plná. Smaž pár fotek, které už nepotřebuješ.“ — a 409 as a
+  full Teď is (D53), because it is not a bad request but a board that has to
+  lose something first. §8's fifteenth question, answered as recommended.
+- **The number is shown before the sentence is.** `GET /api/v1/board`
+  answers the board's name, its photographs, their bytes and the ceiling;
+  Nastavení → Stahování has a „Na serveru“ line under „Na telefonu“, and
+  `board list` prints the photographs and the megabytes beside the code, so
+  the operator sees the same number from the other side.
+- **The rule for the disk, decided now and not built.** Media leaves the VPS
+  only when the volume passes half of what `df -h /var/lib/docker` shows,
+  and on this arithmetic never for photographs. When it does, it is one
+  S3-compatible bucket in the same jurisdiction behind nginx's `proxy_pass`
+  and `proxy_cache` under the same `/media/` path, so no URL changes and the
+  service worker's cache-first stays true; `MediaStore` grows an interface
+  and the bucket is its second implementation. Video, if it is ever built,
+  is capped by length rather than by bytes — fifteen seconds — transcoded in
+  the same worker, never in the request, with its poster frame written
+  through `ImageProcessor` so every screen that shows a photograph keeps
+  working.
