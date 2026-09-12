@@ -5,7 +5,8 @@ namespace Aspire.Api.Images;
 /// the file has landed (PLAN.md §4). On start it sweeps: a row left
 /// unprocessed by a restart is finished if its upload is still there and
 /// dropped if it is not, so nothing waits forever for a worker that will
-/// never come.
+/// never come. The same sweep weighs the photographs made before the row
+/// kept their size (D64), once, and then has nothing to weigh.
 /// </summary>
 public sealed class ImageWorker(
     ImageQueue queue,
@@ -30,6 +31,8 @@ public sealed class ImageWorker(
         {
             await queue.EnqueueAsync(imageId, ct);
         }
+
+        await images.MeasureAsync(ct);
     }
 
     private async Task ProcessOneAsync(Guid imageId, CancellationToken ct)

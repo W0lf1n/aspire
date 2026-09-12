@@ -23,7 +23,8 @@ more than store rows.
 | `POST`   | `/api/v1/dreams/{id}/focus` | Put it on Teď, last; the dream out. 409 when Teď is full or the dream is achieved (D53) |
 | `DELETE` | `/api/v1/dreams/{id}/focus` | Take it off Teď; 204, and 204 again when it was not on it |
 | `PUT`    | `/api/v1/focus` | `{ dreamIds }` — the whole of Teď, in this order and nothing else on it; the ten out |
-| `POST`   | `/api/v1/dreams/{id}/images` | Multipart `file`, `?kind=dreamt\|achieved`, optional `?focusX&focusY&zoom`; 202 with the image, `ready` once resized |
+| `POST`   | `/api/v1/dreams/{id}/images` | Multipart `file`, `?kind=dreamt\|achieved`, optional `?focusX&focusY&zoom`; 202 with the image, `ready` once resized; 409 when the board is at its 2 GB (D64) |
+| `GET`    | `/api/v1/board` | The board's name, how many photographs it holds, their bytes and the ceiling (D64) |
 | `PUT`    | `/api/v1/dreams/{id}/images/{imageId}` | `{ focusX, focusY, zoom }` — where the photograph is looked at; no file is touched (D54) |
 | `DELETE` | `/api/v1/dreams/{id}/images/{imageId}` | 204                                |
 | `GET`    | `/api/v1/nudge/key` | The VAPID public key, or empty when the server has no pair. No auth |
@@ -208,8 +209,15 @@ An upload lands in the system's temp directory, gets a `dream_images` row,
 and goes into a channel; one worker (`ImageWorker`) reads it, applies the
 orientation, strips EXIF, XMP and IPTC, and writes three WebP files under
 `Media:Root` as `{dreamId}/{imageId}/{thumb|screen|full}.webp` at 400,
-1280 and 2048 px on the longest edge (D23). The row's `processed_at` says
-when; until then the wire says `ready: false` and the board shows the sky.
+1280 and 2048 px on the longest edge (D23) — quality 70 for the thumb and
+75 for the other two, libwebp's slowest method, Lanczos and a light sharpen
+after a downscale (D23 as amended). The row's `processed_at` says when;
+until then the wire says `ready: false` and the board shows the sky. The
+row also keeps `bytes`, what the three files weigh, and a board whose
+photographs pass `ImageService.MaxBoardBytes` — two gigabytes — refuses the
+next upload with a 409 (D64); the worker's sweep weighs rows from before the
+column. On the wire `full` is `largeUrl`: the rung a 2× or 3× phone reads
+on the reel (D62).
 On a laptop the root is `media/` beside the project and the API serves it
 as `/media/`; on the VPS it is the volume and nginx serves it.
 

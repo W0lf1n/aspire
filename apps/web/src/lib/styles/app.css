@@ -288,6 +288,18 @@ a {
 	object-fit: cover;
 }
 
+/* The thumb under the reel's picture, blurred: the photograph's shape before
+   its pixels (D63). Bled past the frame so the blur has no soft edge, and
+   under `.dream__img` in the flow so the picture covers it as it decodes. */
+.dream__under {
+	position: absolute;
+	inset: -6%;
+	width: 112%;
+	height: 112%;
+	object-fit: cover;
+	filter: blur(14px);
+}
+
 /* The scrim sits between the image and the words, and only at the bottom:
    the top of a photograph stays a photograph. */
 .dream::after {

@@ -1,4 +1,4 @@
-﻿namespace Aspire.Infrastructure.Media;
+namespace Aspire.Infrastructure.Media;
 
 /// <summary>
 /// Where the photographs are. One directory per dream, one per image inside
@@ -53,6 +53,17 @@ public sealed class MediaStore(string root)
                 "instead. See docs/DEPLOYMENT.md, \"A photograph uploads and then disappears\".",
                 e);
         }
+    }
+
+    /// <summary>
+    /// What a photograph's files weigh together, or zero when there are none:
+    /// the worker's sweep asks this for rows made before the column existed.
+    /// </summary>
+    public long BytesOf(Guid dreamId, Guid imageId)
+    {
+        var directory = DirectoryOf(dreamId, imageId);
+        if (!Directory.Exists(directory)) return 0;
+        return Directory.EnumerateFiles(directory).Sum(path => new FileInfo(path).Length);
     }
 
     public void DeleteImage(Guid dreamId, Guid imageId) => DeleteTree(DirectoryOf(dreamId, imageId));

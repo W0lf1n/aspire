@@ -9,6 +9,7 @@
  */
 
 import type {
+	BoardResponse,
 	Dream,
 	DreamImage,
 	DreamImageKind,
@@ -271,6 +272,13 @@ export function makeBoardLink(): Promise<LinkResponse> {
 /** No link at all. Revoking one that is not there is not a failure. */
 export function revokeBoardLink(): Promise<void> {
 	return call<void>('/board/link', { method: 'DELETE' });
+}
+
+// ── what the board weighs (D64) ─────────────────────────────────────────────
+
+/** How many photographs the board holds on the server, and what they weigh against the ceiling. */
+export function boardUsage(): Promise<BoardResponse> {
+	return call<BoardResponse>('/board');
 }
 
 // ── the morning nudge (PLAN.md §3.6) ────────────────────────────

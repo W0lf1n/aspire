@@ -227,7 +227,13 @@ public static class DreamEndpoints
             await using var upload = file.OpenReadStream();
             var (image, problem) = await images.AddAsync(
                 dream, upload, file.Length, asked, new FocalInput(focusX, focusY, zoom), ct);
-            if (image is null) return Results.Problem(problem, statusCode: 400);
+            // A board at its ceiling is a 409, as a full Teď is: not a bad
+            // request, a board that has to lose something first (D64).
+            if (image is null)
+            {
+                var status = problem == ImageService.BoardFull ? StatusCodes.Status409Conflict : 400;
+                return Results.Problem(problem, statusCode: status);
+            }
 
             // 202: the row is there, the sizes follow. `Ready` says when.
             return Results.Accepted(null, DreamImageDto.From(image));

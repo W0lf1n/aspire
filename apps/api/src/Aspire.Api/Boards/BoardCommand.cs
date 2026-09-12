@@ -169,8 +169,14 @@ public static class BoardCommand
         {
             var devices = await db.Devices.CountAsync(d => d.BoardId == board.Id, ct);
             var dreams = await db.Dreams.CountAsync(d => d.BoardId == board.Id, ct);
+            // What the board weighs on the disk, beside the code: the operator's
+            // side of the ceiling the settings screen shows (D64).
+            var photographs = db.DreamImages.Where(i => db.Dreams.Any(d => d.Id == i.DreamId && d.BoardId == board.Id));
+            var count = await photographs.CountAsync(ct);
+            var megabytes = await photographs.SumAsync(i => i.Bytes, ct) / 1024.0 / 1024.0;
             var pairs = board.CodeHash.Length > 0 ? "pairs" : "no code";
-            await output.WriteLineAsync($"{board.Name}  {board.Id}  {devices} device(s), {dreams} dream(s), {pairs}");
+            await output.WriteLineAsync(
+                $"{board.Name}  {board.Id}  {devices} device(s), {dreams} dream(s), {count} photograph(s), {megabytes:0} MB, {pairs}");
         }
 
         return 0;

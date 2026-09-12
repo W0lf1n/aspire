@@ -14,6 +14,8 @@
 	 * all. A switch that cannot work is worse than a sentence saying why,
 	 * which is how the morning nudge handles a server with no key (§15).
 	 */
+	import type { BoardResponse } from '@aspire/contracts';
+	import { boardUsage } from '$lib/api/client';
 	import { forgetBoard } from '$lib/offline/cache';
 	import {
 		POLICY_LABEL,
@@ -40,6 +42,34 @@
 
 	/** What the app takes up on the phone, once the browser has said. */
 	let taken = $state<number | null>(null);
+
+	/**
+	 * What the board holds on the server, against the ceiling (D64): the
+	 * number the person sees long before an upload is refused with a
+	 * sentence. Without a signal there is no number, and the dash says so.
+	 */
+	let held = $state<BoardResponse | null>(null);
+
+	$effect(() => {
+		let live = true;
+		boardUsage()
+			.then((board) => {
+				if (live) held = board;
+			})
+			.catch(() => undefined);
+		return () => {
+			live = false;
+		};
+	});
+
+	/** Czech counts photographs three ways. */
+	function photographs(count: number): string {
+		if (count === 1) return '1 fotka';
+		if (count >= 2 && count <= 4) return `${count} fotky`;
+		return `${count} fotek`;
+	}
+
+	const GIGABYTE = 1024 * 1024 * 1024;
 
 	$effect(() => {
 		let live = true;
@@ -117,6 +147,14 @@
 			<div>
 				<dt>Na telefonu</dt>
 				<dd>{taken === null ? '—' : formatUsage(taken)}</dd>
+			</div>
+			<div>
+				<dt>Na serveru</dt>
+				<dd>
+					{held === null
+						? '—'
+						: `${photographs(held.photographs)} · ${formatUsage(held.bytes)} z ${Math.round(held.bytesLimit / GIGABYTE)} GB`}
+				</dd>
 			</div>
 		</dl>
 		<div class="actions">

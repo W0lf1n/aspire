@@ -39,11 +39,12 @@ export const OFFLINE_KEY = 'offline';
  * The reel is shuffled on every open (D30), so the window is a different
  * handful every morning and a cache that only ever grew would arrive at the
  * whole board anyway — just slower, and in the order least likely to help.
- * Forty screen-size photographs is on the order of ten megabytes: enough to
- * hold several mornings of swiping, few enough to stay well under the size
- * at which a browser starts choosing for itself what to evict.
+ * Forty dreams' worth — the reel's picture and the thumb under it, two files
+ * a dream (D63) — is on the order of fifteen megabytes: enough to hold
+ * several mornings of swiping, few enough to stay well under the size at
+ * which a browser starts choosing for itself what to evict.
  */
-export const WINDOW_KEEP = 40;
+export const WINDOW_KEEP = 80;
 
 /** What this device has been told, or nothing yet. */
 export function readPolicy(): OfflinePolicy | null {
@@ -113,6 +114,14 @@ interface NetworkInformation {
 function connection(): NetworkInformation | undefined {
 	if (typeof navigator === 'undefined') return undefined;
 	return (navigator as Navigator & { connection?: NetworkInformation }).connection;
+}
+
+/**
+ * Whether the person has asked the browser to spend less — Save Data, where
+ * the browser will say. The reel reads the smaller rung then (D62).
+ */
+export function savesData(): boolean {
+	return connection()?.saveData === true;
 }
 
 /** Whether this browser can tell wifi from mobile data at all. */

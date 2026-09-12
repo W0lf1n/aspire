@@ -290,4 +290,100 @@ public sealed class ImageServiceTests : IDisposable
         Assert.Null(moved);
         Assert.Null(problem);
     }
+
+    // ── what the board weighs (D64) ─────────────────────────────────────────
+
+    [Fact]
+    public async Task The_worker_weighs_the_files_and_the_board_is_their_sum()
+    {
+        var dream = await ADream();
+        using var first = Png(1600, 1000);
+        using var second = Png(800, 800);
+        var (one, _) = await _images.AddAsync(dream, first, first.Length);
+        var (two, _) = await _images.AddAsync(dream, second, second.Length);
+
+        // Nothing weighs anything until the files exist.
+        Assert.Equal((2, 0L), await _images.UsageOfAsync(Board));
+
+        await _images.ProcessAsync(one!.Id);
+        await _images.ProcessAsync(two!.Id);
+
+        var rows = await _db.DreamImages.AsNoTracking().ToListAsync();
+        foreach (var row in rows)
+        {
+            var onDisk = MediaStore.Sizes.Sum(size => new FileInfo(_media.PathOf(dream.Id, row.Id, size)).Length);
+            Assert.Equal(onDisk, row.Bytes);
+            Assert.True(row.Bytes > 0);
+        }
+
+        Assert.Equal((2, rows.Sum(r => r.Bytes)), await _images.UsageOfAsync(Board));
+    }
+
+    [Fact]
+    public async Task Another_board_weighs_nothing_here()
+    {
+        _db.Boards.Add(new Board { Id = "board-b", Name = "B" });
+        await _db.SaveChangesAsync();
+        var theirs = await _dreams.CreateAsync("board-b", new DreamInput("Cizí", null, null, null, null, null));
+        using var upload = Png(600, 400);
+        var (image, _) = await _images.AddAsync(theirs, upload, upload.Length);
+        await _images.ProcessAsync(image!.Id);
+
+        Assert.Equal((0, 0L), await _images.UsageOfAsync(Board));
+        var (count, bytes) = await _images.UsageOfAsync("board-b");
+        Assert.Equal(1, count);
+        Assert.True(bytes > 0);
+    }
+
+    [Fact]
+    public async Task The_sweep_weighs_what_was_made_before_the_column_and_leaves_the_rest_alone()
+    {
+        var dream = await ADream();
+        using var upload = Png(600, 400);
+        var (image, _) = await _images.AddAsync(dream, upload, upload.Length);
+        await _images.ProcessAsync(image!.Id);
+        var weighed = (await _db.DreamImages.SingleAsync()).Bytes;
+
+        // A row from before the column: processed, and zero.
+        var old = await _db.DreamImages.SingleAsync();
+        old.Bytes = 0;
+        await _db.SaveChangesAsync();
+
+        await _images.MeasureAsync();
+
+        Assert.Equal(weighed, (await _db.DreamImages.AsNoTracking().SingleAsync()).Bytes);
+
+        // A row still in line is not the sweep's to weigh: its files do not exist yet.
+        using var waiting = Png(8, 8);
+        var (pending, _) = await _images.AddAsync(dream, waiting, waiting.Length);
+        await _images.MeasureAsync();
+        Assert.Equal(0, (await _db.DreamImages.AsNoTracking().SingleAsync(i => i.Id == pending!.Id)).Bytes);
+    }
+
+    [Fact]
+    public async Task A_full_board_refuses_the_next_photograph_with_a_sentence()
+    {
+        var dream = await ADream();
+        using var first = Png(600, 400);
+        using var second = Png(600, 400);
+
+        var (image, none) = await _images.AddAsync(dream, first, first.Length);
+        Assert.Null(none);
+        await _images.ProcessAsync(image!.Id);
+        var (_, held) = await _images.UsageOfAsync(Board);
+
+        // A ceiling one byte short of the next upload: what is held counts,
+        // and so does the whole of what is arriving.
+        var tight = new ImageService(_db, _media, _queue, maxBoardBytes: held + second.Length - 1);
+        var (refused, problem) = await tight.AddAsync(dream, second, second.Length);
+
+        Assert.Null(refused);
+        Assert.Equal(ImageService.BoardFull, problem);
+        Assert.Single(await _db.DreamImages.ToListAsync());
+
+        // One byte more and it fits.
+        var roomy = new ImageService(_db, _media, _queue, maxBoardBytes: held + second.Length);
+        second.Position = 0;
+        Assert.Null((await roomy.AddAsync(dream, second, second.Length)).Problem);
+    }
 }

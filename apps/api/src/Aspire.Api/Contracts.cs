@@ -103,7 +103,7 @@ public sealed record DreamImageDto(
     double Zoom,
     string ThumbUrl,
     string ScreenUrl,
-    string FullUrl)
+    string LargeUrl)
 {
     public static DreamImageDto From(DreamImage image) => new(
         image.Id,
@@ -117,8 +117,18 @@ public sealed record DreamImageDto(
         image.Zoom,
         MediaStore.UrlOf(image.DreamId, image.Id, "thumb"),
         MediaStore.UrlOf(image.DreamId, image.Id, "screen"),
+        // The 2048 file, named for what it is to a phone rather than for
+        // what it is on disk: the rung a 2× or 3× screen reads on the reel
+        // (D62). The file keeps its name, because a year of cached URLs is a
+        // year of cached URLs (D23).
         MediaStore.UrlOf(image.DreamId, image.Id, "full"));
 }
+
+/// <summary>
+/// The board as a whole, for the settings screen: how many photographs it
+/// holds on the server and what they weigh, against the ceiling (D64).
+/// </summary>
+public sealed record BoardResponse(string Name, int Photographs, long Bytes, long BytesLimit);
 
 /// <summary>
 /// Teď, in one request: these dreams, in this order, and nothing else on it

@@ -1,4 +1,4 @@
-﻿using System.Net;
+using System.Net;
 using System.Net.Sockets;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -340,6 +340,7 @@ app.MapDreamLinks(SharePolicy);
 app.MapImageFetch(FetchPolicy);
 app.MapWallpaper(LinkPolicy);
 app.MapBoardLink();
+app.MapBoard();
 app.MapNudges();
 app.Run();
 return 0;

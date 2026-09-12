@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { Dream, DreamImage, DreamImageKind } from '@aspire/contracts';
-import { photoOf, photoStyle, photosOf, photosToReplace } from './photos';
+import { photoOf, photoStyle, photosOf, photosToReplace, reelUrl, rungFor } from './photos';
 
 function image(id: string, kind: DreamImageKind, ready = true): DreamImage {
 	return {
@@ -15,7 +15,7 @@ function image(id: string, kind: DreamImageKind, ready = true): DreamImage {
 		zoom: 1,
 		thumbUrl: `/media/d/${id}/thumb.webp`,
 		screenUrl: `/media/d/${id}/screen.webp`,
-		fullUrl: `/media/d/${id}/full.webp`
+		largeUrl: `/media/d/${id}/full.webp`
 	};
 }
 
@@ -94,5 +94,33 @@ describe('photoStyle', () => {
 	it('takes numbers that cannot mean anything back to something that can', () => {
 		expect(photoStyle(at(-1, 5, 0.2))).toBe('object-position:0% 100%;');
 		expect(photoStyle(at(Number.NaN, 0.5, Number.NaN))).toBe('');
+	});
+});
+
+describe('rungFor', () => {
+	it('is the large rung on a phone, which is 2× or 3×', () => {
+		expect(rungFor({ dpr: 2, saveData: false })).toBe('large');
+		expect(rungFor({ dpr: 3, saveData: false })).toBe('large');
+	});
+
+	it('is the screen rung on a laptop at 1×, where 1280 is already more than the pixels', () => {
+		expect(rungFor({ dpr: 1, saveData: false })).toBe('screen');
+		expect(rungFor({ dpr: 1.5, saveData: false })).toBe('screen');
+	});
+
+	it('is the screen rung wherever the person asked the browser to save data', () => {
+		expect(rungFor({ dpr: 3, saveData: true })).toBe('screen');
+	});
+});
+
+describe('reelUrl', () => {
+	it('is the URL of the rung the screen reads', () => {
+		const photo = image('d', 'dreamt');
+		expect(reelUrl(photo, { dpr: 3, saveData: false })).toBe('/media/d/d/full.webp');
+		expect(reelUrl(photo, { dpr: 1, saveData: false })).toBe('/media/d/d/screen.webp');
+	});
+
+	it('is nothing for no photograph', () => {
+		expect(reelUrl(null, { dpr: 3, saveData: false })).toBeNull();
 	});
 });

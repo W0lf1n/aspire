@@ -94,6 +94,10 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
             entity.Property(i => i.FocusY).HasDefaultValue(DreamImage.Centre);
             entity.Property(i => i.Zoom).HasDefaultValue(DreamImage.NoZoom);
 
+            // Zero until the worker's sweep has weighed the files a row made
+            // before there was a column to keep it in (D64).
+            entity.Property(i => i.Bytes).HasDefaultValue(0L);
+
             // A dream that goes takes its photographs' rows with it; the
             // files are the MediaStore's to remove.
             entity.HasOne<Dream>()

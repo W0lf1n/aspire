@@ -26,6 +26,13 @@ public sealed class DreamImage
     public int Height { get; set; }
 
     /// <summary>
+    /// What the three files weigh together, once they exist; zero until then.
+    /// Kept on the row so a board's size is one sum rather than a walk of the
+    /// disk, which is what the ceiling and the settings screen read (D64).
+    /// </summary>
+    public long Bytes { get; set; }
+
+    /// <summary>
     /// Where this photograph is looked at, across and down, and how far in
     /// (D54). 0.5 · 0.5 · 1 is the middle and all of it, which is what every
     /// photograph taken before this was stored as.

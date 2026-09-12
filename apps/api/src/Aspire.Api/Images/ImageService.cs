@@ -14,10 +14,32 @@ namespace Aspire.Api.Images;
 /// in between loses the staged file, and the worker's sweep drops the row
 /// rather than leave it waiting.
 /// </summary>
-public sealed class ImageService(AppDbContext db, MediaStore media, ImageQueue queue)
+public sealed class ImageService(AppDbContext db, MediaStore media, ImageQueue queue, long maxBoardBytes = ImageService.MaxBoardBytes)
 {
     /// <summary>PLAN.md §7's cap. The client sends at most 2048 px, well under it.</summary>
     public const long MaxUploadBytes = 10 * 1024 * 1024;
+
+    /// <summary>
+    /// How full a board can be (D64). A hundred dreams at two photographs is
+    /// about 150 MB, so two gigabytes is a ceiling on something other than
+    /// dreaming — and the number the settings screen shows the person before
+    /// the sentence ever does.
+    /// </summary>
+    public const long MaxBoardBytes = 2L * 1024 * 1024 * 1024;
+
+    /// <summary>The sentence for a board at its ceiling; the endpoint answers it with a 409.</summary>
+    public const string BoardFull = "Nástěnka je plná. Smaž pár fotek, které už nepotřebuješ.";
+
+    /// <summary>
+    /// What a board holds on the server: how many photographs, and what their
+    /// files weigh together. One sum over the column rather than a walk of
+    /// the disk, which is why the column exists (D64).
+    /// </summary>
+    public async Task<(int Photographs, long Bytes)> UsageOfAsync(string boardId, CancellationToken ct = default)
+    {
+        var rows = db.DreamImages.Where(i => db.Dreams.Any(d => d.Id == i.DreamId && d.BoardId == boardId));
+        return (await rows.CountAsync(ct), await rows.SumAsync(i => i.Bytes, ct));
+    }
 
     public Task<List<DreamImage>> OfDreamsAsync(IReadOnlyCollection<Guid> dreamIds, CancellationToken ct = default) =>
         db.DreamImages
@@ -39,6 +61,12 @@ public sealed class ImageService(AppDbContext db, MediaStore media, ImageQueue q
         if (length <= 0) return (null, "Vyber fotku.");
         if (length > MaxUploadBytes) return (null, "Fotka je moc velká, nejvýš 10 MB.");
         if (focal is not null && Problem(focal) is { } wrong) return (null, wrong);
+
+        // The upload's own length stands in for the files it will become:
+        // close enough for a ceiling two gigabytes away, and known before
+        // anything is written.
+        var (_, held) = await UsageOfAsync(dream.BoardId, ct);
+        if (held + length > maxBoardBytes) return (null, BoardFull);
 
         var image = new DreamImage
         {
@@ -135,6 +163,27 @@ public sealed class ImageService(AppDbContext db, MediaStore media, ImageQueue q
     private static bool OutOfUnit(double? value) =>
         value is { } v && (double.IsNaN(v) || v < 0 || v > 1);
 
+    /// <summary>
+    /// The rows made before there was a column for what their files weigh,
+    /// weighed now: the worker's sweep does this once, and a row it has done
+    /// is never zero again. A processed photograph whose files are gone
+    /// weighs nothing, which is also true.
+    /// </summary>
+    public async Task MeasureAsync(CancellationToken ct = default)
+    {
+        var unweighed = await db.DreamImages
+            .Where(i => i.ProcessedAt != null && i.Bytes == 0)
+            .ToListAsync(ct);
+        if (unweighed.Count == 0) return;
+
+        foreach (var image in unweighed)
+        {
+            image.Bytes = media.BytesOf(image.DreamId, image.Id);
+        }
+
+        await db.SaveChangesAsync(ct);
+    }
+
     /// <summary>What a restart left behind, for the worker's sweep.</summary>
     public Task<List<Guid>> UnprocessedAsync(CancellationToken ct = default) =>
         db.DreamImages
@@ -165,11 +214,12 @@ public sealed class ImageService(AppDbContext db, MediaStore media, ImageQueue q
         try
         {
             await using var source = File.OpenRead(staged);
-            var (width, height) = await ImageProcessor.ProcessAsync(
+            var made = await ImageProcessor.ProcessAsync(
                 source, size => media.PathOf(image.DreamId, imageId, size), ct);
 
-            image.Width = width;
-            image.Height = height;
+            image.Width = made.Width;
+            image.Height = made.Height;
+            image.Bytes = made.Bytes;
             image.ProcessedAt = DateTimeOffset.UtcNow;
             await db.SaveChangesAsync(ct);
         }

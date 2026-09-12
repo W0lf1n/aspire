@@ -24,7 +24,7 @@ function image(id: string, kind: DreamImage['kind'], ready: boolean): DreamImage
 		zoom: 1,
 		thumbUrl: `/media/d/${id}/thumb.webp`,
 		screenUrl: `/media/d/${id}/screen.webp`,
-		fullUrl: `/media/d/${id}/full.webp`
+		largeUrl: `/media/d/${id}/full.webp`
 	};
 }
 

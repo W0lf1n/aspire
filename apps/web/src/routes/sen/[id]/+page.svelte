@@ -38,7 +38,7 @@
 	import { focusFull, focusFullSentence } from '$lib/dreams/focus';
 	import { shareText, shareUrl } from '$lib/dreams/share';
 	import { formatDate } from '$lib/dreams/format';
-	import { photoOf, photosOf } from '$lib/dreams/photos';
+	import { photoOf, photosOf, reelUrl } from '$lib/dreams/photos';
 	import { CENTRED, sane, type Focal } from '$lib/images/focal';
 	import { photographDone, replacePhotograph } from '$lib/dreams/upload';
 	import { CATEGORY_LABEL, STATUS_BADGE, STATUS_CLASS } from '$lib/dreams/rules';
@@ -319,7 +319,7 @@
 
 	{#if dream}
 		<PhotoPicker
-			current={photos.dreamt?.screenUrl ?? null}
+			current={reelUrl(photos.dreamt)}
 			focal={focalOf('dreamt')}
 			title={dream.title}
 			why={dream.why}

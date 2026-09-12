@@ -55,7 +55,7 @@
 	} from '$lib/dreams/board';
 	import { formatAnniversary } from '$lib/dreams/format';
 	import { focusDreams, readReel, saveReel, type Reel } from '$lib/dreams/focus';
-	import { photoOf, photoStyle } from '$lib/dreams/photos';
+	import { photoOf, photoStyle, reelUrl } from '$lib/dreams/photos';
 	import { CATEGORY_LABEL, FOCUS_MAX, STATUS_BADGE } from '$lib/dreams/rules';
 	import { photographDone, replacePhotograph } from '$lib/dreams/upload';
 	import { downscale } from '$lib/images/downscale';
@@ -447,9 +447,24 @@
 				{@const busy = picking?.id === dream.id}
 				<!-- The saved photograph, or the one being saved: a tile shows
 				     the picture from the moment it is picked (D52). -->
-				{@const src = (busy ? picking?.preview : null) ?? photo?.screenUrl ?? null}
+				{@const src = (busy ? picking?.preview : null) ?? reelUrl(photo)}
 				<article class="dream reel__tile" class:dream--sky={!src}>
 					{#if src}
+						{#if photo && !busy}
+							<!-- The thumb, blurred, under the picture: the shape of
+							     the photograph arrives with its first kilobytes
+							     while the rest is on its way (D63). Absolute in the
+							     same frame, so it adds no height to the pager. -->
+							<img
+								class="dream__under"
+								src={photo.thumbUrl}
+								alt=""
+								aria-hidden="true"
+								style={photoStyle(photo)}
+								loading={Math.abs(index - at) <= 1 ? 'eager' : 'lazy'}
+								decoding="async"
+							/>
+						{/if}
 						<!-- The dream on the screen and its two neighbours are
 						     fetched and decoded before they are reached; a
 						     photograph that decodes mid-swipe is the one thing

@@ -149,7 +149,7 @@ public sealed class BoardCommandTests : IDisposable
 
         Assert.Equal(0, exit);
         Assert.Contains("Zuzana", _out.ToString());
-        Assert.Contains("1 device(s), 1 dream(s), pairs", _out.ToString());
+        Assert.Contains("1 device(s), 1 dream(s), 0 photograph(s), 0 MB, pairs", _out.ToString());
     }
 
     [Theory]

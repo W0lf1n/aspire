@@ -18,7 +18,7 @@
 
 import type { Dream } from '@aspire/contracts';
 import { REEL_WINDOW, achievedDreams, reelOrder } from '$lib/dreams/board';
-import { photosOf } from '$lib/dreams/photos';
+import { photosOf, reelUrl, thisScreen, type Screen } from '$lib/dreams/photos';
 
 /** The service worker's names for them; deleting both is forgetting the board. */
 export const MEDIA_CACHE = 'aspire-media';
@@ -35,15 +35,18 @@ export const DATA_CACHE = 'aspire-board';
 export const PREFETCH_AT_ONCE = 4;
 
 /**
- * Every URL a tile shows, at screen size: the dreamt photograph, which is
- * the reel's, and the achieved one, because the Síň slávy stands the two
- * side by side and half a pair is not proof of anything (D28).
+ * Every URL a tile shows, in the order it is worth having: for the dreamt
+ * photograph, which is the reel's, the thumb that goes under the picture and
+ * then the picture at the rung this screen reads (D62, D63) — the thumb
+ * first, so the shape of a tile arrives before its pixels do; and the
+ * achieved one at screen size, because the Síň slávy stands the two side by
+ * side and half a pair is not proof of anything (D28).
  */
-export function screenUrls(dreams: Dream[]): string[] {
+export function tileUrls(dreams: Dream[], screen: Screen = thisScreen()): string[] {
 	const urls: string[] = [];
 	for (const dream of dreams) {
 		const { dreamt, achieved } = photosOf(dream);
-		if (dreamt) urls.push(dreamt.screenUrl);
+		if (dreamt) urls.push(dreamt.thumbUrl, reelUrl(dreamt, screen)!);
 		if (achieved) urls.push(achieved.screenUrl);
 	}
 	return urls;
@@ -141,8 +144,9 @@ export async function rememberBoard(
 	if (typeof caches === 'undefined') return;
 	try {
 		const cache = await caches.open(MEDIA_CACHE);
-		const wanted = screenUrls(ahead);
-		const belongs = screenUrls(board);
+		const screen = thisScreen();
+		const wanted = tileUrls(ahead, screen);
+		const belongs = tileUrls(board, screen);
 		const paths = async () => (await cache.keys()).map((request) => new URL(request.url).pathname);
 		const have = new Set(await paths());
 

@@ -6,8 +6,8 @@ import {
 	overCap,
 	pooled,
 	prefetchOrder,
-	screenUrls,
-	stale
+	stale,
+	tileUrls
 } from './cache';
 import { REEL_WINDOW } from '$lib/dreams/board';
 
@@ -24,7 +24,7 @@ function image(id: string, ready: boolean, kind: DreamImageKind = 'dreamt'): Dre
 		zoom: 1,
 		thumbUrl: `/media/d/${id}/thumb.webp`,
 		screenUrl: `/media/d/${id}/screen.webp`,
-		fullUrl: `/media/d/${id}/full.webp`
+		largeUrl: `/media/d/${id}/full.webp`
 	};
 }
 
@@ -57,15 +57,28 @@ function deferred() {
 	return { promise, settle };
 }
 
-describe('screenUrls', () => {
-	it('takes the first ready photograph of each dream, at screen size', () => {
+const laptop = { dpr: 1, saveData: false };
+const phone = { dpr: 3, saveData: false };
+
+describe('tileUrls', () => {
+	it('takes the first ready photograph of each dream: the thumb, then the picture', () => {
 		const dreams = [
 			dream('a', [image('a1', false), image('a2', true), image('a3', true)]),
 			dream('b', [image('b1', true)]),
 			dream('c', []),
 			dream('d', [image('d1', false)])
 		];
-		expect(screenUrls(dreams)).toEqual(['/media/d/a2/screen.webp', '/media/d/b1/screen.webp']);
+		expect(tileUrls(dreams, laptop)).toEqual([
+			'/media/d/a2/thumb.webp',
+			'/media/d/a2/screen.webp',
+			'/media/d/b1/thumb.webp',
+			'/media/d/b1/screen.webp'
+		]);
+	});
+
+	it('asks for the rung the screen reads, so what is fetched ahead is what is shown', () => {
+		const dreams = [dream('a', [image('a1', true)])];
+		expect(tileUrls(dreams, phone)).toEqual(['/media/d/a1/thumb.webp', '/media/d/a1/full.webp']);
 	});
 
 	it('keeps both halves of a pair, so the wall is whole without a signal', () => {
@@ -76,7 +89,8 @@ describe('screenUrls', () => {
 			dream('b', [image('b1', true, 'achieved')])
 		];
 
-		expect(screenUrls(dreams)).toEqual([
+		expect(tileUrls(dreams, laptop)).toEqual([
+			'/media/d/a1/thumb.webp',
 			'/media/d/a1/screen.webp',
 			'/media/d/a2/screen.webp',
 			'/media/d/b1/screen.webp'

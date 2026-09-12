@@ -12,6 +12,51 @@
  */
 
 import type { Dream, DreamImage, DreamImageKind } from '@aspire/contracts';
+import { savesData } from '$lib/offline/policy';
+
+/**
+ * What this device is, as far as a photograph's rung cares (D62): how many
+ * device pixels a CSS pixel is, and whether the person asked the browser to
+ * spend less.
+ */
+export interface Screen {
+	dpr: number;
+	saveData: boolean;
+}
+
+/** The screen this is running on; a laptop's worth of pixels where there is none. */
+export function thisScreen(): Screen {
+	return {
+		dpr: typeof window === 'undefined' ? 1 : window.devicePixelRatio || 1,
+		saveData: savesData()
+	};
+}
+
+/**
+ * Which rung the reel reads on a screen (D62). The reel is full-bleed on a
+ * portrait phone: a 3:4 photograph at 1280 is 960×1280, and cover on a 3×
+ * phone stretches it 2.2×, on a 2× phone 2.0×. The 2048 file is 1.4× and
+ * 1.2× on the same screens, which is where Instagram's stories sit. So a
+ * phone reads it — every phone is 2× or 3× — and a laptop at 1×, or anyone
+ * who asked the browser to save data, reads 1280, which is right for both.
+ *
+ * One rule here rather than `srcset`, because the prefetch (`offline/cache`)
+ * has to ask for the same URL the tile will show: a browser choosing per
+ * image would put a file in the cache that nobody asked ahead for, and D39's
+ * window is a promise about bytes.
+ */
+export function rungFor(screen: Screen): 'screen' | 'large' {
+	return screen.dpr >= 2 && !screen.saveData ? 'large' : 'screen';
+}
+
+/** The URL the reel shows for this photograph on this screen, or nothing. */
+export function reelUrl(
+	image: Pick<DreamImage, 'screenUrl' | 'largeUrl'> | null,
+	screen: Screen = thisScreen()
+): string | null {
+	if (!image) return null;
+	return rungFor(screen) === 'large' ? image.largeUrl : image.screenUrl;
+}
 
 /** The first ready photograph of a kind, or nothing. */
 export function photoOf(dream: Pick<Dream, 'images'>, kind: DreamImageKind): DreamImage | null {
