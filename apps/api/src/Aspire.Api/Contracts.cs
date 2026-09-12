@@ -98,6 +98,12 @@ public sealed record DreamImageDto(
         MediaStore.UrlOf(image.DreamId, image.Id, "full"));
 }
 
+/// <summary>
+/// Teď, in one request: these dreams, in this order, and nothing else on it
+/// (D53). An empty list is a Teď emptied on purpose.
+/// </summary>
+public sealed record FocusInput(IReadOnlyList<Guid>? DreamIds);
+
 public sealed record DreamDto(
     Guid Id,
     string Title,
@@ -106,6 +112,7 @@ public sealed record DreamDto(
     DreamStatus Status,
     DreamCategory? Category,
     int SortOrder,
+    int? FocusRank,
     int? TargetYear,
     int Likes,
     DateTimeOffset? AchievedAt,
@@ -121,6 +128,7 @@ public sealed record DreamDto(
         dream.Status,
         dream.Category,
         dream.SortOrder,
+        dream.FocusRank,
         dream.TargetYear,
         dream.Likes,
         dream.AchievedAt,

@@ -34,16 +34,37 @@ export const CATEGORY_LABEL: Record<DreamCategory, string> = {
 };
 
 /**
- * The line under a dream's title in the Seznam: the state it is in, the area
- * it is in, the year it is for — the sheet's own questions, answered back in
- * the order it asked them.
+ * How many dreams can be on Teď at once (D53). Mirrors `Dream.FocusMax`.
+ *
+ * Ten is what makes the second reel worth having: a list you reach the end
+ * of. The client knows the number so the pill can say so on the tap rather
+ * than after a round trip, and the server enforces it.
+ */
+export const FOCUS_MAX = 10;
+
+/** What Teď is called where a dream says what it is: in the list, and in a search. */
+export const FOCUS_BADGE = 'teď';
+
+/**
+ * The line under a dream's title in the Seznam: whether it is on Teď, the
+ * state it is in, the area it is in, the year it is for — the sheet's own
+ * questions, answered back in the order it asked them, with the one thing
+ * the sheet never asks in front.
+ *
+ * „teď“ leads because it is the only part of the line that says what the
+ * person is doing about the dream this month rather than what the dream is,
+ * and the Seznam is the one screen that shows the ten among everything else
+ * (D53).
  *
  * A field left empty says nothing rather than saying „—“: a list is read
  * down the left edge, and a column of dashes is a column of noise. The state
  * is always there, so the line never is empty.
  */
-export function listLine(dream: Pick<Dream, 'status' | 'category' | 'targetYear'>): string {
+export function listLine(
+	dream: Pick<Dream, 'status' | 'category' | 'targetYear' | 'focusRank'>
+): string {
 	return [
+		dream.focusRank === null ? '' : FOCUS_BADGE,
 		STATUS_BADGE[dream.status],
 		dream.category === null ? '' : CATEGORY_LABEL[dream.category],
 		dream.targetYear === null ? '' : String(dream.targetYear)

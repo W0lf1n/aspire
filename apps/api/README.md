@@ -20,6 +20,9 @@ more than store rows.
 | `DELETE` | `/api/v1/dreams/{id}`       | 204                                           |
 | `POST`   | `/api/v1/dreams/{id}/likes` | One more on the heart; the dream out          |
 | `POST`   | `/api/v1/dreams/{id}/shown` | The board opened on it today; 204             |
+| `POST`   | `/api/v1/dreams/{id}/focus` | Put it on Teď, last; the dream out. 409 when Teď is full or the dream is achieved (D53) |
+| `DELETE` | `/api/v1/dreams/{id}/focus` | Take it off Teď; 204, and 204 again when it was not on it |
+| `PUT`    | `/api/v1/focus` | `{ dreamIds }` — the whole of Teď, in this order and nothing else on it; the ten out |
 | `POST`   | `/api/v1/dreams/{id}/images` | Multipart `file`, `?kind=dreamt\|achieved`; 202 with the image, `ready` once resized |
 | `DELETE` | `/api/v1/dreams/{id}/images/{imageId}` | 204                                |
 | `GET`    | `/api/v1/nudge/key` | The VAPID public key, or empty when the server has no pair. No auth |

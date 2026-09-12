@@ -529,8 +529,11 @@ luminance step.
 
 ### Segmented pill
 - A pill track with 3 px of padding, card-coloured on the ground or soft
-  (`.seg--soft`) inside a card; segments 34 px (36 soft) at 14 px 600 in
-  ink-2, `aria-pressed` selects and the chosen segment is the primary pill.
+  (`.seg--soft`) inside a card, `.seg--glass` over a photograph; segments
+  34 px (36 soft) at 14 px 600 in ink-2 — full `--ink` on glass —
+  `aria-pressed` selects and the chosen segment is the primary pill. `--soft`
+  spends its segments' padding on a track that stretches, so it is full width
+  or it collapses.
   Labels are sentence case: "Systém", "Světlý", "Tmavý".
 
 ### Cards / Containers
@@ -657,6 +660,17 @@ scroll offset is not a property CSS can animate, with snapping off for the
 length of it; under reduced motion there is only the landing. A tile's
 photograph wears `--scrim-tall` rather than `--scrim` — a screen is a longer
 ramp than a 4:5 print — and its foot clears the bar by `--page-end`.
+
+There are two reels behind one segmented pill at the head of the chrome —
+**Vše · Teď** — in `.seg--glass`, the glass the chips beside it wear, because
+over a photograph there is no ground for the card-coloured track to sit on;
+its unselected segment takes the chips' full `--ink` rather than `--ink-2`.
+Teď is at most ten dreams in the person's own order, not shuffled and with no
+areas rail over it: ten are reached in ten swipes, so there is nothing to
+narrow (D53). Empty, Teď is a `.page` with the soft segment full width above a
+card that says what it is for — its own screen rather than a silent fall back
+to Vše. Ordering the ten is `/ted`: a numbered `.card--list` whose rows carry
+three `.round--sm` buttons, the up chevron being the down one turned over.
 
 The chrome floats over the photograph on `--scrim-top`: the areas rail, the
 anniversary as `.glass` with its dusk kept on the circle, the connection's

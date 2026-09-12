@@ -11,6 +11,7 @@ function dream(over: Partial<Dream> = {}): Dream {
 		status: 'dreaming',
 		category: null,
 		sortOrder: 0,
+		focusRank: null,
 		targetYear: null,
 		likes: 0,
 		achievedAt: null,
@@ -85,6 +86,14 @@ describe('searchDreams', () => {
 	it('finds a dream by its area', () => {
 		expect(asked({ category: 'do' }, 'dělat')).toBe(true);
 		expect(asked({ category: 'want' }, 'dělat')).toBe(false);
+	});
+
+	it('finds the dreams that are on Teď', () => {
+		// What is searched is what is read: the Seznam says „teď“ on those
+		// lines, so typing it narrows to them (D53).
+		expect(asked({ focusRank: 3 }, 'teď')).toBe(true);
+		expect(asked({ focusRank: 3 }, 'ted')).toBe(true);
+		expect(asked({ focusRank: null }, 'teď')).toBe(false);
 	});
 
 	it('finds a dream by a word in the why', () => {

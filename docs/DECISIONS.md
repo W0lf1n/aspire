@@ -1518,3 +1518,75 @@ screens away — open the dream, then the picker. It is on the tile now.
 
 Checked end to end in the pane: a photograph picked on a sky tile uploads,
 polls twice, swaps the preview for `/media/…`, and takes the pill with it.
+
+---
+
+## M7 · 2026-09-12 — the second reel
+
+### D53 — There are two reels, and Teď is ten dreams in his own order
+
+The board is one reel of everything still ahead, shuffled on every open so no
+dream has a permanent place (D30). That is the right shape for a hundred
+dreams and the wrong one for the handful somebody is actually working on this
+month. So the board has two, chosen by a segment over the photograph: **Vše ·
+Teď**.
+
+- **Teď is not shuffled, and that is the whole point.** D30's argument against
+  a fixed order was the ninetieth swipe: a dream always reached last is a
+  dream never reached. Ten dreams are reached in ten swipes, so there is no
+  ninetieth, and an order he chose is worth more than an order that surprises
+  him. Rank 1 is the top and the reel opens there.
+- **Ten, and the eleventh is refused.** The cap is the feature rather than a
+  limit on it: somebody focusing on eleven things is not focusing. The client
+  knows the number so the pill says so on the tap, from the board it already
+  holds; the server says the same sentence and means it.
+- **The day's pick stays on Vše, and so does its stamp.** The pick is what
+  makes the board a different one each morning (D25) and what the nudge names
+  (D36). A board opened on Teď has not put the day's dream in front of
+  anybody, so it does not claim it did: the stamp waits until Vše is on the
+  screen. It fires on the switch, which is the moment it becomes true.
+- **The rank is an ordering key, not a position.** The screens number the ten
+  by their place in the list, so a gap left by one taken off costs nothing,
+  and there is no compaction to get wrong on either side. Reordering rewrites
+  the lot as 1…N, which is also what puts any drift back.
+- **The index on `(board_id, focus_rank)` is not unique**, which is a
+  deliberate departure from how this was planned. A unique index is checked
+  per statement, so two dreams swapping places would collide on the way past
+  each other, and the fix would be a two-phase write. Ten rows a board, every
+  rank assigned by the server, and a shared rank is a tie broken by the id —
+  not corruption worth that. `Two_dreams_swapping_places_do_not_collide` is
+  the test that would have failed.
+- **A dream marked splněno leaves Teď** the way it leaves the reel, and the
+  slot it held is free. It cannot be put back on while it is achieved: Teď is
+  what is in front of you and the wall is what is behind.
+- **Arrows rather than drag, on a screen of its own.** A dream gets on Teď
+  from its own screen with one pill — that is the decision, and it is made
+  while looking at the dream. `/ted` is where the ten are seen together and
+  ordered, because that is the part that needs a list. Dragging was dropped
+  for the board in D30 and nothing in the app has had it since; ten rows is
+  the length arrows are for, and a drag handle on a phone competes with the
+  scroll it sits in.
+- **Every change saves the whole order in one request.** The ten are never
+  half-ordered on the server, there is nothing unsaved to lose by leaving the
+  screen, and a save that fails puts the list back and says so. The list moves
+  before the request: an arrow that waits for a round trip is an arrow that
+  feels broken.
+- **Empty Teď is its own screen, not a fall back to Vše.** The person tapped
+  Teď, so the screen owes them an answer about Teď. It says what Teď is for
+  and offers the way to fill it.
+- **Which reel was open is remembered per device**, like the offline policy
+  (D39), because it is about this phone. Vše is the default: it is where the
+  pick lives, and a board with nothing on Teď has nothing else to show.
+- **„teď“ leads the Seznam's line and is searchable.** It is the only part of
+  that line saying what is being done about the dream now rather than what the
+  dream is, and what is read is what is searched (D49) — so „ted“ without the
+  diacritic narrows the list to the ten.
+- **The segment wears glass over the photograph** (`.seg--glass`), like the
+  chips beside it, with the areas rail under it on Vše only; ten dreams need
+  no narrowing. It floats, adding no height to the scroll region, so the
+  paging arithmetic stands (D40).
+
+Checked in the pane end to end: the segment switches and is remembered, Teď
+shows the ranks in order, an arrow swaps two and the server agrees, the sheet
+adds one and it leaves the candidates, the pill toggles both ways, opening on
+Teď stamps nothing, and „ted“ finds the four.

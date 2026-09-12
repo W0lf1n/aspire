@@ -209,4 +209,185 @@ public sealed class DreamServiceTests : IDisposable
         Assert.Equal(0, untouched.Likes);
         Assert.Null(untouched.LastShownAt);
     }
+
+    // ── Teď, the second reel (D53) ──────────────────────────────────────────
+
+    /// <summary>Some dreams on a board, in the order they were made.</summary>
+    private async Task<List<Dream>> Made(int count, string board = BoardA)
+    {
+        var rows = new List<Dream>();
+        for (var i = 0; i < count; i++) rows.Add(await _dreams.CreateAsync(board, Input($"Sen {i}")));
+        return rows;
+    }
+
+    private async Task<List<string>> FocusTitles(string board = BoardA) =>
+        (await _dreams.FocusAsync(board)).Select(d => d.Title).ToList();
+
+    [Fact]
+    public async Task Teď_is_empty_until_something_is_put_on_it()
+    {
+        await Made(3);
+
+        Assert.Empty(await _dreams.FocusAsync(BoardA));
+    }
+
+    [Fact]
+    public async Task A_dream_joins_Teď_behind_the_ones_already_there()
+    {
+        var made = await Made(3);
+
+        foreach (var dream in made) await _dreams.AddToFocusAsync(BoardA, dream.Id);
+
+        Assert.Equal(["Sen 0", "Sen 1", "Sen 2"], await FocusTitles());
+    }
+
+    [Fact]
+    public async Task Putting_the_same_dream_on_twice_changes_nothing()
+    {
+        // Two devices tapping the same pill must not make an error, and must
+        // not put the dream on Teď twice.
+        var made = await Made(2);
+        await _dreams.AddToFocusAsync(BoardA, made[0].Id);
+        await _dreams.AddToFocusAsync(BoardA, made[1].Id);
+
+        var (again, problem) = await _dreams.AddToFocusAsync(BoardA, made[0].Id);
+
+        Assert.Null(problem);
+        Assert.Equal(1, again!.FocusRank);
+        Assert.Equal(["Sen 0", "Sen 1"], await FocusTitles());
+    }
+
+    [Fact]
+    public async Task The_eleventh_dream_is_refused_with_a_sentence()
+    {
+        var made = await Made(Dream.FocusMax + 1);
+        for (var i = 0; i < Dream.FocusMax; i++) await _dreams.AddToFocusAsync(BoardA, made[i].Id);
+
+        var (dream, problem) = await _dreams.AddToFocusAsync(BoardA, made[^1].Id);
+
+        Assert.Null(dream);
+        Assert.Equal("Na teď máš už 10 snů. Některý nejdřív odeber.", problem);
+        Assert.Equal(Dream.FocusMax, (await _dreams.FocusAsync(BoardA)).Count);
+    }
+
+    [Fact]
+    public async Task An_achieved_dream_does_not_belong_on_Teď()
+    {
+        var dream = await _dreams.CreateAsync(BoardA, Input(status: DreamStatus.Achieved));
+
+        var (added, problem) = await _dreams.AddToFocusAsync(BoardA, dream.Id);
+
+        Assert.Null(added);
+        Assert.Equal("Splněný sen na teď nepatří.", problem);
+    }
+
+    [Fact]
+    public async Task Marking_a_dream_splněno_takes_it_off_Teď()
+    {
+        // It leaves Teď the way it leaves the reel: it is behind you now.
+        var made = await Made(2);
+        foreach (var dream in made) await _dreams.AddToFocusAsync(BoardA, dream.Id);
+
+        await _dreams.UpdateAsync(BoardA, made[0].Id, Input("Sen 0", status: DreamStatus.Achieved));
+
+        Assert.Equal(["Sen 1"], await FocusTitles());
+    }
+
+    [Fact]
+    public async Task Taking_a_dream_off_Teď_leaves_the_rest_in_order()
+    {
+        var made = await Made(3);
+        foreach (var dream in made) await _dreams.AddToFocusAsync(BoardA, dream.Id);
+
+        Assert.True(await _dreams.RemoveFromFocusAsync(BoardA, made[1].Id));
+
+        // The gap the middle one left costs nothing: the screen numbers by
+        // place in the list, not by the rank.
+        Assert.Equal(["Sen 0", "Sen 2"], await FocusTitles());
+    }
+
+    [Fact]
+    public async Task Taking_off_a_dream_that_is_not_on_it_is_not_a_failure()
+    {
+        var made = await Made(1);
+
+        Assert.True(await _dreams.RemoveFromFocusAsync(BoardA, made[0].Id));
+        Assert.False(await _dreams.RemoveFromFocusAsync(BoardA, Guid.NewGuid()));
+    }
+
+    [Fact]
+    public async Task The_whole_order_is_written_in_one_go()
+    {
+        var made = await Made(4);
+        foreach (var dream in made.Take(3)) await _dreams.AddToFocusAsync(BoardA, dream.Id);
+
+        // Reversed, with a fourth joining and the first dropping out.
+        var (rows, problem) = await _dreams.ReorderFocusAsync(
+            BoardA, [made[3].Id, made[2].Id, made[1].Id]);
+
+        Assert.Null(problem);
+        Assert.Equal(["Sen 3", "Sen 2", "Sen 1"], rows!.Select(d => d.Title));
+        Assert.Equal([1, 2, 3], rows.Select(d => d.FocusRank));
+        Assert.Equal(["Sen 3", "Sen 2", "Sen 1"], await FocusTitles());
+    }
+
+    [Fact]
+    public async Task Two_dreams_swapping_places_do_not_collide_on_the_way_past()
+    {
+        // Why the index is not unique: a unique one is checked per statement,
+        // and the first half of a swap would collide with the second.
+        var made = await Made(2);
+        foreach (var dream in made) await _dreams.AddToFocusAsync(BoardA, dream.Id);
+
+        var (rows, problem) = await _dreams.ReorderFocusAsync(BoardA, [made[1].Id, made[0].Id]);
+
+        Assert.Null(problem);
+        Assert.Equal(["Sen 1", "Sen 0"], rows!.Select(d => d.Title));
+    }
+
+    [Fact]
+    public async Task An_empty_order_empties_Teď()
+    {
+        var made = await Made(2);
+        foreach (var dream in made) await _dreams.AddToFocusAsync(BoardA, dream.Id);
+
+        var (rows, problem) = await _dreams.ReorderFocusAsync(BoardA, []);
+
+        Assert.Null(problem);
+        Assert.Empty(rows!);
+        Assert.Empty(await _dreams.FocusAsync(BoardA));
+    }
+
+    [Fact]
+    public async Task An_order_that_makes_no_sense_earns_a_sentence_and_changes_nothing()
+    {
+        var made = await Made(2);
+        await _dreams.AddToFocusAsync(BoardA, made[0].Id);
+        var elsewhere = await _dreams.CreateAsync(BoardB, Input("Cizí"));
+
+        Assert.Equal(
+            "Jeden sen tam nemůže být dvakrát.",
+            (await _dreams.ReorderFocusAsync(BoardA, [made[1].Id, made[1].Id])).Problem);
+        Assert.Equal(
+            "Některý z těch snů na nástěnce není.",
+            (await _dreams.ReorderFocusAsync(BoardA, [elsewhere.Id])).Problem);
+        Assert.Equal(
+            "Na teď se vejde nejvýš 10 snů.",
+            (await _dreams.ReorderFocusAsync(
+                BoardA, [.. (await Made(Dream.FocusMax + 1)).Select(d => d.Id)])).Problem);
+
+        Assert.Equal(["Sen 0"], await FocusTitles());
+    }
+
+    [Fact]
+    public async Task Another_board_cannot_reach_Teď()
+    {
+        var made = await Made(1);
+        await _dreams.AddToFocusAsync(BoardA, made[0].Id);
+
+        Assert.Equal((null, null), await _dreams.AddToFocusAsync(BoardB, made[0].Id));
+        Assert.False(await _dreams.RemoveFromFocusAsync(BoardB, made[0].Id));
+        Assert.Empty(await _dreams.FocusAsync(BoardB));
+        Assert.Equal(["Sen 0"], await FocusTitles());
+    }
 }

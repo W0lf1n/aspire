@@ -29,6 +29,7 @@ function dream(id: string, over: Partial<Dream> = {}): Dream {
 		status: 'dreaming',
 		category: null,
 		sortOrder: 0,
+		focusRank: null,
 		targetYear: null,
 		likes: 0,
 		achievedAt: null,

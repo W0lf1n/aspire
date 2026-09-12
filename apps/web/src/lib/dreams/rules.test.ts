@@ -194,16 +194,31 @@ describe('toFields', () => {
 
 describe('listLine', () => {
 	it('says the state, the area and the year, in that order', () => {
-		expect(listLine({ status: 'in-progress', category: 'do', targetYear: 2030 })).toBe(
-			'plním · Dělat · 2030'
-		);
+		expect(
+			listLine({ status: 'in-progress', category: 'do', targetYear: 2030, focusRank: null })
+		).toBe('plním · Dělat · 2030');
 	});
 
 	it('leaves out what a dream was never asked for', () => {
-		expect(listLine({ status: 'dreaming', category: null, targetYear: null })).toBe('sním');
-		expect(listLine({ status: 'achieved', category: 'be', targetYear: null })).toBe(
-			'splněno · Být'
+		expect(
+			listLine({ status: 'dreaming', category: null, targetYear: null, focusRank: null })
+		).toBe('sním');
+		expect(
+			listLine({ status: 'achieved', category: 'be', targetYear: null, focusRank: null })
+		).toBe('splněno · Být');
+		expect(
+			listLine({ status: 'dreaming', category: null, targetYear: 2031, focusRank: null })
+		).toBe('sním · 2031');
+	});
+
+	it('says „teď“ first when the dream is on the second reel', () => {
+		// It leads because it is the only part of the line that says what is
+		// being done about the dream now rather than what the dream is (D53).
+		expect(
+			listLine({ status: 'in-progress', category: 'do', targetYear: 2030, focusRank: 2 })
+		).toBe('teď · plním · Dělat · 2030');
+		expect(listLine({ status: 'dreaming', category: null, targetYear: null, focusRank: 1 })).toBe(
+			'teď · sním'
 		);
-		expect(listLine({ status: 'dreaming', category: null, targetYear: 2031 })).toBe('sním · 2031');
 	});
 });

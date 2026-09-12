@@ -18,6 +18,12 @@ describe('activeTab', () => {
 		expect(activeTab('/sen/abc/upravit')).toBe('board');
 	});
 
+	it('keeps the board lit while Teď is being put in order', () => {
+		// It is the board's second reel, one level down (D53).
+		expect(activeTab('/ted')).toBe('board');
+		expect(activeTab('/ted/')).toBe('board');
+	});
+
 	it('lights the hall of fame', () => {
 		expect(activeTab('/sin-slavy')).toBe('hall');
 	});

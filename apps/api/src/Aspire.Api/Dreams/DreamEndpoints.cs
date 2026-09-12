@@ -130,6 +130,67 @@ public static class DreamEndpoints
             return await dreams.MarkShownAsync(device.BoardId, id, ct) ? Results.NoContent() : Results.NotFound();
         });
 
+        // ── Teď, the second reel (D53) ────────────────────────────────────────
+
+        // Put this dream on Teď, behind the ones already there. 409 when it
+        // is full, because the cap is the feature: a person who is focusing
+        // on eleven things is not focusing.
+        app.MapPost("/api/v1/dreams/{id:guid}/focus", async (
+            Guid id,
+            HttpContext http,
+            DeviceAuth auth,
+            DreamService dreams,
+            ImageService images,
+            CancellationToken ct) =>
+        {
+            var device = await auth.ResolveAsync(http.Request.Headers.Authorization, ct);
+            if (device is null) return Results.Unauthorized();
+
+            var (dream, problem) = await dreams.AddToFocusAsync(device.BoardId, id, ct);
+            if (problem is not null) return Results.Problem(problem, statusCode: StatusCodes.Status409Conflict);
+            if (dream is null) return Results.NotFound();
+
+            return Results.Ok(DreamDto.From(dream, await images.OfDreamsAsync([dream.Id], ct)));
+        });
+
+        app.MapDelete("/api/v1/dreams/{id:guid}/focus", async (
+            Guid id,
+            HttpContext http,
+            DeviceAuth auth,
+            DreamService dreams,
+            CancellationToken ct) =>
+        {
+            var device = await auth.ResolveAsync(http.Request.Headers.Authorization, ct);
+            if (device is null) return Results.Unauthorized();
+
+            return await dreams.RemoveFromFocusAsync(device.BoardId, id, ct)
+                ? Results.NoContent()
+                : Results.NotFound();
+        });
+
+        // The whole of Teď at once: these dreams, in this order. One request
+        // rather than a move per arrow, so the ten are never half-ordered.
+        app.MapPut("/api/v1/focus", async (
+            FocusInput input,
+            HttpContext http,
+            DeviceAuth auth,
+            DreamService dreams,
+            ImageService images,
+            CancellationToken ct) =>
+        {
+            var device = await auth.ResolveAsync(http.Request.Headers.Authorization, ct);
+            if (device is null) return Results.Unauthorized();
+
+            var (rows, problem) = await dreams.ReorderFocusAsync(
+                device.BoardId, input.DreamIds ?? [], ct);
+            if (problem is not null) return Results.Problem(problem, statusCode: 400);
+
+            var ordered = rows ?? [];
+            var byDream = (await images.OfDreamsAsync(ordered.Select(d => d.Id).ToList(), ct))
+                .ToLookup(i => i.DreamId);
+            return Results.Ok(ordered.Select(d => DreamDto.From(d, byDream[d.Id])).ToList());
+        });
+
         // ── the photographs ───────────────────────────────────────────────────
 
         // `kind` says which of the two photographs this is: the dreamt one

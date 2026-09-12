@@ -51,6 +51,14 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
             // The board asks for one area at a time (§3.2), inside its own board.
             entity.HasIndex(d => new { d.BoardId, d.Category });
 
+            // Teď reads in this order (D53). Not unique: reordering rewrites
+            // every rank at once, and a unique index is checked per statement,
+            // so swapping two of them would collide on the way past each
+            // other. Ten rows a board, the server assigns every rank, and two
+            // dreams sharing one is a tie broken by the id — not corruption
+            // worth a two-phase write to prevent.
+            entity.HasIndex(d => new { d.BoardId, d.FocusRank });
+
             // A board that goes takes its dreams with it; there is nowhere
             // else for them to be.
             entity.HasOne<Board>()

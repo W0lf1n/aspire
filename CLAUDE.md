@@ -115,6 +115,8 @@ apps/web/src/
 │                  list — board.ts — what the reel shows, which dream it
 │                  opens on, what order the rest and the Seznam are in,
 │                  what a tile says and whose anniversary today is —
+│                  focus.ts — Teď: which ten are on the second reel, in
+│                  what order, and which reel this device opens on (D53) —
 │                  photos.ts — which of a dream's two photographs a screen
 │                  shows — search.ts — what typing in the Seznam looks in
 │                  and how Czech is folded before it does (D49) —
@@ -131,8 +133,8 @@ apps/web/src/
 │                  which shell caches a new build may throw away (D42).
 ├─ lib/push/       nudge.ts — the browser's half of the morning notification
 │                  — and schedule.ts, the time as a field shows it.
-├─ routes/         / · /seznam · /pridat · /sen/[id] · /sen/[id]/upravit
-│                  · /sin-slavy
+├─ routes/         / · /seznam · /ted · /pridat · /sen/[id]
+│                  · /sen/[id]/upravit · /sin-slavy
 │                  · /nastaveni · /nastaveni/vzhled · /nastaveni/upozorneni
 │                  · /nastaveni/tapeta · /nastaveni/stahovani
 │                  · /nastaveni/parovani
@@ -207,6 +209,11 @@ scripts/             check-bundle.mjs, and invite.sh — a board and its code
     gesture on top of the browser's own snapping (D40). Anything that adds
     height to that scroll region — a mark, a header, a gap — breaks the
     arithmetic, and the guarantee with it.
+15. **There are two reels, and only Vše is shuffled.** Teď is at most ten
+    dreams in the person's own order, `focusRank` on the dream and
+    `dreams/focus.ts` on the client (D53). The day's pick and its `shown`
+    stamp belong to Vše alone: a board opened on Teď has put no dream in
+    front of anybody, and „shown“ is what the word means (D25, D36).
 
 ---
 

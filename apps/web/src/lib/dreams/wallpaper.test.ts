@@ -32,6 +32,7 @@ function dream(id: string, images: DreamImage[], over: Partial<Dream> = {}): Dre
 		status: 'dreaming',
 		category: null,
 		sortOrder: 0,
+		focusRank: null,
 		targetYear: null,
 		likes: 0,
 		achievedAt: null,

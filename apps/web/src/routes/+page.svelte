@@ -54,8 +54,9 @@
 		type BoardFilter
 	} from '$lib/dreams/board';
 	import { formatAnniversary } from '$lib/dreams/format';
+	import { focusDreams, readReel, saveReel, type Reel } from '$lib/dreams/focus';
 	import { photoOf } from '$lib/dreams/photos';
-	import { CATEGORY_LABEL, STATUS_BADGE } from '$lib/dreams/rules';
+	import { CATEGORY_LABEL, FOCUS_MAX, STATUS_BADGE } from '$lib/dreams/rules';
 	import { photographDone, replacePhotograph } from '$lib/dreams/upload';
 	import { downscale } from '$lib/images/downscale';
 	import { aheadOf, prefetchOrder, rememberBoard } from '$lib/offline/cache';
@@ -119,6 +120,13 @@
 	 */
 	let sequence = $state<string[]>([]);
 
+	/**
+	 * Which of the two reels is on the screen (D53), remembered from the last
+	 * open: a week of focusing on the same ten should not cost a tap every
+	 * morning.
+	 */
+	let which = $state<Reel>(readReel());
+
 	/** Which area the board is asking for; everything, until it is told. */
 	let filter = $state<BoardFilter>('all');
 
@@ -135,8 +143,28 @@
 		filter !== 'all' && !areas.includes(filter) ? 'all' : filter
 	);
 
-	/** What the reel shows: the dreams still ahead, in that order, in that area. */
-	const reel = $derived(dreams === null ? [] : byCategory(reelOrder(dreams, sequence), asking));
+	/** Everything still ahead, in this open's order, in the area asked for. */
+	const everything = $derived(
+		dreams === null ? [] : byCategory(reelOrder(dreams, sequence), asking)
+	);
+
+	/**
+	 * Teď: the ten he is on now, in his own order and not shuffled (D53). Ten
+	 * dreams are reached in ten swipes, so the order is the point rather than
+	 * a route learned by heart — which is what D30's shuffle exists to stop on
+	 * a board of a hundred.
+	 */
+	const focus = $derived(dreams === null ? [] : focusDreams(dreams));
+
+	/** What is actually on the screen. */
+	const reel = $derived(which === 'focus' ? focus : everything);
+
+	/**
+	 * Whether there is a second reel to offer at all. A board nobody has
+	 * chosen a Teď on still gets the choice — that is how the screen says
+	 * there is one — but a board with no dreams does not.
+	 */
+	const hasBoard = $derived(dreams !== null && dreams.length > 0);
 
 	/** How many of them are in the document; it grows as the reel is swiped. */
 	let windowed = $state(REEL_WINDOW);
@@ -161,6 +189,23 @@
 	 */
 	function ask(area: BoardFilter) {
 		filter = area;
+		restart();
+	}
+
+	/**
+	 * The other reel. A different reel is a different list, so it starts at
+	 * its first tile — Teď at rank 1, Vše at the day's pick — rather than
+	 * wherever the thumb happened to be in the one being left.
+	 */
+	function show(next: Reel) {
+		if (next === which) return;
+		which = next;
+		saveReel(next);
+		restart();
+	}
+
+	/** Back to the top of whatever the reel now is. */
+	function restart() {
 		windowed = REEL_WINDOW;
 		at = 0;
 		drive?.to(0);
@@ -289,11 +334,8 @@
 	});
 
 	/**
-	 * The tile the board opens on, chosen once and then left alone: a reel
-	 * that reshuffles under a thumb mid-scroll is not a reel. The pick is
-	 * told it has been shown, which is what makes tomorrow's a different
-	 * one; without a signal the stamp is skipped and the board opens on
-	 * whatever the remembered one says (D25).
+	 * The tile the Vše reel opens on, chosen once and then left alone: a reel
+	 * that reshuffles under a thumb mid-scroll is not a reel (D25).
 	 */
 	function openWith(rows: Dream[]) {
 		if (pickedId !== null) return;
@@ -303,12 +345,34 @@
 
 		pickedId = chosen.id;
 		sequence = reelSequence(rows, chosen.id);
-		if (connection.online && !shownToday(chosen.lastShownAt)) {
-			// Nobody is waiting for it, and a stamp that missed is a stamp
-			// the next open makes anyway.
-			void markShown(chosen.id).catch(() => undefined);
-		}
 	}
+
+	/** Whether this open has already said the pick was shown. */
+	let stamped = false;
+
+	/**
+	 * The pick is told it has been shown, which is what makes tomorrow's a
+	 * different one — but only once it actually has been, which means only on
+	 * Vše (D53). A board opened on Teď has not put the day's dream in front of
+	 * anybody, and „shown“ is what the word means (D25, D36); switching to Vše
+	 * stamps it then.
+	 *
+	 * Without a signal it is skipped and the board still opens on a pick
+	 * worked out from the remembered board (D24). Nobody waits for it, and a
+	 * stamp that missed is one the next open makes anyway.
+	 */
+	$effect(() => {
+		const id = pickedId;
+		const board = dreams;
+		if (which !== 'all' || id === null || board === null || stamped) return;
+		if (!connection.online) return;
+
+		const chosen = board.find((dream) => dream.id === id);
+		stamped = true;
+		if (chosen && !shownToday(chosen.lastShownAt)) {
+			void markShown(id).catch(() => undefined);
+		}
+	});
 
 	/**
 	 * The photograph a dream on the reel did not have (D52).
@@ -459,7 +523,31 @@
 			screen somewhere the reel can be dragged from.
 		-->
 		<div class="board__top" bind:clientHeight={band}>
-			{#if areas.length > 0}
+			{#if hasBoard}
+				<!--
+					The two reels (D53): everything still ahead, shuffled, with
+					the day's pick at its head — and the ten he is on now, in
+					his own order. A segment rather than a chip beside the
+					areas, because these two are one choice and exactly one of
+					them is true at a time; the areas narrow whichever is.
+				-->
+				<div class="seg seg--glass board__reels" role="group" aria-label="Která nástěnka">
+					<button
+						type="button"
+						class="seg__item"
+						aria-pressed={which === 'all'}
+						onclick={() => show('all')}>Vše</button
+					>
+					<button
+						type="button"
+						class="seg__item"
+						aria-pressed={which === 'focus'}
+						onclick={() => show('focus')}>Teď</button
+					>
+				</div>
+			{/if}
+
+			{#if areas.length > 0 && which === 'all'}
 				<!--
 					The areas this board has something in, and „Vše“ in front of
 					them. A rail rather than a wrap: over a reel it has to cost
@@ -512,6 +600,35 @@
 				</p>
 			{/if}
 		</div>
+	</main>
+{:else if which === 'focus' && hasBoard}
+	<!--
+		Teď with nothing on it. A page rather than a reel, because there is
+		nothing to swipe — and its own screen rather than a silent fall back to
+		Vše: the person tapped Teď, so the screen owes them an answer about Teď
+		rather than quietly showing them something else (D53).
+	-->
+	<main class="page">
+		<div class="seg seg--soft empty__reels" role="group" aria-label="Která nástěnka">
+			<button type="button" class="seg__item" aria-pressed={false} onclick={() => show('all')}
+				>Vše</button
+			>
+			<button type="button" class="seg__item" aria-pressed={true}>Teď</button>
+		</div>
+
+		<section class="card empty">
+			<span class="circle circle--lg circle--sky" aria-hidden="true">
+				<Icon name="board" size={24} stroke={1.8} />
+			</span>
+			<h2 class="empty__title">Zatím nic na teď</h2>
+			<p class="hint">
+				Vyber až {FOCUS_MAX} snů, na které se teď soustředíš. Budeš je mít v pořadí, které jim dáš, bez
+				míchání.
+			</p>
+			<div class="actions actions--fill">
+				<a class="btn btn--accent" href={resolve('/ted')}>Vybrat sny</a>
+			</div>
+		</section>
 	</main>
 {:else}
 	<main class="page">
@@ -715,6 +832,34 @@
 		position: relative;
 		max-width: 100%;
 		pointer-events: auto;
+	}
+
+	/* The two reels, first in the floating chrome: the choice that decides
+	   what the areas under it are narrowing. It takes its own width rather
+	   than stretching — two words, not a full-width control. */
+	.board__reels {
+		align-self: flex-start;
+	}
+
+	/* On the empty Teď there is a ground again, so the segment is the soft one
+	   a card would carry, in the flow above the card that explains. Full
+	   width, because `.seg--soft` spends its segments' padding on the
+	   assumption of a track that stretches — which is what it does in every
+	   form in the app. */
+	.empty__reels {
+		margin-top: var(--space-3);
+	}
+
+	.empty {
+		align-items: flex-start;
+		gap: var(--space-3);
+		padding: var(--space-5) var(--space-4);
+	}
+
+	.empty__title {
+		font-size: var(--text-xl);
+		font-weight: 600;
+		letter-spacing: var(--track-xl);
 	}
 
 	/* The areas, as a rail: one line over the reel, running to both edges of

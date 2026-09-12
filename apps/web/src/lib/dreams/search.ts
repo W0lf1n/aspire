@@ -24,7 +24,7 @@
  */
 
 import type { Dream } from '@aspire/contracts';
-import { CATEGORY_LABEL, STATUS_BADGE } from './rules';
+import { CATEGORY_LABEL, FOCUS_BADGE, STATUS_BADGE } from './rules';
 
 /**
  * From how many lines the Seznam offers a search field.
@@ -47,13 +47,14 @@ export function fold(text: string): string {
 /** What a dream is searched by: itself, in the words the screens show. */
 export type Searchable = Pick<
 	Dream,
-	'title' | 'why' | 'affirmation' | 'status' | 'category' | 'targetYear'
+	'title' | 'why' | 'affirmation' | 'status' | 'category' | 'targetYear' | 'focusRank'
 >;
 
 /**
- * Everything a dream says, folded into one string to look in. The status and
- * the area are the Czech words the list already shows — „splněno“ finds what
- * is done and „být“ finds that area — so what is searched is what is read.
+ * Everything a dream says, folded into one string to look in. The status, the
+ * area and „teď“ are the Czech words the list already shows — „splněno“ finds
+ * what is done, „být“ finds that area and „teď“ finds the ten — so what is
+ * searched is what is read.
  */
 export function haystack(dream: Searchable): string {
 	return fold(
@@ -61,6 +62,7 @@ export function haystack(dream: Searchable): string {
 			dream.title,
 			dream.why,
 			dream.affirmation,
+			dream.focusRank === null ? '' : FOCUS_BADGE,
 			STATUS_BADGE[dream.status],
 			dream.category === null ? '' : CATEGORY_LABEL[dream.category],
 			dream.targetYear === null ? '' : String(dream.targetYear)

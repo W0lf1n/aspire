@@ -26,8 +26,9 @@ export const TABS: readonly Tab[] = [
 export function activeTab(pathname: string): TabId | null {
 	const here = pathname.replace(/\/+$/, '') || '/';
 	// A dream's own screens are the board, one level down — from the Seznam
-	// too: a dream belongs to the board, whichever door was used.
-	if (here.startsWith('/sen/')) return 'board';
+	// too: a dream belongs to the board, whichever door was used. So is Teď,
+	// which is the board's second reel being put in order (D53).
+	if (here === '/ted' || here.startsWith('/sen/')) return 'board';
 	for (const tab of TABS) {
 		if (here === tab.path) return tab.id;
 		if (tab.path !== '/' && here.startsWith(`${tab.path}/`)) return tab.id;

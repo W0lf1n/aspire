@@ -130,6 +130,30 @@ export function likeDream(id: string): Promise<Dream> {
  * This dream was the board's first tile today. Nothing comes back: the stamp
  * is for tomorrow's pick and for the board's other devices (D25).
  */
+// ── Teď, the second reel (D53) ──────────────────────────────────────────────
+
+/**
+ * Put this dream on Teď, behind the ones already there. 409 when Teď is
+ * full, which carries the sentence the screen says.
+ */
+export function addToFocus(id: string): Promise<Dream> {
+	return call<Dream>(`/dreams/${id}/focus`, { method: 'POST' });
+}
+
+/** Take it off. Taking off what is already off is not a failure. */
+export function removeFromFocus(id: string): Promise<void> {
+	return call<void>(`/dreams/${id}/focus`, { method: 'DELETE' });
+}
+
+/**
+ * The whole of Teď at once: these dreams, in this order, and nothing else on
+ * it. One request rather than a move per arrow, so the ten are never
+ * half-ordered on the server.
+ */
+export function saveFocus(dreamIds: string[]): Promise<Dream[]> {
+	return call<Dream[]>('/focus', { method: 'PUT', body: JSON.stringify({ dreamIds }) });
+}
+
 export function markShown(id: string): Promise<void> {
 	return call<void>(`/dreams/${id}/shown`, { method: 'POST' });
 }

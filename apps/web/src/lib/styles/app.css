@@ -581,6 +581,25 @@ a {
 	padding: 0;
 }
 
+/**
+ * Over a photograph, where there is no ground for the track to be the card
+ * colour on: the glass the chips beside it wear, so the two reels and the
+ * areas under them read as one set of controls floating on the picture
+ * (D53). The unselected segment takes the chips' full `--ink` rather than
+ * `--ink-2` — glass over a photograph is not the quiet ground that the
+ * dimmer ink was chosen against.
+ */
+.seg--glass {
+	background: var(--glass);
+	border: 1px solid var(--glass-edge);
+	-webkit-backdrop-filter: blur(20px) saturate(1.6);
+	backdrop-filter: blur(20px) saturate(1.6);
+}
+
+.seg--glass .seg__item {
+	color: var(--ink);
+}
+
 /** A 40 px round glass button on the ground: close, back. */
 .round {
 	display: grid;
@@ -596,6 +615,21 @@ a {
 
 .round:active {
 	background: var(--surface-2);
+}
+
+/**
+ * The small one: 32 px, for a row that carries more than one of them — the
+ * three that order and remove a dream on Teď (D53). Below this a target
+ * stops being a target on a phone, so it is the last size down, not a
+ * general-purpose small.
+ */
+.round--sm {
+	width: 32px;
+	height: 32px;
+}
+
+.round:disabled {
+	opacity: 0.35;
 }
 
 /**

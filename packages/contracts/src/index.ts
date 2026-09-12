@@ -60,6 +60,12 @@ export interface Dream {
 	/** One of the three, or null. */
 	category: DreamCategory | null;
 	sortOrder: number;
+	/**
+	 * Where this dream stands on Teď, the second reel, or null when it is not
+	 * on it (D53). An ordering key rather than a position: the screen numbers
+	 * the ten by their place in the list, so a gap costs nothing.
+	 */
+	focusRank: number | null;
 	targetYear: number | null;
 	/** Taps on the heart, counted. Within the board, never across. */
 	likes: number;
@@ -146,6 +152,16 @@ export interface NudgeOffsetInput {
 /** The VAPID public key, or empty when the server cannot send at all. */
 export interface PushKeyResponse {
 	publicKey: string;
+}
+
+// ── PUT /api/v1/focus ───────────────────────────────────────────────────────
+
+/**
+ * The whole of Teď in one request: these dreams, in this order, and nothing
+ * else on it (D53). An empty list is a Teď emptied on purpose.
+ */
+export interface FocusInput {
+	dreamIds: string[];
 }
 
 // ── POST /api/v1/dreams · PUT /api/v1/dreams/{id} ──────────────────────────

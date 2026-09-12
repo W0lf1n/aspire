@@ -18,14 +18,17 @@
 	import { page } from '$app/state';
 	import type { Dream, DreamImageKind } from '@aspire/contracts';
 	import {
+		addToFocus,
 		deleteDream,
 		deleteImage,
 		getDream,
 		likeDream,
 		listBoard,
+		removeFromFocus,
 		uploadImage
 	} from '$lib/api/client';
 	import { describeError } from '$lib/api/errors';
+	import { focusFull, focusFullSentence } from '$lib/dreams/focus';
 	import { formatDate } from '$lib/dreams/format';
 	import { photosOf } from '$lib/dreams/photos';
 	import { photographDone, replacePhotograph } from '$lib/dreams/upload';
@@ -40,6 +43,29 @@
 	let dream = $state<Dream | null>(null);
 	let error = $state('');
 	let liking = $state(false);
+	let focusing = $state(false);
+
+	/**
+	 * The board, fetched alongside, only so the Teď pill knows whether the ten
+	 * are full before it is tapped (D53). Null until it arrives, and null for
+	 * good if it cannot: the pill still works, and the server refuses the
+	 * eleventh with the same sentence.
+	 */
+	let board = $state<Dream[] | null>(null);
+
+	$effect(() => {
+		let live = true;
+		listBoard()
+			.then(({ dreams }) => {
+				if (live) board = dreams;
+			})
+			.catch(() => {
+				// No board to count against, so the pill simply asks the server.
+			});
+		return () => {
+			live = false;
+		};
+	});
 
 	/** Which picker is busy, so the other one is not disabled with it. */
 	let uploading = $state<DreamImageKind | null>(null);
@@ -72,6 +98,41 @@
 			return dreams.find((d) => d.id === id) ?? null;
 		} catch {
 			return null;
+		}
+	}
+
+	/**
+	 * On Teď, or off it (D53). The one tap that puts a dream on the second
+	 * reel: the ordering is `/ted`'s, and this is the decision.
+	 *
+	 * The cap is checked here from the board this screen already has, so the
+	 * eleventh dream is refused on the tap rather than after a round trip —
+	 * the server says the same sentence, and means it.
+	 */
+	async function toggleFocus() {
+		if (!dream || focusing) return;
+
+		const on = dream.focusRank !== null;
+		if (!on && board !== null && focusFull(board)) {
+			toast.show(focusFullSentence());
+			return;
+		}
+
+		focusing = true;
+		try {
+			if (on) {
+				await removeFromFocus(dream.id);
+				dream = { ...dream, focusRank: null };
+				toast.show('Sen je pryč z „teď“');
+			} else {
+				dream = await addToFocus(dream.id);
+				toast.show('Sen máš teď na nástěnce');
+			}
+			navigator.vibrate?.(10);
+		} catch (e) {
+			toast.show(describeError(e));
+		} finally {
+			focusing = false;
 		}
 	}
 
@@ -182,6 +243,32 @@
 			</dl>
 
 			{#if connection.online}
+				<!--
+					On Teď, or not (D53). Its own row above the three that act on
+					the dream itself, because this one is about the board rather
+					than about the dream: it decides which reel the dream turns
+					up on, and the ordering is on Teď's own screen.
+				-->
+				<div class="actions">
+					<button
+						type="button"
+						class="btn {dream.focusRank === null ? '' : 'btn--accent'}"
+						onclick={toggleFocus}
+						disabled={focusing || dream.status === 'achieved'}
+						aria-pressed={dream.focusRank !== null}
+					>
+						<Icon name="board" size={18} stroke={1.8} />
+						{dream.focusRank === null ? 'Dát na teď' : 'Mám na teď'}
+					</button>
+					{#if dream.focusRank !== null}
+						<a class="btn btn--quiet" href={resolve('/ted')}>Pořadí</a>
+					{/if}
+				</div>
+
+				{#if dream.status === 'achieved'}
+					<p class="hint">Splněný sen na teď nepatří — je za tebou, ne před tebou.</p>
+				{/if}
+
 				<div class="actions actions--fill">
 					<button
 						type="button"

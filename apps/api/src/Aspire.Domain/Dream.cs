@@ -13,6 +13,13 @@ public sealed class Dream
     public const int WhyMaxLength = 500;
     public const int AffirmationMaxLength = 120;
 
+    /// <summary>
+    /// How many dreams can be on Teď at once (D53). Ten is small enough to be
+    /// swiped through in ten swipes, which is what makes the second reel worth
+    /// having: a list you can reach the end of.
+    /// </summary>
+    public const int FocusMax = 10;
+
     public Guid Id { get; set; }
 
     /// <summary>The board this dream belongs to. Nothing crosses between boards.</summary>
@@ -40,6 +47,22 @@ public sealed class Dream
 
     /// <summary>Board order — the person's own priority, set by dragging.</summary>
     public int SortOrder { get; set; }
+
+    /// <summary>
+    /// Where this dream stands on Teď, the second reel, or null when it is
+    /// not on it (D53).
+    ///
+    /// An ordering key rather than a position: the screen numbers the ten by
+    /// their place in the list, so a gap left when one is taken off costs
+    /// nothing and there is no compaction to get wrong. Reordering rewrites
+    /// the lot as 1…N, which is also what puts any drift back.
+    ///
+    /// Unlike <see cref="SortOrder"/> this really is the person's priority,
+    /// and unlike the main reel it is not shuffled: ten dreams are reached in
+    /// ten swipes, so a fixed order is the point rather than a route learned
+    /// by heart (D30).
+    /// </summary>
+    public int? FocusRank { get; set; }
 
     public int? TargetYear { get; set; }
 

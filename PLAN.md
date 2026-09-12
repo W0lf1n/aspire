@@ -1,6 +1,6 @@
 # Aspire — Project Plan
 
-Status: M0–M5 done · M6 started, §22.1 and §22.3 in (§22–§23) · Owner: Petr · Created: 2026-09-09 · Revised: 2026-09-12
+Status: M0–M5 done · M6 and M7 started, §22.1, §22.3 and Teď in (§22–§23) · Owner: Petr · Created: 2026-09-09 · Revised: 2026-09-12
 
 Third app in the personal self-improvement trio (Prosper → Planner → **Aspire**, the dreamboard). Building first. Standalone. No integration with the others for now.
 
@@ -127,7 +127,7 @@ Daily pick rule: `ORDER BY last_shown_at NULLS FIRST, random() LIMIT 1` among st
 | M4 | Wallpaper export | Done 2026-09-10 (§14): collage renderer, the phone's own canvas, share or save | done |
 | M5 | Daily nudge | Done 2026-09-11 (§15): subscription, schedule, the crypto by hand, the morning notification | done |
 | M6 | The review's four, and the late nudge | Started 2026-09-12 (§22). In: the nudge is urgent and reports its offset (D51), a sky tile takes a photograph (D52). Left: the anniversary as the nudge, the heart weighing the pick, the lock screen refreshing itself | 4 sessions |
-| M7 | Teď, a link, and the crop | Proposed 2026-09-12 (§23): a second reel of ten in his order, a photograph from a Pinterest link, a focal point and zoom per photograph | 4 sessions |
+| M7 | Teď, a link, and the crop | Started 2026-09-12 (§23). In: the second reel of ten, in his order, chosen and ordered on its own screen (D53). Left: a focal point and zoom per photograph, a photograph from a Pinterest link | 4 sessions |
 
 Smallest of the three apps. Good candidate to build **first** if you want a quick win, or **second** right after Planner MVP — both are one-month projects at weekend pace.
 
@@ -787,14 +787,14 @@ largest of §22.
 
 ---
 
-## 23. M7 — Teď, a link, and the photograph's own edges · 2026-09-12 · proposed
+## 23. M7 — Teď, a link, and the photograph's own edges · 2026-09-12
 
-Four asks, in the order to build them: the second reel and its ten are one
-feature and one migration; the crop changes how every photograph on every
-screen is shown, so it goes before the link import, whose picture lands
-straight in the crop editor. §23.3 and §23.4 do not depend on each other.
+**§23.1 and §23.2 are built** (D53). What is left, in the order to build it:
+the crop (§23.4), which changes how every photograph on every screen is shown,
+and then the link import (§23.3), whose picture lands straight in the crop
+editor. They do not otherwise depend on each other.
 
-### 23.1 Two reels: Vše · Teď
+### 23.1 Two reels: Vše · Teď — done 2026-09-12
 
 **What.** The board gets a second reel, the ten dreams he is on now, the way
 Instagram has *For you* beside *Following*. A segmented pill `seg` at the
@@ -836,7 +836,7 @@ a number, one syllable, fits a segment, and reads with the status words —
 sním · plním · teď. „Top 10“ says how many, which is a fact the cap already
 enforces.
 
-### 23.2 Choosing the ten
+### 23.2 Choosing the ten — done 2026-09-12
 
 Three places, most used first.
 
@@ -866,9 +866,14 @@ for each), `Contracts.cs` and `packages/contracts` (`FocusInput`),
 (+test), `routes/+page.svelte`, `routes/sen/[id]/+page.svelte`,
 `routes/ted/+page.svelte`, `routes/seznam/+page.svelte`, `lib/ui/nav.ts`
 (+test), `apps/api/README.md`, `apps/web/CLAUDE.md` and `DESIGN.md`.
-**Decides** D57 (two reels, Teď in his order, the pick stays with Vše) and
-D58 (ten, chosen on the dream and ordered on one screen). **Size:** one
-session for both halves.
+**Decided** D53, the two halves in one entry rather than the planned D57 and
+D58: they are one feature and the reasons overlap. **Took** one session, as
+estimated. Two things the plan had wrong. The partial **unique** index it
+asked for is not there — a unique index is checked per statement, so two
+dreams swapping places collide on the way past each other, and ten rows a
+board do not earn a two-phase write to prevent a tie. And §23.1 wanted an
+empty Teď to be its own page *and* `focus.ts` to fall back to Vše; the page
+won, because somebody who taps Teď is owed an answer about Teď.
 
 ### 23.3 A photograph from a link
 
