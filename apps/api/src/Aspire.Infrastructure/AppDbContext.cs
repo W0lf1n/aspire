@@ -43,6 +43,11 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
             entity.Property(d => d.Title).HasMaxLength(Dream.TitleMaxLength);
             entity.Property(d => d.Why).HasMaxLength(Dream.WhyMaxLength);
             entity.Property(d => d.Affirmation).HasMaxLength(Dream.AffirmationMaxLength);
+            entity.Property(d => d.LinkKey).HasMaxLength(Dream.LinkKeyMaxLength);
+            // The share link arrives with no board and no dream on it, so the
+            // key is how the dream is found — unique, and null for the dreams
+            // nobody has shared, which is nearly all of them (D61).
+            entity.HasIndex(d => d.LinkKey).IsUnique();
             entity.Property(d => d.Status)
                 .HasConversion(s => DreamStatusNames.ToWire(s), s => DreamStatusNames.Parse(s))
                 .HasMaxLength(16);

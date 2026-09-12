@@ -340,6 +340,39 @@ of this in Czech; it is here because it is the half that is not in the app.
 
 ---
 
+## A dream somebody else can open
+
+Sen → *Sdílet* makes a link to one dream, and the link is its own permission
+in the same way the lock screen's is (D61). `https://…/s/<key>` is a page this
+server writes — the photograph, the name, the affirmation — for somebody with
+no app, no code and no account. It is the second thing here that answers
+without `Authorization`, and the only HTML the API serves.
+
+- **The key is in the path**, so `location ^~ /s/` in `deploy/nginx/app.conf`
+  routes it to the API and turns `access_log` off for it, exactly as the
+  wallpaper link is handled.
+- **One dream, and no way to a second.** The page has no script, no
+  stylesheet, no font, nothing fetched from anywhere else and no link back
+  into the board. It asks not to be indexed and is sent `no-store`.
+- **Revoking is one tap.** *Nový* replaces the key, *Zrušit* removes it, and
+  the old link 404s from the next request.
+- **`/s/{key}/card.jpg`** is the preview a chat app draws, rendered on demand
+  at 1200×630. The photographs on disk are WebP, which some of those apps
+  still will not put in a preview card.
+
+Which dreams on a box are shared, and how to unshare one from the box rather
+than from the phone:
+
+```bash
+cd /opt/aspire/deploy && docker compose exec db psql -U aspire -d aspire -c 'select title from dreams where link_key is not null;'
+```
+
+```bash
+cd /opt/aspire/deploy && docker compose exec db psql -U aspire -d aspire -c 'update dreams set link_key = null;'
+```
+
+---
+
 ## Pairing a device
 
 The shape is Prosper's, without the address: open the site, add it to the

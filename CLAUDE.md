@@ -2,7 +2,7 @@
 
 Guidance for Claude Code working in this repository.
 
-**Last revised:** 2026-09-12 · M6 and M7 closed, D51–D60 · 265 web tests · 342 API tests
+**Last revised:** 2026-09-12 · M6, M7 and §3.7 closed, D51–D61 · 268 web tests · 356 API tests
 
 ---
 
@@ -51,10 +51,12 @@ the wait for the dream it is tapped on, and its count comes off the tile
 (D58) — and the lock screen refreshes itself, from six the board chooses (D59)
 through a link that is its own key (D60). §23 is
 M7, done — two reels, a photograph from a link, and the photograph's own edges.
-§24 is M8, planned and not started: the photographs at scale — the reel drawn
-at the rung the phone is, the encoder tuned once, the thumb under the picture,
-and the rule for when the disk stops being enough. What is left besides it is
-§22's heart and lock screen, and §3.7's share link, which is not a milestone.
+§25 closes §3.7, the last line of the plan
+that was never a milestone: a dream shared as a page this server writes, behind
+the same key (D61). §24 is M8, planned and not started: the photographs at
+scale — the reel drawn at the rung the phone is, the encoder tuned once, the
+thumb under the picture, and the rule for when the disk stops being enough. It
+is all that is left.
 
 ---
 
@@ -164,9 +166,11 @@ apps/web/src/
                       cache-first, the board network-first (D24).
 
 apps/api/src/
-├─ Aspire.Api/             Program.cs (minimal APIs), Auth/, Boards/ (the
-│                          board commands, and the lock-screen link that is
-│                          its own key — D60), Dreams/,
+├─ Aspire.Api/             Program.cs (minimal APIs), Auth/ (pairing, devices,
+│                          and ShareKey — the 32 bytes both links are),
+│                          Boards/ (the board commands and the lock-screen
+│                          link — D60), Dreams/ (and the one page this server
+│                          writes, for a dream somebody else opens — D61),
 │                          Images/ (the queue and the worker), Wallpaper/
 │                          (the lock-screen collage), Nudges/ (the morning
 │                          notification and its worker), Contracts.cs
@@ -244,12 +248,14 @@ scripts/             check-bundle.mjs, and invite.sh — a board and its code
     `focus_x` · `focus_y` · `zoom` on the row, `photoStyle` on the client and
     `FocalCrop` on the server, and every surface that shows a photograph
     reads them (D54). The three files on disk are never re-cut.
-17. **The lock-screen link is a capability and is treated as one.**
-    `GET /api/v1/w/{key}` is the only route besides `pair` that answers with no
-    token: 32 random bytes in the path, one collage wide, `no-store`, 404 with
-    no sentence for a key that opens nothing, and `access_log off` in nginx
-    because the key is in the path (D60). Making a new one revokes the old.
-    Anything else that ever answers without a token inherits that bargain.
+17. **A key that is its own permission is made in one place and fenced the
+    same way.** `Auth/ShareKey` is those 32 bytes; `/api/v1/w/{key}` is one
+    board's collage (D60) and `/s/{key}` is one dream's page (D61), and they
+    are the only routes besides `pair` that answer with no token. Each opens
+    exactly one thing, is `no-store`, answers a key that opens nothing with a
+    bare 404, keeps `access_log off` in nginx because the key is in the path,
+    and is revoked by making a new one. Anything else that ever answers
+    without a token inherits that bargain whole.
 18. **The heart's one job is the wait.** `fuel = days since shown ×
     (1 + min(likes, 10) / 10)` picks the day's dream and orders the automatic
     wallpaper, in `dreams/board.ts` and in `DailyPick.cs`, counting whole days

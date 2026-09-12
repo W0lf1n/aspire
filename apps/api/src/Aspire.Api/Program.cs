@@ -51,6 +51,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 
 builder.Services.AddScoped<DeviceAuth>();
 builder.Services.AddScoped<BoardLinks>();
+builder.Services.AddScoped<DreamLinks>();
 builder.Services.AddScoped<DreamService>();
 builder.Services.AddScoped<NudgeService>();
 
@@ -146,6 +147,14 @@ const string FetchPolicy = "fetch";
 const string LinkPolicy = "wallpaper-link";
 
 /// <summary>
+/// A shared dream's page and its preview card (D61), which also answer with no
+/// token. Cheaper than the collage — one photograph, and the page itself is a
+/// few kilobytes of text — and likelier to be opened by several people at
+/// once, because a link in a group chat is one address as far as this counts.
+/// </summary>
+const string SharePolicy = "share";
+
+/// <summary>
 /// Attempts an hour on the pairing endpoint as a whole, from everywhere. A
 /// guess spread across many addresses is the one attack per-address counting
 /// does not touch; twenty is more pairing than a household does in a year.
@@ -197,6 +206,17 @@ builder.Services.AddRateLimiter(options =>
         _ => new FixedWindowRateLimiterOptions
         {
             PermitLimit = 10,
+            Window = TimeSpan.FromMinutes(1),
+            QueueLimit = 0
+        }));
+
+    options.AddPolicy(SharePolicy, http => RateLimitPartition.GetFixedWindowLimiter(
+        ClientAddress.PartitionKey(
+            http.Request.Headers["X-Real-IP"].FirstOrDefault(),
+            http.Connection.RemoteIpAddress),
+        _ => new FixedWindowRateLimiterOptions
+        {
+            PermitLimit = 60,
             Window = TimeSpan.FromMinutes(1),
             QueueLimit = 0
         }));
@@ -316,6 +336,7 @@ app.MapPost("/api/v1/pair", async (
 // The dreams and their photographs live in Dreams/DreamEndpoints.cs, and
 // the lock-screen collage in Wallpaper/WallpaperEndpoints.cs.
 app.MapDreams();
+app.MapDreamLinks(SharePolicy);
 app.MapImageFetch(FetchPolicy);
 app.MapWallpaper(LinkPolicy);
 app.MapBoardLink();

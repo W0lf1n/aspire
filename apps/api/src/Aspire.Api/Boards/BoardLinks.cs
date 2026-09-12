@@ -1,6 +1,4 @@
-using System.Buffers.Text;
-using System.Security.Cryptography;
-using Aspire.Domain;
+using Aspire.Api.Auth;
 using Aspire.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 
@@ -19,13 +17,6 @@ namespace Aspire.Api.Boards;
 /// </summary>
 public sealed class BoardLinks(AppDbContext db)
 {
-    /// <summary>
-    /// Thirty-two bytes, from the operating system's own randomness. Long
-    /// enough that the endpoint needs no fence against guessing at all: the
-    /// clock on it is there for the cost of rendering, not for the key.
-    /// </summary>
-    public const int KeyBytes = 32;
-
     /// <summary>Where a key is fetched from. The client makes the URL out of it.</summary>
     public static string PathOf(string key) => $"/api/v1/w/{key}";
 
@@ -43,7 +34,7 @@ public sealed class BoardLinks(AppDbContext db)
     /// </summary>
     public async Task<string> MakeAsync(string boardId, CancellationToken ct = default)
     {
-        var key = Base64Url.EncodeToString(RandomNumberGenerator.GetBytes(KeyBytes));
+        var key = ShareKey.New();
 
         await db.Boards
             .Where(b => b.Id == boardId)
@@ -65,7 +56,7 @@ public sealed class BoardLinks(AppDbContext db)
     /// </summary>
     public Task<string?> BoardOfAsync(string key, CancellationToken ct = default)
     {
-        if (string.IsNullOrEmpty(key) || key.Length > Board.LinkKeyMaxLength) return Task.FromResult<string?>(null);
+        if (!ShareKey.CouldBe(key)) return Task.FromResult<string?>(null);
 
         return db.Boards
             .AsNoTracking()

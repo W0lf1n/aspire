@@ -1934,3 +1934,65 @@ making a new link stops the old one in the same request.
 This is also the mechanism §3.7's share link wants — a key per dream rather
 than per board, the same shape — so the last line of the plan comes nearly
 free.
+
+---
+
+### D61 — A shared dream is a page this server writes
+
+PLAN.md §3.7 has had one line since M0 — *share a single dream via a signed
+link* — and it is the last thing in the plan that is not a milestone. The
+mechanism arrived with the lock screen (D60): a key that is its own permission,
+against one dream instead of one board. `dreams.link_key`, `POST` to make one
+over the old, `DELETE` to remove it, and `GET /s/{key}` to read it.
+
+**It is a page, not a route of the app.** The whole point is somebody who has
+nothing — no app, no pairing code, no account — and who is sent a link in a
+message. A message shows a preview only if the *server* put the picture in the
+head; a client-rendered route of the PWA arrives at WhatsApp as a bare URL with
+no title and no image. So the API writes HTML, for the first and only time.
+
+- **One file with nothing in it.** No script, no stylesheet, no font, no
+  analytics, nothing fetched from anywhere else, and no link back into the
+  board. `noindex, nofollow`, because a dream somebody was sent is not a page
+  to be found by searching, and `no-store`, because a page held in a cache is
+  a dream outliving the decision to share it.
+- **The colours are literals**, which rule 1 forbids everywhere else. Same
+  reason `CollageLayout` has them: this is rendered by C#, which cannot read
+  `tokens.css`. It is the reel's tile in miniature — the photograph, a scrim,
+  the name and the line — and it is the one place in the app where that has to
+  be said twice.
+- **Somebody's own words are escaped, and only five characters are.**
+  `WebUtility.HtmlEncode` also turns every character above ASCII into a numeric
+  entity, and this app is written in Czech: „Bydlím u lesa“ would go out as a
+  string of `&#…;` for twice the bytes and no benefit, because the page says
+  `charset=utf-8`. The five that matter are escaped in element text and in
+  quoted attributes alike. Checked against a dream whose title is an `<img>`
+  tag with an `onerror`: the page hands it back as text, and a browser parsing
+  the result creates no element and runs nothing.
+- **The preview card is a JPEG the server renders** at 1200×630, through the
+  collage renderer that already knows how to fill a rectangle with a photograph
+  cropped where the person put it (D54). The files on disk are WebP, and some
+  chat apps still will not draw one in a preview card — a card that silently
+  fails is the whole reason this is a page rather than a route. A dream with no
+  photograph claims no card at all, because a preview with a picture that 404s
+  looks broken where no preview looks deliberate.
+- **The path is `/s/{key}`, outside `/api/`.** This is the one URL in the app a
+  person reads off a screen and pastes into a message. `access_log off` on it
+  in nginx, for the reason D60 gives, and the Vite dev proxy learned it too so
+  the link the app shows is not broken on a laptop.
+- **The affirmation is on the page; the message says only the name.** A
+  message's own text lands in a chat list, on a lock screen, in a notification
+  somebody else can be standing next to — a different audience from the one the
+  link was sent to. The why is on neither: it is the sentence the dream is
+  explained to himself with.
+- **The dreamt photograph**, the achieved one only when that is all there is.
+  The page is a tile, and a tile shows the dream (D28).
+
+`ShareKey` is now where both keys are made, so „a key that is its own
+permission“ is one idea with one implementation rather than two that drift.
+
+Checked end to end against a running server: the page renders the photograph
+with the name and the line over it; the card comes back as a 30 kB JPEG at
+exactly 1200×630; the head carries an absolute `og:image`, `og:title`, the
+affirmation as `og:description` and `summary_large_image`; the page has zero
+scripts and zero `<link>` elements; a wrong key and a revoked key both 404.

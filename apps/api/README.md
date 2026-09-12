@@ -36,9 +36,14 @@ more than store rows.
 | `GET`    | `/api/v1/board/link` | This board's lock-screen link as `{ path }`, or `{ path: null }` (D60) |
 | `POST`   | `/api/v1/board/link` | A new key, which also stops the old link opening anything; `{ path }` |
 | `DELETE` | `/api/v1/board/link` | No link at all; 204, and 204 again when there was none |
+| `GET`    | `/api/v1/dreams/{id}/link` | This dream's share link as `{ path }`, or `{ path: null }` (D61) |
+| `POST`   | `/api/v1/dreams/{id}/link` | A new key, which also stops the old link opening anything; `{ path }` |
+| `DELETE` | `/api/v1/dreams/{id}/link` | Unshared; 204, and 204 again when it was not shared |
+| `GET`    | `/s/{key}` | **HTML, and no token** — one dream's page: its photograph, its name, its affirmation (D61). `noindex`, `no-store`, 404 for a key that opens nothing. Outside `/api/`, because a person reads this URL off a screen |
+| `GET`    | `/s/{key}/card.jpg` | The 1200×630 preview a chat app draws, as JPEG — the files on disk are WebP, which some of those apps will not render in a card |
 | `GET`    | `/api/v1/w/{key}` | Today's six as a JPEG, **with no token** — the key in the path is the whole permission (D60). `?width&height&offset`; `no-store`; 404 for a key that opens nothing; 10 a minute per address |
 
-Everything but `health`, `pair` and `w/{key}` needs
+Everything but `health`, `pair`, `w/{key}` and `s/{key}` needs
 `Authorization: Bearer <token>`.
 The wire types live in `packages/contracts` and are mirrored in
 `Contracts.cs`; enums travel kebab-case (`in-progress`). A bad input is a

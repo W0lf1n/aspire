@@ -77,6 +77,12 @@ sw.addEventListener('fetch', (event) => {
 		return;
 	}
 
+	// A shared dream is the server's page, not this app (D61). Left to the
+	// network entirely: caching it would hold a dream that has since been
+	// unshared, and the navigation fallback below would answer somebody
+	// else's link with the app's own shell.
+	if (url.pathname === '/s' || url.pathname.startsWith('/s/')) return;
+
 	if (url.pathname.startsWith('/api/')) {
 		// Only the board's reads have an offline answer; `/health` must never
 		// bless a dead server, and every other call is the network's or nothing.

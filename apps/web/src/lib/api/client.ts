@@ -239,6 +239,23 @@ export async function wallpaper(
 	return response.blob();
 }
 
+// ── one dream, shared with somebody who has nothing (D61) ───────────────────
+
+/** This dream's share link, or `{ path: null }` when it has never been shared. */
+export function dreamLink(id: string): Promise<LinkResponse> {
+	return call<LinkResponse>(`/dreams/${id}/link`);
+}
+
+/** A new key, which also stops the old link opening anything. */
+export function makeDreamLink(id: string): Promise<LinkResponse> {
+	return call<LinkResponse>(`/dreams/${id}/link`, { method: 'POST' });
+}
+
+/** Unshared. Revoking a link that is not there is not a failure. */
+export function revokeDreamLink(id: string): Promise<void> {
+	return call<void>(`/dreams/${id}/link`, { method: 'DELETE' });
+}
+
 // ── the lock screen that refreshes itself (D60) ─────────────────────────────
 
 /** The board's link, or `{ path: null }` when it has never made one. */

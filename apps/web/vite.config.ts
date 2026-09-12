@@ -24,7 +24,12 @@ export default defineConfig({
 		proxy: {
 			'/api': 'http://127.0.0.1:5300',
 			// The photographs: nginx's job in production, the API's on a laptop.
-			'/media': 'http://127.0.0.1:5300'
+			'/media': 'http://127.0.0.1:5300',
+			// A shared dream's page, which the API writes (D61). A regular
+			// expression, because the plain prefix `/s` would swallow
+			// `/seznam` — and nginx routes this to the API in production, so
+			// the link the app shows has to work here too.
+			'^/s/': 'http://127.0.0.1:5300'
 		}
 	},
 	test: {

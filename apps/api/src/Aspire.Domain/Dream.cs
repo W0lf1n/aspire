@@ -67,6 +67,21 @@ public sealed class Dream
     public int? TargetYear { get; set; }
 
     /// <summary>
+    /// The key in this dream's share link, or null when it has never been
+    /// shared (D61). The same thirty-two bytes the board's lock-screen link
+    /// uses, against one dream instead of a whole board: what it opens is a
+    /// page with this photograph and this title on it and nothing else — no
+    /// other dream, no way back into the board, and nothing to write.
+    ///
+    /// Making a new one is how the old link is revoked, which is the only kind
+    /// of revoking a random number has.
+    /// </summary>
+    public string? LinkKey { get; set; }
+
+    /// <summary>Mirrors <c>ShareKey.MaxLength</c>: 43 characters, with room.</summary>
+    public const int LinkKeyMaxLength = 64;
+
+    /// <summary>
     /// Taps on the heart, counted, never per device: the board's own fuel
     /// gauge, not a social signal. Likes stay within the board (D22).
     /// </summary>

@@ -12,7 +12,7 @@ public sealed class Board
     public const int NameMaxLength = 120;
     public const int CodeHashMaxLength = 128;
 
-    /// <summary>32 random bytes in base64url is 43 characters; 64 leaves room.</summary>
+    /// <summary>Mirrors <c>ShareKey.MaxLength</c>: 43 characters, with room.</summary>
     public const int LinkKeyMaxLength = 64;
 
     public required string Id { get; set; }

@@ -106,6 +106,8 @@ in, only its own kind, and what happens when the sizes never come),
 are full at ten),
 `dreams/wallpaper.test.ts` (who can be on a collage, which six it starts
 with, the link the morning automation is given, and how big it is),
+`dreams/share.test.ts` (a shared dream's whole link, and what the message
+beside it may say),
 `push/schedule.test.ts` (the nudge's time both ways, and why the nudge
 cannot be offered here — browser, server, permission, in that order),
 `images/downscale.test.ts`, `offline/cache.test.ts` (what is kept, in what

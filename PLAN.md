@@ -1,6 +1,6 @@
 # Aspire — Project Plan
 
-Status: M0–M7 done · M8 planned (§24) · Owner: Petr · Created: 2026-09-09 · Revised: 2026-09-12
+Status: M0–M7 done · §3.7 done · M8 planned (§24) · Owner: Petr · Created: 2026-09-09 · Revised: 2026-09-12
 
 Third app in the personal self-improvement trio (Prosper → Planner → **Aspire**, the dreamboard). Building first. Standalone. No integration with the others for now.
 
@@ -20,7 +20,9 @@ Yager: "Dream building" is step one of everything. Dream must be visual, specifi
 2. **Visual.** Full-screen image per dream. Text overlay minimal: title + one-line "why".
 3. **Emotional, not analytical.** No progress bars on the board itself. Achieved dreams celebrated, not measured.
 4. **Frictionless input.** Add a dream from phone camera / photo library / URL in 3 taps.
-5. **Private.** Your dreams, your VPS. Optional share link for a single dream (later).
+5. **Private.** Your dreams, your VPS. A share link for a single dream, done
+   2026-09-12: a page this server writes, behind a key that is its own
+   permission and dies the moment it is revoked (D61).
 
 ## 3. Features
 
@@ -58,7 +60,10 @@ Yager: "Dream building" is step one of everything. Dream must be visual, specifi
 - Configurable: off / daily / weekdays.
 
 ### 3.7 Later / maybe
-- Share single dream via signed link (for Zuzana, upline).
+- ~~Share single dream via signed link (for Zuzana, upline).~~ — done
+  2026-09-12 (§25, D61). The key is D60's, against one dream; the link opens a
+  page the API writes, because a message shows a preview only if the server
+  put the picture in the head.
 - Link dream → Planner goal (explicitly out of scope now).
 - "Dream cost" field + link to Prosper savings goal (out of scope now).
 
@@ -845,8 +850,8 @@ should have been: a way back, shown only when the choice has moved.
 sentence, given a photograph from the phone or from a link, cropped where the
 person wants it, and put on a second reel of ten in their own order.
 
-**What is left in this plan** is §3.7's share link, which was never a
-milestone, and §24's M8. The signed link §22.5 needs is the same mechanism §3.7
+**What is left in this plan** is §24's M8 — §3.7's share link went with this
+session (§25). The signed link §22.5 needs is the same mechanism §3.7
 wants, so the two go together.
 
 ### 23.1 Two reels: Vše · Teď — done 2026-09-12
@@ -1298,3 +1303,44 @@ window (D39). They are the reason the arithmetic works, and the milestone
 adds to them rather than moves them. **Order:** §24.1 measured, then
 §24.4 (it changes every file written after it, so it goes first), §24.2
 with §24.3 inside it, §24.5, §24.6. **Size:** three sessions.
+
+---
+
+## 25. §3.7, the last line — done 2026-09-12
+
+**A dream somebody else can open** (D61). One line in §3.7 since M0, and the
+last thing in the plan that was never a milestone. The mechanism came free
+with §22.5: the same key, against one dream rather than one board.
+
+**What.** `Sdílet` on a dream's own screen opens a sheet with a link,
+`https://…/s/<key>`, and the phone's own share sheet sends it. What the other
+person opens is a page this server writes: the photograph, the name, the
+affirmation, and nothing else — no script, no stylesheet, no font, no link
+back into the board, `noindex`, `no-store`. `Nový` replaces the key and
+`Zrušit` removes it; either way the old link 404s from the next request.
+
+**Why a page rather than a route of the app.** The person it is sent to has
+nothing — no app, no code, no account — and is reading a message. A message
+shows a preview only if the *server* put the picture in the head, and a
+client-rendered route of the PWA arrives at WhatsApp as a bare URL. So the
+API writes HTML for the first and only time, and renders its own preview card
+at 1200×630 as a JPEG, because the photographs on disk are WebP and some chat
+apps still will not draw one in a card.
+
+**Files.** `Auth/ShareKey.cs` (both keys are made there now),
+`Dreams/DreamLinks.cs` (+test), `Dreams/DreamLinkEndpoints.cs`,
+`Dreams/SharePage.cs` (+test), `Dream.cs` and migration `DreamLinkKey`,
+`Program.cs`, `Contracts.cs` and `packages/contracts`, `lib/api/client.ts`,
+`lib/dreams/share.ts` (+test), `routes/sen/[id]/+page.svelte`,
+`service-worker.ts` (it must not answer `/s/` with the app's own shell),
+`vite.config.ts`, `deploy/nginx/app.conf`, `apps/api/README.md`,
+`docs/DEPLOYMENT.md`. **Decided** D61. **Took** half a day.
+
+Two things found while building it. `WebUtility.HtmlEncode` escapes every
+character above ASCII, which in a Czech app is most of the sentence and twice
+the bytes for nothing — the five that matter are escaped by hand instead. And
+a dream with no photograph was claiming a preview card that would have 404'd;
+it claims none now, because a broken picture looks broken where no picture
+looks deliberate.
+
+**What is left in this plan is §24's M8**, and nothing else.
