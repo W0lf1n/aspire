@@ -185,8 +185,30 @@ a {
 .chip {
 	background: var(--glass);
 	border: 1px solid var(--glass-edge);
-	-webkit-backdrop-filter: blur(20px) saturate(1.6);
-	backdrop-filter: blur(20px) saturate(1.6);
+	-webkit-backdrop-filter: var(--glass-blur);
+	backdrop-filter: var(--glass-blur);
+}
+
+/**
+ * Where the browser cannot blur at all, every floating surface goes opaque
+ * rather than translucent over text (D74). Firefox before 103 and a handful
+ * of Android WebViews; everything this app is actually used on — iOS Safari
+ * through `-webkit-`, Android Chrome, and the desktops — blurs, so this is
+ * the floor and not the plan.
+ */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+	.glass,
+	.round,
+	.chip,
+	.seg--glass {
+		background: var(--surface);
+	}
+
+	.badge--photo,
+	.btn--photo,
+	.dream__tag {
+		background: rgb(0 0 0 / 55%);
+	}
 }
 
 /**
@@ -528,8 +550,8 @@ a {
 .badge--photo {
 	background: rgb(255 255 255 / 18%);
 	color: var(--photo-ink);
-	-webkit-backdrop-filter: blur(12px);
-	backdrop-filter: blur(12px);
+	-webkit-backdrop-filter: var(--glass-blur-photo);
+	backdrop-filter: var(--glass-blur-photo);
 }
 
 /**
@@ -544,8 +566,8 @@ a {
 	z-index: 1;
 	background: rgb(0 0 0 / 28%);
 	color: var(--photo-ink);
-	-webkit-backdrop-filter: blur(12px);
-	backdrop-filter: blur(12px);
+	-webkit-backdrop-filter: var(--glass-blur-photo);
+	backdrop-filter: var(--glass-blur-photo);
 }
 
 .badge--tiny {
@@ -602,14 +624,87 @@ a {
  * dimmer ink was chosen against.
  */
 .seg--glass {
+	/* The slots the lens is worked out from, as `.tabbar` does it: the board's
+	   is two. A screen with a different number says so. */
+	--slots: 2;
+
+	position: relative;
 	background: var(--glass);
-	border: 1px solid var(--glass-edge);
-	-webkit-backdrop-filter: blur(20px) saturate(1.6);
-	backdrop-filter: blur(20px) saturate(1.6);
+	box-shadow: var(--elev-glass);
+	-webkit-backdrop-filter: var(--glass-blur);
+	backdrop-filter: var(--glass-blur);
+	isolation: isolate;
+}
+
+/* The rim: a 1 px ring lit from the top left, masked out of a gradient
+   rather than drawn as a border, so it can change colour around the edge.
+   The same ring the floating bar wears (D74). */
+.seg--glass::before,
+.seg__lens::before {
+	content: '';
+	position: absolute;
+	inset: 0;
+	z-index: -1;
+	padding: 1px;
+	border-radius: inherit;
+	background: linear-gradient(
+		135deg,
+		var(--glass-shine) 0%,
+		var(--glass-edge) 30%,
+		var(--glass-rim) 65%,
+		var(--glass-shine) 100%
+	);
+	-webkit-mask:
+		linear-gradient(#000 0 0) content-box,
+		linear-gradient(#000 0 0);
+	mask:
+		linear-gradient(#000 0 0) content-box,
+		linear-gradient(#000 0 0);
+	-webkit-mask-composite: xor;
+	mask-composite: exclude;
+	pointer-events: none;
+}
+
+/* The thickness: light along the top edge, dying out by the middle. */
+.seg--glass::after {
+	content: '';
+	position: absolute;
+	inset: 1px;
+	z-index: -1;
+	border-radius: inherit;
+	background: linear-gradient(180deg, var(--glass-shine) -40%, transparent 55%);
+	opacity: 0.45;
+	pointer-events: none;
+}
+
+/* The lens under the chosen segment: one of the equal slots inside the
+   padding, a step lighter than the glass, springing to the one chosen. It is
+   what marks the choice here — the dark pill belongs on a card, not over a
+   photograph, where the accent and the ink both step back (rule 4). */
+.seg__lens {
+	position: absolute;
+	top: 3px;
+	bottom: 3px;
+	left: calc(3px + var(--slot, 0) * ((100% - 6px) / var(--slots)));
+	z-index: -1;
+	width: calc((100% - 6px) / var(--slots));
+	border-radius: var(--radius-full);
+	background: var(--glass-lens);
+	transition: left var(--dur-slow) var(--ease-spring);
+}
+
+.seg__lens::before {
+	background: linear-gradient(
+		180deg,
+		var(--glass-shine) 0%,
+		var(--glass-edge) 45%,
+		var(--glass-rim) 100%
+	);
 }
 
 .seg--glass .seg__item {
-	color: var(--ink);
+	color: var(--ink-3);
+	transition: color var(--dur-fast) var(--ease-out);
 }
 
 /**
@@ -619,8 +714,10 @@ a {
  * on near-black in the light theme, near-white on near-white in the dark one.
  * The label was there the whole time and could not be read either way.
  */
+/* The chosen one is the lens plus full ink; nothing of its own to paint. */
 .seg--glass .seg__item[aria-pressed='true'] {
-	color: var(--pill-ink);
+	background: transparent;
+	color: var(--ink);
 }
 
 /** A 40 px round glass button on the ground: close, back. */
@@ -1127,8 +1224,8 @@ a {
 .btn--photo {
 	background: rgb(255 255 255 / 18%);
 	color: var(--photo-ink);
-	-webkit-backdrop-filter: blur(16px);
-	backdrop-filter: blur(16px);
+	-webkit-backdrop-filter: var(--glass-blur-photo);
+	backdrop-filter: var(--glass-blur-photo);
 }
 
 .btn--photo:active {

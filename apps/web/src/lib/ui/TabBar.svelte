@@ -90,8 +90,8 @@
 		border-radius: var(--radius-full);
 		background: var(--glass);
 		box-shadow: var(--elev-glass);
-		-webkit-backdrop-filter: blur(24px) saturate(1.6);
-		backdrop-filter: blur(24px) saturate(1.6);
+		-webkit-backdrop-filter: var(--glass-blur-bar);
+		backdrop-filter: var(--glass-blur-bar);
 		isolation: isolate;
 	}
 

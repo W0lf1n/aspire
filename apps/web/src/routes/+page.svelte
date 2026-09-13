@@ -510,7 +510,16 @@
 					areas, because these two are one choice and exactly one of
 					them is true at a time; the areas narrow whichever is.
 				-->
-				<div class="seg seg--glass board__reels" role="group" aria-label="Která nástěnka">
+				<div
+					class="seg seg--glass board__reels"
+					style:--slot={which === 'all' ? 0 : 1}
+					role="group"
+					aria-label="Která nástěnka"
+				>
+					<!-- The lens, as the tab bar has one: it marks the choice by
+					     sliding to it, so the segment reads as one piece of glass
+					     with a bright pane rather than two buttons (D74). -->
+					<span class="seg__lens" aria-hidden="true"></span>
 					<button
 						type="button"
 						class="seg__item"

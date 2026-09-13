@@ -113,6 +113,17 @@
 	--glass-rim: rgb(33 28 25 / 10%);
 	--glass-lens: rgb(255 255 255 / 60%);
 
+	/* How much it frosts. A token rather than a literal at each surface, so
+	   a device that cannot blur or has been asked not to is answered once,
+	   at the bottom of this file, instead of at eight call sites (D74).
+	   Three strengths: the floating bar and the toast, which sit over a
+	   whole screen; the chips and pills on the ground; and the small things
+	   that sit directly on a photograph, where the scrim is already doing
+	   half the work. */
+	--glass-blur-bar: blur(24px) saturate(1.6);
+	--glass-blur: blur(20px) saturate(1.6);
+	--glass-blur-photo: blur(14px);
+
 	/* The lights behind the board in the dark — ember and dusk, at the
 	   strength of a lamp in the next room. Nothing in the light theme. */
 	--glow: none;
@@ -344,4 +355,23 @@
 	--glass-rim: var(--dark-glass-rim);
 	--glass-lens: var(--dark-glass-lens);
 	--glow: var(--dark-glow);
+}
+
+/**
+ * „Less of this, please“ — iOS's Reduce Transparency, Android's equivalent,
+ * and the same switch on a desktop (D74).
+ *
+ * Last in the file on purpose: it has to come after both dark banks to win
+ * in either theme, and it says `var(--surface)` rather than a colour so that
+ * it is still the right ground in both. Nothing stops being legible when
+ * this is on — the glass simply becomes the surface it was pretending to be.
+ */
+@media (prefers-reduced-transparency: reduce) {
+	:root {
+		--glass: var(--surface);
+		--glass-lens: var(--surface-2);
+		--glass-blur-bar: none;
+		--glass-blur: none;
+		--glass-blur-photo: none;
+	}
 }
