@@ -2259,8 +2259,16 @@ from the icon's own geometry at 8× and resampled, because 24dp is where a
 hard edge goes jagged. 96 px is Android's own size for this, and iOS ignores
 `badge` and uses the app icon, so nothing there changes.
 
-The large `icon` stays the colour one: that is the picture inside the
-notification, where colour is right.
+**Amended the same day.** The large `icon` does not stay the colour one
+either: a notification is chrome, and chrome in this app is ink and white.
+Both are the mark as a **white outline** now — stroked rather than filled,
+the same arc and horizon line the rest of `ui/Icon.svelte` is drawn in.
+
+`icon-notify-192.png` carries it on the app's own ink; `badge-96.png` is the
+same outline with the plate taken off. The plate is there on the first
+because the notification shade is white in light mode, and a white outline
+on transparent is an empty square there — both were rendered against black
+and against white before this was settled.
 
 ### D71 — Across the reel to change which reel it is
 
@@ -2348,3 +2356,48 @@ Czech decimal comma.
 Everything D61 decided stands: one file, no script, no font, no stylesheet,
 `noindex`, and no link back into the board. „Aspire“ under the card is a
 word, not a way in.
+
+### D74 — Glass is one decision, and the segment wears it
+
+Two things that had drifted apart: how a glass surface frosts, and which
+surfaces get to be glass at all.
+
+**The blur was a literal at every call site** — 24 px on the tab bar and the
+toast, 20 on the chips and the round buttons, 16 on a pill over a
+photograph, 12 on a badge — and `@supports not (backdrop-filter)` existed on
+the tab bar and nowhere else. So a browser that cannot blur got an opaque
+bar and seven translucent things over text, and „turn this down“ had no
+answer at all.
+
+`--glass-blur-bar`, `--glass-blur` and `--glass-blur-photo` are in
+`tokens.css` now and every surface reads one of them. Three strengths
+because there are three jobs: what floats over a whole screen, what sits on
+the ground, and what sits directly on a photograph where the scrim is
+already doing half the work.
+
+- **`prefers-reduced-transparency: reduce`** is answered once, at the bottom
+  of `tokens.css` — last in the file so it wins in either theme, and written
+  as `var(--surface)` rather than a colour so it is the right ground in
+  both. The glass simply becomes the surface it was pretending to be.
+- **`@supports not (backdrop-filter)`** is one rule in `app.css` covering
+  every glass class, with the things on a photograph going to a flat dark
+  scrim rather than 18 % white over a picture.
+- **It already works on all three platforms**: iOS Safari through
+  `-webkit-backdrop-filter`, Android Chrome and every desktop through the
+  unprefixed one. The prefixed line is not legacy and cannot be dropped —
+  WebKit still ships only the prefixed property. What actually breaks glass
+  is an ancestor with `filter`, `transform`, `perspective`, `will-change` or
+  `contain`, which makes a new backdrop root and leaves the blur sampling
+  nothing; so a glass surface's ancestors are part of its contract.
+
+**The reel segment is the bar's glass.** It was a glass track with a dark
+`--pill` stamped into it, which is the card's way of marking a choice — and
+over a photograph the ink is supposed to step back (rule 4). It now carries
+the same masked rim, the same top-edge sheen and the same sliding lens as
+`.tabbar`, so the two controls on the board read as one material. `--slots`
+on the element and `--slot` from the component, exactly as the bar does it,
+and the chosen segment is full `--ink` on the lens with nothing of its own to
+paint.
+
+That retires D70's sibling fix from the day before: there is no pill left to
+be the wrong colour on.

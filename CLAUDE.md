@@ -2,7 +2,7 @@
 
 Guidance for Claude Code working in this repository.
 
-**Last revised:** 2026-09-13 · §27 closed, D51–D73 · 324 web tests · 397 API tests
+**Last revised:** 2026-09-13 · §27 and §28 closed, D51–D74 · 324 web tests · 397 API tests
 
 ---
 
@@ -69,7 +69,11 @@ the notification's badge is the mark as a silhouette rather than the icon
 Android renders as a white square (D70), the chosen reel is readable again,
 a shared link is a card and not a stretched background (D73), the nudge is
 up to five reminders a day (D72), and a sideways swipe on the board changes
-which reel it is (D71). Nothing is left in the plan.
+which reel it is (D71). §28 is two more: the notification wears the mark as
+a white outline rather than the colour icon (D70 amended), and the reel
+segment wears the tab bar's glass — rim, sheen and a sliding lens — off the
+back of making glass one decision in `tokens.css` instead of eight literals
+(D74). Nothing is left in the plan.
 
 ---
 

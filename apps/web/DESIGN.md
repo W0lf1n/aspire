@@ -616,6 +616,29 @@ sky drifts: two radial lights over the gradient, 16 s alternate on
 first tile on the board caps its height to what is left under the wordmark
 and above the bar, giving up its ratio before its foot.
 
+### Glass
+
+One material, three strengths, and all three are tokens: `--glass-blur-bar`
+for what floats over a whole screen (the tab bar, the toast), `--glass-blur`
+for what sits on the ground (chips, round buttons, the reel segment), and
+`--glass-blur-photo` for what sits on a photograph, where the scrim is
+already doing half the work. A surface is `--glass` with a 1 px rim masked
+out of a gradient lit from the top left, and a sheen along the top edge that
+dies out by the middle.
+
+`prefers-reduced-transparency` turns all three off and hands back
+`var(--surface)`, once, at the foot of `tokens.css`; `@supports not
+(backdrop-filter)` does the same for a browser that cannot blur. Both
+prefixes are required — WebKit ships only `-webkit-backdrop-filter` — and an
+ancestor with `filter`, `transform`, `perspective`, `will-change` or
+`contain` makes a new backdrop root and leaves the blur with nothing to
+sample, so a glass surface's ancestors are part of its contract (D74).
+
+Where a glass control marks one choice out of several it does it with a
+**lens** — a slot-wide pane a step lighter than the glass, springing to the
+chosen one — not with the card's dark pill. The tab bar and the board's reel
+segment are the two.
+
 ### Areas (chips)
 Three fixed areas — Chtít · Být · Dělat (D43; Yager's nine until then, D32). In a form they wrap into rows of `.chip .chip--soft`
 — glass has no ground to be glass over inside a card, so `--soft` is the

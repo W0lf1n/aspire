@@ -1,6 +1,6 @@
 # Aspire — Project Plan
 
-Status: M0–M8 done · §3.7 done · §26 and §27 done · Owner: Petr · Created: 2026-09-09 · Revised: 2026-09-12
+Status: M0–M8 done · §3.7 done · §26–§28 done · Owner: Petr · Created: 2026-09-09 · Revised: 2026-09-12
 
 Third app in the personal self-improvement trio (Prosper → Planner → **Aspire**, the dreamboard). Building first. Standalone. No integration with the others for now.
 
@@ -1436,3 +1436,25 @@ none of them in the plan.
    favour so a flick up the reel is still a dream.
 
 **Took** one session. **Decides** D70, D71, D72 and D73.
+
+## 28. The mark, and the glass · 2026-09-13 — done
+
+Two more from the phone, after §27.
+
+1. **The notification wears the mark as a white outline** (D70 amended), in
+   both places one shows: on the app's ink for the picture in the
+   notification, and with the plate off for the status bar. The colour
+   home-screen icon is not chrome, and chrome here is ink and white.
+2. **The reel segment is the tab bar's glass** (D74): the same masked rim,
+   the same sheen, and a lens that springs to the chosen reel, instead of a
+   dark pill stamped into a glass track.
+
+And the thing that made the second one possible without repeating itself:
+**glass is one decision now**. Three blur tokens in `tokens.css` replace the
+literals at eight surfaces, `prefers-reduced-transparency` is answered once
+for both themes, and the no-backdrop fallback covers every glass class
+rather than only the bar. It already worked on iPhone, Android and the web —
+`-webkit-` for WebKit, unprefixed for the rest — and now it degrades the
+same way everywhere too.
+
+**Took** one session. **Decides** D74, amends D70.
