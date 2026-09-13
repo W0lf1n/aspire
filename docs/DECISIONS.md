@@ -2241,3 +2241,110 @@ and its focal point, a file that is not a picture, a crop outside the
 photograph, and a key that opens nothing as a bare 404 (rule 17).
 
 One test-only package, `Microsoft.AspNetCore.Mvc.Testing`. Nothing ships.
+
+### D70 — The notification's badge is the mark as a silhouette
+
+The push notification's `badge` pointed at `icon-192.png`, and on Android it
+arrived in the status bar as a plain white square.
+
+Android does not draw a badge as a picture. It takes the image's **alpha
+channel** and fills it with the system accent, so the shape has to _be_ the
+transparency — and `icon-192.png` is a full-colour sun on an opaque rounded
+plate, whose alpha is a rounded square and nothing else. It was doing exactly
+what it was asked.
+
+`badge-96.png` is the same sun and horizon as `static/icon.svg`, white on
+nothing, with the plate gone because the plate was the thing showing. Drawn
+from the icon's own geometry at 8× and resampled, because 24dp is where a
+hard edge goes jagged. 96 px is Android's own size for this, and iOS ignores
+`badge` and uses the app icon, so nothing there changes.
+
+The large `icon` stays the colour one: that is the picture inside the
+notification, where colour is right.
+
+### D71 — Across the reel to change which reel it is
+
+The two reels (D53) were reachable only through the segment in the floating
+chrome — a small target at the top of a screen usually held in one hand. A
+reel is a thing you move with your thumb, so moving sideways on it now moves
+sideways through it.
+
+- **It sits beside the pager, not inside it.** `ui/pager.ts` owns the
+  vertical — the fence, the wheel, rule 14's one dream per gesture — and
+  `ui/sideways.ts` takes only a gesture the pager ignores. The two never read
+  the same numbers.
+- **The doubt always goes to the pager.** `touch-action: pan-y pinch-zoom`
+  means the browser keeps every vertical pan for itself, and a swipe counts
+  only when it went **1.4 times further across than down**, which is about 36
+  degrees off the horizontal. A thumb flicking up the reel at an angle is
+  still a dream. Nothing calls `preventDefault`, so a gesture that turns out
+  to be vertical after all was never interrupted.
+- **Fifty-six pixels**, a third of the way across the narrowest screen this
+  runs on: far enough to mean it, near enough one-handed.
+- **It stops at both ends rather than wrapping.** A swipe that came back
+  round would mean one gesture going two ways, and neither answer would be
+  guessable.
+- **Teď with nothing on it takes the swipe too.** It is a page and not a reel
+  (D53), and a gesture that carried somebody there has to carry them out or
+  it strands them.
+- **Left and right arrows do the same**, since the pager has up and down and
+  the segment is a choice of one from two.
+
+### D72 — Up to five reminders a day
+
+The nudge was one a day per device: a single `at_minutes`, and a date stamp
+that kept the day to one (D34). Petr asked for several.
+
+- **`times` on the row: one to five, in order, no repeats.** A short string,
+  „420,720“, through a value converter. At most five small numbers that are
+  only ever read and written together with nothing pointing at one of them;
+  a child table would buy a join and a second place for one device's
+  schedule to be half-written.
+- **Five.** What is being built is a habit, not an alarm clock: past about
+  five a day a notification stops being noticed and starts being dismissed,
+  and a dreamboard that is dismissed five times a day is worse than one that
+  speaks once. It is also what fits on the screen without the list scrolling.
+- **`last_sent_minutes` beside `last_sent_on`.** A date alone cannot say
+  which of today's reminders have gone. The whole clock would be too much:
+  the list is sorted, so „everything up to and including this minute is
+  done“ is one number that cannot drift out of step with it.
+- **`DueAt` replaces `IsDue`** and answers _which_ reminder is owed rather
+  than whether one is. **The latest one wins**: a worker that comes back to
+  two inside their grace sends the most recent, and stamping it takes the one
+  it overtook with it. The point is a dream now, not a backlog at nine. The
+  120-minute grace is unchanged, and still the reason nothing arrives at
+  bedtime.
+- **The migration adds, carries across, and only then drops.** EF scaffolded
+  the `DropColumn` first, which would have thrown away the hour every
+  subscriber had chosen. It also carries `last_sent_on` into
+  `last_sent_minutes`, so a device already nudged that morning does not get a
+  second one on the morning this ships. Going back keeps the first of
+  somebody's reminders rather than seven o'clock for everybody.
+- **The screen is a row per reminder**, and the last one cannot be removed:
+  „no reminders“ is what Vypnuto means, and a list that could empty would be
+  a second way to say it that the mode would then disagree with. The ＋ adds
+  the first free hour after the last, because two reminders at the same
+  minute are one reminder and the button would look broken.
+
+### D73 — A shared dream is a card, not the window
+
+The shared page (D61) put the photograph on `main` as a background at
+`cover` over the whole viewport. Whatever shape the window was, the
+photograph became that shape: a portrait 4:5 picture opened on a laptop was
+cropped to a letterbox, and on a tall phone cropped the other way.
+
+It is a card now — the picture as an `<img>` at its own **4:5**, which is
+what `.dream` already is, in a 25rem card centred in whatever window this is.
+That is the same phone-shaped column the app itself is on a desktop, so a
+dream somebody was sent looks like the dream it is rather than like a
+wallpaper.
+
+**The crop is the person's own.** Rule 16 says every surface that shows a
+photograph reads `focus_x`, `focus_y` and `zoom`, and this page is a surface
+like any other; `SharePage.FocalStyle` is the server's copy of `photoStyle`,
+with the invariant culture on the numbers because CSS has never heard of a
+Czech decimal comma.
+
+Everything D61 decided stands: one file, no script, no font, no stylesheet,
+`noindex`, and no link back into the board. „Aspire“ under the card is a
+word, not a way in.

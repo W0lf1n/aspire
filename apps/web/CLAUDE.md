@@ -72,7 +72,7 @@ Two accents, `--signal` (ember, acts) and `--dusk` (marks), one gradient
 | `/sen/[id]/upravit`     | The same form with the saved values; back is the dream                                                                                                                                                                                                                                                                                                                      |
 | `/sin-slavy`            | Síň slávy. The achieved dreams, the most recent first; the pair                                                                                                                                                                                                                                                                                                             |
 | `/nastaveni`            | The hub: Vzhled, Upozornění, Tapeta, Stahování, Párování, the version and _Obnovit aplikaci_                                                                                                                                                                                                                                                                                |
-| `/nastaveni/upozorneni` | Upozornění. Off / daily / weekdays, and the hour                                                                                                                                                                                                                                                                                                                            |
+| `/nastaveni/upozorneni` | Upozornění. Off / daily / weekdays, and one to five hours, a row each (D72)                                                                                                                                                                                                                                                                                                 |
 | `/nastaveni/tapeta`     | Tapeta. Up to six dreams onto a lock-screen collage                                                                                                                                                                                                                                                                                                                         |
 | `/nastaveni/vzhled`     | systém / světlý / tmavý                                                                                                                                                                                                                                                                                                                                                     |
 | `/nastaveni/stahovani`  | How much of the board is kept offline: co prolistuješ / na wifi / vždy celá, and what it takes up                                                                                                                                                                                                                                                                           |
@@ -125,8 +125,11 @@ are full at ten),
 with, the link the morning automation is given, and how big it is),
 `dreams/share.test.ts` (a shared dream's whole link, and what the message
 beside it may say),
-`push/schedule.test.ts` (the nudge's time both ways, and why the nudge
+`push/schedule.test.ts` (the nudge's time both ways, the list of up to five
+and what adding, moving and removing one does to it, and why the nudge
 cannot be offered here — browser, server, permission, in that order),
+`ui/sideways.test.ts` (what counts as a swipe across the reel, and the step
+that stops at either end),
 `images/downscale.test.ts`, `offline/cache.test.ts` (what is kept, in what
 order — the thumb before the picture — at which rung, a few at a time, the
 window ahead of the thumb and the ceiling), `dreams/photos.test.ts` (which

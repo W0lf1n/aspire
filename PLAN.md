@@ -1,6 +1,6 @@
 # Aspire — Project Plan
 
-Status: M0–M8 done · §3.7 done · §26 done · Owner: Petr · Created: 2026-09-09 · Revised: 2026-09-12
+Status: M0–M8 done · §3.7 done · §26 and §27 done · Owner: Petr · Created: 2026-09-09 · Revised: 2026-09-12
 
 Third app in the personal self-improvement trio (Prosper → Planner → **Aspire**, the dreamboard). Building first. Standalone. No integration with the others for now.
 
@@ -1409,3 +1409,30 @@ anyone noticing, which is the thing the rule exists to stop. Long and
 single is the shape that was chosen.
 
 **Took** one session. **Decides** D65, D66, D67, D68, D69, and amends D52.
+
+## 27. Five from the phone · 2026-09-13 — done
+
+Five things Petr found using the app on his own phone. Not a milestone, and
+none of them in the plan.
+
+1. **The notification's badge was a white square** (D70). Android fills a
+   badge's alpha channel with the system accent, so a full-colour icon on an
+   opaque plate arrives as the plate. `badge-96.png` is the sun and horizon
+   as a silhouette on nothing.
+2. **The chosen reel could not be read.** `.seg--glass .seg__item` and
+   `.seg__item[aria-pressed]` share a specificity, so the later one won and
+   gave the selected segment `--ink` — which is the colour `--pill` already
+   is, in both banks. Near-black on near-black in the light theme, near-white
+   on near-white in the dark. One rule of higher specificity fixes it, and
+   both themes were checked.
+3. **A shared link stretched the photograph over the whole page** (D73). It
+   is a 4:5 card centred in the window now, with the person's own crop on it.
+4. **One reminder a day became up to five** (D72). `times` and
+   `last_sent_minutes` on the row, `DueAt` in place of `IsDue`, a migration
+   that carries the old hour across before it drops it, and a row per
+   reminder on the screen.
+5. **The board takes a sideways swipe** (D71) to change which reel it is,
+   beside the pager rather than inside it, and biased 1.4 to 1 in the pager's
+   favour so a flick up the reel is still a dream.
+
+**Took** one session. **Decides** D70, D71, D72 and D73.

@@ -2,7 +2,7 @@
 
 Guidance for Claude Code working in this repository.
 
-**Last revised:** 2026-09-12 · M6, M7, §3.7, M8 and §26 closed, D51–D69 · 302 web tests · 379 API tests
+**Last revised:** 2026-09-13 · §27 closed, D51–D73 · 324 web tests · 397 API tests
 
 ---
 
@@ -64,7 +64,12 @@ photograph still being resized says so instead of painting the same sky as a
 dream with none (D52 amended), the reel's rung reads the connection and not
 only the pixel ratio (D66), a control that writes wears `use:writes` instead
 of remembering the lock (D67), and components and endpoints have tests of
-their own (D68, D69). Nothing is left in the plan.
+their own (D68, D69). §27 is five things found using the app on a phone:
+the notification's badge is the mark as a silhouette rather than the icon
+Android renders as a white square (D70), the chosen reel is readable again,
+a shared link is a card and not a stretched background (D73), the nudge is
+up to five reminders a day (D72), and a sideways swipe on the board changes
+which reel it is (D71). Nothing is left in the plan.
 
 ---
 
@@ -137,9 +142,10 @@ apps/web/src/
 │                  seg, chip, toggle, facts, well, field, btn, dream.
 ├─ lib/ui/         Hand-rolled components. No component library;
 │                  pager.ts — one dream per swipe, however long the swipe —
-│                  ReelTile.svelte, one page of the reel and every style that
-│                  makes it exactly one scrollport tall — and Sheet.svelte,
-│                  the `<dialog>` a form rises in (D44).
+│                  sideways.ts, across the reel to change which reel it is
+│                  (D71) — ReelTile.svelte, one page of the reel and every
+│                  style that makes it exactly one scrollport tall — and
+│                  Sheet.svelte, the `<dialog>` a form rises in (D44).
 ├─ lib/api/        client.ts (fetch + bearer), token.ts (localStorage),
 │                  pairing.ts (the flow) and errors.ts (the sentences).
 ├─ lib/dreams/     rules.ts — what a dream may be, and how it reads in a
