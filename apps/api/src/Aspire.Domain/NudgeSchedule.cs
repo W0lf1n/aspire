@@ -24,25 +24,70 @@ public static class NudgeSchedule
         utcNow.UtcDateTime.AddMinutes(utcOffsetMinutes);
 
     /// <summary>
-    /// Whether this subscription is due. <paramref name="lastSentOn"/> is the
-    /// local date it was last nudged, which is what keeps a day to one.
+    /// Which of this device's reminders it is owed right now, as minutes past
+    /// local midnight — or null when it is owed none (D72).
+    ///
+    /// <paramref name="lastSentOn"/> and <paramref name="lastSentMinutes"/>
+    /// together say how far through today this device has been taken: the
+    /// times are in order, so everything up to and including that minute is
+    /// done and everything after it is not. A stamp from another day says
+    /// nothing about this one.
+    ///
+    /// **The latest one that is due wins.** A server that was down over
+    /// breakfast comes back to two reminders inside their grace and sends the
+    /// most recent, not both and not the oldest: the point of the thing is a
+    /// dream now, and marking it sent takes the one it overtook with it.
     /// </summary>
-    public static bool IsDue(NudgeMode mode, int atMinutes, DateTime localNow, DateOnly? lastSentOn)
+    public static int? DueAt(
+        NudgeMode mode,
+        IReadOnlyList<int> times,
+        DateTime localNow,
+        DateOnly? lastSentOn,
+        int? lastSentMinutes)
     {
-        if (mode == NudgeMode.Off) return false;
-
-        var today = DateOnly.FromDateTime(localNow);
-        if (lastSentOn == today) return false;
+        if (mode == NudgeMode.Off) return null;
 
         if (mode == NudgeMode.Weekdays &&
             localNow.DayOfWeek is DayOfWeek.Saturday or DayOfWeek.Sunday)
         {
-            return false;
+            return null;
         }
 
         var minutes = localNow.Hour * 60 + localNow.Minute;
-        return minutes >= atMinutes && minutes < atMinutes + GraceMinutes;
+        var sent = lastSentOn == DateOnly.FromDateTime(localNow) ? lastSentMinutes : null;
+
+        int? owed = null;
+        foreach (var at in times)
+        {
+            // Due now, and not so long ago that a dream would be a surprise.
+            if (minutes < at || minutes >= at + GraceMinutes) continue;
+            // Today has already been taken past this one.
+            if (sent is { } last && at <= last) continue;
+            if (owed is null || at > owed) owed = at;
+        }
+
+        return owed;
     }
+
+    /// <summary>
+    /// A set of times a device may ask for: one to
+    /// <see cref="PushSubscription.MaxTimes"/>, each a time of day, and no
+    /// two the same. The order is <see cref="Tidy"/>'s to impose.
+    /// </summary>
+    public static bool AreTimesOfDay(IReadOnlyList<int>? times) =>
+        times is { Count: >= 1 } &&
+        times.Count <= PushSubscription.MaxTimes &&
+        times.All(IsTimeOfDay) &&
+        times.Distinct().Count() == times.Count;
+
+    /// <summary>
+    /// The times as they are stored: in order, with repeats dropped. Sorted
+    /// because <see cref="DueAt"/>'s „everything up to here is done“ is only
+    /// true of a list that is in order, and because two devices asking for
+    /// the same set in a different order are asking for the same thing.
+    /// </summary>
+    public static List<int> Tidy(IEnumerable<int> times) =>
+        times.Distinct().Order().ToList();
 
     /// <summary>A time of day the device may ask for: any minute of one.</summary>
     public static bool IsTimeOfDay(int atMinutes) => atMinutes is >= 0 and < 24 * 60;

@@ -1,5 +1,15 @@
 import { describe, expect, it } from 'vitest';
-import { DEFAULT_AT_MINUTES, fromClock, outOfReach, toClock } from './schedule';
+import {
+	DEFAULT_AT_MINUTES,
+	fromClock,
+	outOfReach,
+	savedSentence,
+	tidyTimes,
+	toClock,
+	withAnotherTime,
+	withTimeMoved,
+	withoutTime
+} from './schedule';
 
 describe('toClock', () => {
 	it('is the time of day a field can show', () => {
@@ -72,5 +82,67 @@ describe('outOfReach', () => {
 		// its own words, and the switch works again the moment there is signal.
 		expect(outOfReach({ ...reachable, sends: null })).toBeNull();
 		expect(outOfReach({ browser: true, permission: 'denied', sends: null })).toMatch(/zakázaná/);
+	});
+});
+
+describe('tidyTimes', () => {
+	it('puts them in order and drops repeats, as the server does', () => {
+		expect(tidyTimes([18 * 60, 7 * 60, 12 * 60, 7 * 60])).toEqual([7 * 60, 12 * 60, 18 * 60]);
+	});
+
+	it('pulls anything that is not a time of day back to one', () => {
+		expect(tidyTimes([-10, 24 * 60 + 5])).toEqual([0, 24 * 60 - 1]);
+	});
+});
+
+describe('withAnotherTime', () => {
+	it('adds an hour after the last one, so the button always adds something', () => {
+		expect(withAnotherTime([7 * 60])).toEqual([7 * 60, 8 * 60]);
+		expect(withAnotherTime([7 * 60, 8 * 60])).toEqual([7 * 60, 8 * 60, 9 * 60]);
+	});
+
+	it('walks past an hour that is taken rather than adding a repeat', () => {
+		// A repeat is silently dropped by `tidyTimes`, which would make the
+		// button look broken.
+		expect(withAnotherTime([22 * 60, 23 * 60])).toEqual([0, 22 * 60, 23 * 60]);
+	});
+
+	it('adds nothing once there are five', () => {
+		const five = [0, 60, 120, 180, 240];
+		expect(withAnotherTime(five)).toEqual(five);
+	});
+});
+
+describe('withoutTime', () => {
+	it('takes one away', () => {
+		expect(withoutTime([7 * 60, 12 * 60], 7 * 60)).toEqual([12 * 60]);
+	});
+
+	it('never takes the last one: that is what Vypnuto is for', () => {
+		expect(withoutTime([7 * 60], 7 * 60)).toEqual([7 * 60]);
+	});
+
+	it('leaves a time that is not there alone', () => {
+		expect(withoutTime([7 * 60, 12 * 60], 9 * 60)).toEqual([7 * 60, 12 * 60]);
+	});
+});
+
+describe('withTimeMoved', () => {
+	it('moves one and leaves the rest, in order', () => {
+		expect(withTimeMoved([7 * 60, 12 * 60], 7 * 60, 20 * 60)).toEqual([12 * 60, 20 * 60]);
+	});
+
+	it('folds a move onto an hour that is taken into one reminder', () => {
+		expect(withTimeMoved([7 * 60, 12 * 60], 7 * 60, 12 * 60)).toEqual([12 * 60]);
+	});
+});
+
+describe('savedSentence', () => {
+	it('says the hour when there is one, because that is the fact wanted back', () => {
+		expect(savedSentence([7 * 60])).toBe('Sen ti přijde v 07:00');
+	});
+
+	it('says how many when there are several, because five times is not a sentence', () => {
+		expect(savedSentence([7 * 60, 12 * 60, 18 * 60])).toBe('Sen ti přijde 3× denně');
 	});
 });

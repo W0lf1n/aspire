@@ -92,7 +92,7 @@ public sealed class NudgeWorkerTests : IDisposable
             PushEnvelope.ReceiverPublic,
             PushEnvelope.AuthSecret,
             NudgeMode.Daily,
-            7 * 60,
+            [7 * 60],
             Prague));
     }
 

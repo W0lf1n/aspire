@@ -6,8 +6,8 @@ using Aspire.Infrastructure.Push;
 namespace Aspire.Api.Nudges;
 
 /// <summary>
-/// The morning nudge (PLAN.md §3.6): one dream, to every device that asked
-/// to be told, at the time it asked for.
+/// The nudge (PLAN.md §3.6): one dream, to every device that asked to be
+/// told, at each of the times it asked for — up to five a day (D72).
 ///
 /// It wakes every minute and asks the schedule who is owed one — cheap,
 /// because that is one query over a table with as many rows as there are
@@ -78,7 +78,7 @@ public sealed class NudgeWorker(
         // board says one thing a morning, to every phone on it.
         var boards = new Dictionary<string, Morning>();
 
-        foreach (var subscription in due)
+        foreach (var (subscription, atMinutes) in due)
         {
             if (ct.IsCancellationRequested) return;
 
@@ -102,7 +102,7 @@ public sealed class NudgeWorker(
             // asked again every minute until the grace window closes.
             if (dream is null)
             {
-                await nudges.MarkSentAsync(subscription, utcNow, ct);
+                await nudges.MarkSentAsync(subscription, atMinutes, utcNow, ct);
                 continue;
             }
 
@@ -136,7 +136,7 @@ public sealed class NudgeWorker(
                         await dreams.MarkShownAsync(subscription.BoardId, dream.Id, ct);
                     }
 
-                    await nudges.MarkSentAsync(subscription, utcNow, ct);
+                    await nudges.MarkSentAsync(subscription, atMinutes, utcNow, ct);
                     // One line per nudge, with the clock the person reads: a
                     // send used to leave no trace at all, so a notification
                     // that arrived late could not be told from one that was

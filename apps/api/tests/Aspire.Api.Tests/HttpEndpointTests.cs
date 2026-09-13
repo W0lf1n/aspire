@@ -247,6 +247,19 @@ public sealed class HttpEndpointTests : IAsyncLifetime
     }
 
     [Fact]
+    public async Task A_device_that_never_subscribed_reads_off_with_one_time_as_an_array()
+    {
+        var nudge = await _client.GetFromJsonAsync<JsonElement>("/api/v1/nudge", Wire);
+
+        Assert.Equal("off", nudge.GetProperty("mode").GetString());
+        // An array on the wire from the first read, so a screen never has to
+        // tell a number from a list of them (D72, rule 6).
+        var times = nudge.GetProperty("times");
+        Assert.Equal(JsonValueKind.Array, times.ValueKind);
+        Assert.Equal([Domain.PushSubscription.DefaultAtMinutes], times.EnumerateArray().Select(one => one.GetInt32()));
+    }
+
+    [Fact]
     public async Task A_board_with_no_link_says_so_rather_than_inventing_one()
     {
         var link = await _client.GetFromJsonAsync<JsonElement>("/api/v1/board/link", Wire);

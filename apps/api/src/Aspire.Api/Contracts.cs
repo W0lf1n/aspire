@@ -41,7 +41,8 @@ public sealed record NudgeInput(
     string? P256dh,
     string? Auth,
     NudgeMode? Mode,
-    int? AtMinutes,
+    /// <summary>One to five times of day, in any order; the server tidies them (D72).</summary>
+    IReadOnlyList<int>? Times,
     int? UtcOffsetMinutes);
 
 /// <summary>
@@ -59,13 +60,13 @@ public sealed record NudgeOffsetInput(string? Endpoint, int? UtcOffsetMinutes);
 /// A device's standing nudge, as it reads it back. No keys come out: the
 /// server was told them and has no reason to say them again.
 /// </summary>
-public sealed record NudgeDto(NudgeMode Mode, int AtMinutes)
+public sealed record NudgeDto(NudgeMode Mode, IReadOnlyList<int> Times)
 {
     public static NudgeDto From(PushSubscription subscription) =>
-        new(subscription.Mode, subscription.AtMinutes);
+        new(subscription.Mode, subscription.Times);
 
     /// <summary>What a device that has never subscribed reads.</summary>
-    public static NudgeDto None => new(NudgeMode.Off, PushSubscription.DefaultAtMinutes);
+    public static NudgeDto None => new(NudgeMode.Off, [PushSubscription.DefaultAtMinutes]);
 }
 
 /// <summary>

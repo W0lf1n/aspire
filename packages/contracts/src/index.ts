@@ -147,9 +147,21 @@ export type NudgeMode = (typeof NUDGE_MODES)[number];
 /** A device's standing nudge, as it reads it back. No keys come out. */
 export interface NudgeSettings {
 	mode: NudgeMode;
-	/** Minutes past midnight where the device is. */
-	atMinutes: number;
+	/**
+	 * When the device wants to hear, as minutes past midnight where it is:
+	 * one to `MAX_NUDGE_TIMES` of them, in order and with no repeats (D72).
+	 * The server tidies whatever it is sent, so a screen may send them in any
+	 * order and read them back sorted.
+	 */
+	times: number[];
 }
+
+/**
+ * How many reminders a day a device may ask for (D72). Five, because what is
+ * being built is a habit and not an alarm clock, and past about five a
+ * notification stops being noticed and starts being dismissed.
+ */
+export const MAX_NUDGE_TIMES = 5;
 
 /** What a device sends to be nudged: the browser's subscription, and when. */
 export interface NudgeInput extends NudgeSettings {

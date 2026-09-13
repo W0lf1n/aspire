@@ -9,7 +9,7 @@
 
 import type { NudgeInput, NudgeMode, NudgeSettings } from '@aspire/contracts';
 import { nudgeKey, readNudge, saveNudge, saveNudgeOffset } from '$lib/api/client';
-import { outOfReach } from './schedule';
+import { DEFAULT_TIMES, outOfReach } from './schedule';
 
 /** Whether this browser can do notifications at all. */
 export function supported(): boolean {
@@ -95,7 +95,7 @@ export async function reportOffset(): Promise<void> {
 
 /** What the server has for this device: off until it says otherwise. */
 export async function current(): Promise<NudgeSettings> {
-	if (!supported()) return { mode: 'off', atMinutes: 7 * 60 };
+	if (!supported()) return { mode: 'off', times: [...DEFAULT_TIMES] };
 
 	const subscription = await existing();
 	return readNudge(subscription?.endpoint ?? null);
@@ -111,7 +111,7 @@ export async function current(): Promise<NudgeSettings> {
  */
 export async function turnOn(
 	mode: Exclude<NudgeMode, 'off'>,
-	atMinutes: number
+	times: number[]
 ): Promise<NudgeSettings> {
 	const permission = await Notification.requestPermission();
 	if (permission !== 'granted') throw new Error('denied');
@@ -124,7 +124,7 @@ export async function turnOn(
 			applicationServerKey: await serverKey()
 		}));
 
-	return saveNudge(toInput(subscription, mode, atMinutes));
+	return saveNudge(toInput(subscription, mode, times));
 }
 
 /**
@@ -134,7 +134,7 @@ export async function turnOn(
  */
 export async function turnOff(): Promise<NudgeSettings> {
 	const subscription = await existing();
-	const settings = await saveNudge(toInput(subscription, 'off', 7 * 60));
+	const settings = await saveNudge(toInput(subscription, 'off', DEFAULT_TIMES));
 	await subscription?.unsubscribe();
 	return settings;
 }
@@ -143,14 +143,14 @@ export async function turnOff(): Promise<NudgeSettings> {
 function toInput(
 	subscription: PushSubscription | null,
 	mode: NudgeMode,
-	atMinutes: number
+	times: number[]
 ): NudgeInput {
 	return {
 		endpoint: subscription?.endpoint ?? '',
 		p256dh: keyOf(subscription, 'p256dh'),
 		auth: keyOf(subscription, 'auth'),
 		mode,
-		atMinutes,
+		times,
 		// Minutes *ahead* of UTC, which is the opposite sign to the one
 		// `getTimezoneOffset` gives.
 		utcOffsetMinutes: -new Date().getTimezoneOffset()

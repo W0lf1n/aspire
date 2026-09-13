@@ -18,6 +18,17 @@ public sealed class PushSubscription
     /// <summary>07:00, PLAN.md §3.6's default, as minutes past local midnight.</summary>
     public const int DefaultAtMinutes = 7 * 60;
 
+    /// <summary>
+    /// How many reminders a day a device may ask for (D72).
+    ///
+    /// Five, because the thing being built is a habit and not an alarm clock:
+    /// past about five a day a notification stops being noticed and starts
+    /// being dismissed, and a dreamboard that is dismissed five times a day
+    /// is worse than one that speaks once. It is also the number that fits on
+    /// the screen without the list needing to scroll.
+    /// </summary>
+    public const int MaxTimes = 5;
+
     public Guid Id { get; set; }
 
     /// <summary>The board this device paired into; the nudge comes from its dreams.</summary>
@@ -34,8 +45,16 @@ public sealed class PushSubscription
 
     public NudgeMode Mode { get; set; } = NudgeMode.Daily;
 
-    /// <summary>When, as minutes past midnight where the device is.</summary>
-    public int AtMinutes { get; set; } = DefaultAtMinutes;
+    /// <summary>
+    /// When, as minutes past midnight where the device is: one to
+    /// <see cref="MaxTimes"/> of them, in order and with no repeats (D72).
+    ///
+    /// A list on the row rather than a table of its own. It is at most five
+    /// small numbers that are only ever read and written together, with
+    /// nothing that points at one of them; a child table would buy a join and
+    /// a second place for a device's schedule to be half-written.
+    /// </summary>
+    public List<int> Times { get; set; } = [DefaultAtMinutes];
 
     /// <summary>
     /// The device's offset from UTC in minutes, rather than a zone name.
@@ -47,10 +66,22 @@ public sealed class PushSubscription
     public int UtcOffsetMinutes { get; set; }
 
     /// <summary>
-    /// The local date this device was last nudged, so a day gets one. A date
-    /// rather than a timestamp: "has today had its nudge" is the question.
+    /// The local date this device was last nudged. With
+    /// <see cref="LastSentMinutes"/> it answers the only question the worker
+    /// asks: which of today's reminders have already been sent.
     /// </summary>
     public DateOnly? LastSentOn { get; set; }
+
+    /// <summary>
+    /// The time of day of that last nudge, as minutes past local midnight,
+    /// or null when there has never been one (D72).
+    ///
+    /// A day used to be kept to one nudge by the date alone. With several a
+    /// day the date is not enough and the whole clock is too much: the times
+    /// are in order, so „everything up to and including this one is done“ is
+    /// one number and cannot drift out of step with the list.
+    /// </summary>
+    public int? LastSentMinutes { get; set; }
 
     public DateTimeOffset CreatedAt { get; set; }
 }

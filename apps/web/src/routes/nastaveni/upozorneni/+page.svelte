@@ -2,15 +2,32 @@
 	/**
 	 * Nastavení · Upozornění — the morning nudge (PLAN.md §3.6).
 	 *
-	 * Off, every day, or only on working days, and the time. One dream
-	 * arrives at the hour chosen; tapping it opens that dream. The browser is
-	 * asked for permission only when the person picks something other than
-	 * off, so nothing is ever demanded on the way in (D35).
+	 * Off, every day, or only on working days, and the times. One dream
+	 * arrives at each hour chosen — up to five a day (D72) — and tapping it
+	 * opens that dream. The browser is asked for permission only when the
+	 * person picks something other than off, so nothing is ever demanded on
+	 * the way in (D35).
+	 *
+	 * The times are a list of fields rather than one. Each row moves its own
+	 * hour and takes itself away; the last one cannot be taken away, because
+	 * „no reminders“ is what Vypnuto means and two ways to say it would
+	 * disagree with each other.
 	 */
 	import type { NudgeMode } from '@aspire/contracts';
-	import { NUDGE_MODES } from '@aspire/contracts';
+	import { MAX_NUDGE_TIMES, NUDGE_MODES } from '@aspire/contracts';
 	import { describeError } from '$lib/api/errors';
-	import { DEFAULT_AT_MINUTES, MODE_LABEL, fromClock, toClock } from '$lib/push/schedule';
+	import {
+		DEFAULT_TIMES,
+		MODE_LABEL,
+		fromClock,
+		savedSentence,
+		tidyTimes,
+		toClock,
+		withAnotherTime,
+		withTimeMoved,
+		withoutTime
+	} from '$lib/push/schedule';
+	import Icon from '$lib/ui/Icon.svelte';
 	import { current, turnOff, turnOn, unavailable } from '$lib/push/nudge';
 	import { connection } from '$lib/offline/status.svelte';
 	import { writes } from '$lib/offline/writes.svelte';
@@ -19,8 +36,13 @@
 	import { toast } from '$lib/ui/toast.svelte';
 
 	let mode = $state<NudgeMode>('off');
-	let clock = $state(toClock(DEFAULT_AT_MINUTES));
+
+	/** When the dream arrives, in order: one to five (D72). */
+	let times = $state<number[]>([...DEFAULT_TIMES]);
 	let busy = $state(false);
+
+	/** Whether there is room for another. */
+	const room = $derived(times.length < MAX_NUDGE_TIMES);
 
 	/**
 	 * Whether the screen knows yet. Until it does the controls are drawn and
@@ -44,7 +66,7 @@
 			.then(([settings, why]) => {
 				if (!live) return;
 				mode = settings.mode;
-				clock = toClock(settings.atMinutes);
+				times = tidyTimes(settings.times);
 				blocked = why;
 			})
 			.catch(() => undefined)
@@ -63,23 +85,43 @@
 	 */
 	async function choose(next: NudgeMode) {
 		if (busy || next === mode) return;
-		await apply(next, fromClock(clock));
+		await apply(next, times);
 	}
 
-	async function retime(value: string) {
-		clock = value;
-		if (mode !== 'off') await apply(mode, fromClock(value));
+	/** One row moved to another hour. */
+	async function retime(from: number, value: string) {
+		const next = withTimeMoved(times, from, fromClock(value));
+		times = next;
+		if (mode !== 'off') await apply(mode, next);
 	}
 
-	async function apply(next: NudgeMode, atMinutes: number) {
+	/** One more reminder, at the first free hour after the last one. */
+	async function add() {
+		const next = withAnotherTime(times);
+		if (next.length === times.length) return;
+		times = next;
+		if (mode !== 'off') await apply(mode, next);
+	}
+
+	/** One reminder gone — never the last, which is what Vypnuto is for. */
+	async function drop(at: number) {
+		const next = withoutTime(times, at);
+		if (next.length === times.length) return;
+		times = next;
+		if (mode !== 'off') await apply(mode, next);
+	}
+
+	async function apply(next: NudgeMode, wanted: number[]) {
 		const before = mode;
+		const had = times;
 		busy = true;
 		try {
-			const settings = next === 'off' ? await turnOff() : await turnOn(next, atMinutes);
+			const settings = next === 'off' ? await turnOff() : await turnOn(next, wanted);
 			mode = settings.mode;
-			clock = toClock(settings.atMinutes);
-			if (next !== 'off') toast.show(`Sen ti přijde v ${toClock(settings.atMinutes)}`);
+			times = tidyTimes(settings.times);
+			if (next !== 'off') toast.show(savedSentence(settings.times));
 		} catch (e) {
+			times = had;
 			mode = before;
 			toast.show(
 				e instanceof Error && e.message === 'denied'
@@ -123,19 +165,48 @@
 				{/each}
 			</div>
 
-			<label class="field">
+			<div class="field">
 				<span class="field__label">Kdy</span>
-				<input
-					class="field__input"
-					type="time"
-					value={clock}
-					use:writes={() => busy || !loaded}
-					onchange={(event) => retime(event.currentTarget.value)}
-				/>
+				{#each times as at (at)}
+					<div class="when">
+						<input
+							class="field__input when__at"
+							type="time"
+							value={toClock(at)}
+							aria-label="Čas upozornění"
+							use:writes={() => busy || !loaded}
+							onchange={(event) => retime(at, event.currentTarget.value)}
+						/>
+						{#if times.length > 1}
+							<button
+								type="button"
+								class="round round--sm"
+								aria-label={`Odebrat ${toClock(at)}`}
+								use:writes={() => busy || !loaded}
+								onclick={() => drop(at)}
+							>
+								<Icon name="close" size={18} stroke={2} />
+							</button>
+						{/if}
+					</div>
+				{/each}
+
+				{#if room}
+					<button
+						type="button"
+						class="btn btn--quiet btn--sm when__add"
+						use:writes={() => busy || !loaded}
+						onclick={add}
+					>
+						<Icon name="plus" size={16} stroke={2} />
+						Přidat čas
+					</button>
+				{/if}
+
 				<span class="field__hint">
-					Ráno, než začne den. Jeden sen, ten dnešní — ťuknutím se otevře.
+					Jeden sen pokaždé, ten dnešní — ťuknutím se otevře. Nejvýš {MAX_NUDGE_TIMES} za den.
 				</span>
-			</label>
+			</div>
 
 			{#if !connection.online}
 				<p class="hint">Bez připojení. Upozornění nastavíš, až bude signál.</p>
@@ -145,3 +216,25 @@
 </main>
 
 <TabBar />
+
+<style>
+	/* A reminder: its hour, and the way to take it away. The field keeps its
+	   full width until there is more than one, so a single reminder looks
+	   exactly as it did before there could be several. */
+	.when {
+		display: flex;
+		align-items: center;
+		gap: var(--space-2);
+	}
+
+	.when__at {
+		flex: 1;
+		min-width: 0;
+	}
+
+	/* The ＋ is a quiet pill under the list rather than another row: it adds a
+	   reminder, it is not one. */
+	.when__add {
+		align-self: flex-start;
+	}
+</style>

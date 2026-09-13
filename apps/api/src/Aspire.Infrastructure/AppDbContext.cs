@@ -1,6 +1,8 @@
 using System.Text;
+using System.Globalization;
 using Aspire.Domain;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 
 namespace Aspire.Infrastructure;
 
@@ -123,6 +125,25 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
             entity.Property(s => s.Mode)
                 .HasConversion(m => NudgeModeNames.ToWire(m), m => NudgeModeNames.Parse(m))
                 .HasMaxLength(16);
+
+            // The reminders as one short string, „420,720,1200“ (D72). At most
+            // five small numbers, never queried into and only ever read and
+            // written whole, so a child table would buy a join and a second
+            // place for one device's schedule to be half-written. The
+            // comparer is what makes EF notice a list changed in place.
+            entity.Property(s => s.Times)
+                .HasConversion(
+                    v => string.Join(',', v),
+                    v => v.Length == 0
+                        ? new List<int>()
+                        : v.Split(',', StringSplitOptions.RemoveEmptyEntries)
+                            .Select(one => int.Parse(one, CultureInfo.InvariantCulture))
+                            .ToList(),
+                    new ValueComparer<List<int>>(
+                        (a, b) => a != null && b != null && a.SequenceEqual(b),
+                        v => v.Aggregate(0, (hash, one) => HashCode.Combine(hash, one)),
+                        v => v.ToList()))
+                .HasMaxLength(64);
 
             // A board that goes takes its subscriptions with it.
             entity.HasOne<Board>()

@@ -35,7 +35,12 @@ public sealed class NudgeService(AppDbContext db)
             return "Klíče pro upozornění jsou moc dlouhé.";
         }
 
-        if (input.AtMinutes is { } at && !NudgeSchedule.IsTimeOfDay(at)) return "Tenhle čas neznám.";
+        if (input.Times is { } times && !NudgeSchedule.AreTimesOfDay(times))
+        {
+            return times.Count > PushSubscription.MaxTimes
+                ? $"Víc než {PushSubscription.MaxTimes} připomenutí denně nejde."
+                : "Tenhle čas neznám.";
+        }
 
         if (input.UtcOffsetMinutes is { } offset && !NudgeSchedule.IsUtcOffset(offset))
         {
@@ -108,7 +113,11 @@ public sealed class NudgeService(AppDbContext db)
         subscription.P256dh = input.P256dh!.Trim();
         subscription.Auth = input.Auth!.Trim();
         subscription.Mode = input.Mode ?? NudgeMode.Daily;
-        subscription.AtMinutes = input.AtMinutes ?? PushSubscription.DefaultAtMinutes;
+        // In order and without repeats, whatever order the screen sent them
+        // in: `DueAt` reads the list as „everything up to here is done“ (D72).
+        subscription.Times = input.Times is { Count: > 0 } asked
+            ? NudgeSchedule.Tidy(asked)
+            : [PushSubscription.DefaultAtMinutes];
         subscription.UtcOffsetMinutes = input.UtcOffsetMinutes ?? 0;
 
         await db.SaveChangesAsync(ct);
@@ -154,7 +163,7 @@ public sealed class NudgeService(AppDbContext db)
     /// read afterwards would hand back the row as it was before the stamp and
     /// nudge the same phone twice.
     /// </summary>
-    public async Task<List<PushSubscription>> DueAsync(DateTimeOffset utcNow, CancellationToken ct = default)
+    public async Task<List<Due>> DueAsync(DateTimeOffset utcNow, CancellationToken ct = default)
     {
         var candidates = await db.PushSubscriptions
             .AsNoTracking()
@@ -162,22 +171,38 @@ public sealed class NudgeService(AppDbContext db)
             .OrderBy(s => s.Id)
             .ToListAsync(ct);
 
-        return candidates
-            .Where(s => NudgeSchedule.IsDue(
-                s.Mode,
-                s.AtMinutes,
-                NudgeSchedule.LocalNow(utcNow, s.UtcOffsetMinutes),
-                s.LastSentOn))
-            .ToList();
+        var due = new List<Due>();
+        foreach (var subscription in candidates)
+        {
+            var at = NudgeSchedule.DueAt(
+                subscription.Mode,
+                subscription.Times,
+                NudgeSchedule.LocalNow(utcNow, subscription.UtcOffsetMinutes),
+                subscription.LastSentOn,
+                subscription.LastSentMinutes);
+
+            if (at is { } owed) due.Add(new Due(subscription, owed));
+        }
+
+        return due;
     }
 
-    /// <summary>This device has had today's nudge; not again until tomorrow.</summary>
-    public async Task MarkSentAsync(PushSubscription subscription, DateTimeOffset utcNow, CancellationToken ct = default)
+    /// <summary>
+    /// This device has had the reminder that was owed at
+    /// <paramref name="atMinutes"/>; not that one or any earlier one again
+    /// today (D72).
+    /// </summary>
+    public async Task MarkSentAsync(
+        PushSubscription subscription, int atMinutes, DateTimeOffset utcNow, CancellationToken ct = default)
     {
         var local = NudgeSchedule.LocalNow(utcNow, subscription.UtcOffsetMinutes);
         await db.PushSubscriptions
             .Where(s => s.Id == subscription.Id)
-            .ExecuteUpdateAsync(set => set.SetProperty(s => s.LastSentOn, DateOnly.FromDateTime(local)), ct);
+            .ExecuteUpdateAsync(
+                set => set
+                    .SetProperty(s => s.LastSentOn, DateOnly.FromDateTime(local))
+                    .SetProperty(s => s.LastSentMinutes, atMinutes),
+                ct);
     }
 
     /// <summary>
@@ -188,3 +213,6 @@ public sealed class NudgeService(AppDbContext db)
     public Task ForgetAsync(Guid id, CancellationToken ct = default) =>
         db.PushSubscriptions.Where(s => s.Id == id).ExecuteDeleteAsync(ct);
 }
+
+/// <summary>A device owed a nudge, and which of its reminders it is owed (D72).</summary>
+public readonly record struct Due(PushSubscription Subscription, int AtMinutes);

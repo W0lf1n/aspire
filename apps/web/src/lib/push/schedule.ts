@@ -9,10 +9,13 @@
  * is the half that has to talk to `Notification`, `PushManager` and the API.
  */
 
-import type { NudgeMode } from '@aspire/contracts';
+import { MAX_NUDGE_TIMES, type NudgeMode } from '@aspire/contracts';
 
 /** 07:00, PLAN.md §3.6's default. */
 export const DEFAULT_AT_MINUTES = 7 * 60;
+
+/** What a device asks for until it says otherwise: the one morning. */
+export const DEFAULT_TIMES: number[] = [DEFAULT_AT_MINUTES];
 
 /** What the segment says: the three states, in Czech. */
 export const MODE_LABEL: Record<NudgeMode, string> = {
@@ -53,6 +56,63 @@ function clamp(minutes: number): number {
 
 function pad(value: number): string {
 	return String(value).padStart(2, '0');
+}
+
+/**
+ * The times as the server keeps them: in order, with repeats dropped (D72).
+ * The screen sorts as it goes so a time added at the top does not sit there
+ * out of order until the next load.
+ */
+export function tidyTimes(times: number[]): number[] {
+	return [...new Set(times.map(clamp))].sort((a, b) => a - b);
+}
+
+/**
+ * One more reminder, at the first hour that is free.
+ *
+ * An hour rather than the same minute again: two reminders at the same time
+ * are one reminder, and `tidyTimes` would silently drop the second — so the
+ * ＋ would do nothing and look broken. It walks forward from the last one and
+ * wraps round the day if it has to, so the button always adds something.
+ */
+export function withAnotherTime(times: number[]): number[] {
+	if (times.length >= MAX_NUDGE_TIMES) return tidyTimes(times);
+
+	const taken = new Set(tidyTimes(times));
+	const last = times.length > 0 ? Math.max(...times) : DEFAULT_AT_MINUTES;
+	for (let step = 1; step <= 24; step++) {
+		const next = (last + step * 60) % (24 * 60);
+		if (!taken.has(next)) return tidyTimes([...times, next]);
+	}
+
+	return tidyTimes(times);
+}
+
+/**
+ * One reminder taken away — never the last one. „No reminders“ is what Off
+ * means, and a list that can empty would be a second way to say it that the
+ * mode would then disagree with.
+ */
+export function withoutTime(times: number[], at: number): number[] {
+	if (times.length <= 1) return tidyTimes(times);
+	return tidyTimes(times.filter((one) => one !== at));
+}
+
+/** One reminder moved to another time, with the rest left where they are. */
+export function withTimeMoved(times: number[], from: number, to: number): number[] {
+	return tidyTimes(times.map((one) => (one === from ? to : one)));
+}
+
+/**
+ * What the toast says when the reminders are saved. One is the hour itself,
+ * because that is the fact somebody wants back; several is how many, because
+ * a list of five times read aloud in a toast is not a sentence.
+ */
+export function savedSentence(times: number[]): string {
+	const tidy = tidyTimes(times);
+	return tidy.length === 1
+		? `Sen ti přijde v ${toClock(tidy[0])}`
+		: `Sen ti přijde ${tidy.length}× denně`;
 }
 
 /** What a device has found out about whether the nudge can be offered. */

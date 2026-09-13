@@ -39,17 +39,18 @@ public sealed class NudgeServiceTests : IDisposable
     private static NudgeInput Input(
         string endpoint = Endpoint,
         NudgeMode? mode = NudgeMode.Daily,
-        int? at = 7 * 60,
-        int? offset = 120) => new(endpoint, "key-p256dh", "key-auth", mode, at, offset);
+        int[]? times = null,
+        int? offset = 120) =>
+        new(endpoint, "key-p256dh", "key-auth", mode, times ?? [7 * 60], offset);
 
     [Fact]
     public async Task Subscribing_twice_from_one_device_moves_the_row_it_has()
     {
         var first = await _nudges.SaveAsync(BoardA, Input());
-        var again = await _nudges.SaveAsync(BoardA, Input(at: 6 * 60, mode: NudgeMode.Weekdays));
+        var again = await _nudges.SaveAsync(BoardA, Input(times: [6 * 60], mode: NudgeMode.Weekdays));
 
         Assert.Equal(first.Id, again.Id);
-        Assert.Equal(6 * 60, again.AtMinutes);
+        Assert.Equal([6 * 60], again.Times);
         Assert.Equal(NudgeMode.Weekdays, again.Mode);
         Assert.Equal(1, await _db.PushSubscriptions.CountAsync());
     }
@@ -95,7 +96,7 @@ public sealed class NudgeServiceTests : IDisposable
 
         var due = await _nudges.DueAsync(new DateTimeOffset(2026, 9, 10, 5, 0, 0, TimeSpan.Zero));
 
-        Assert.Equal(["https://push.example/prague"], due.Select(s => s.Endpoint));
+        Assert.Equal(["https://push.example/prague"], due.Select(one => one.Subscription.Endpoint));
     }
 
     [Fact]
@@ -106,11 +107,65 @@ public sealed class NudgeServiceTests : IDisposable
 
         Assert.Single(await _nudges.DueAsync(utcNow));
 
-        await _nudges.MarkSentAsync(subscription, utcNow);
+        await _nudges.MarkSentAsync(subscription, 7 * 60, utcNow);
         Assert.Empty(await _nudges.DueAsync(utcNow));
 
         // The next morning it is owed one again.
         Assert.Single(await _nudges.DueAsync(utcNow.AddDays(1)));
+    }
+
+    // ── several a day (D72) ────────────────────────────────────────────────
+
+    [Fact]
+    public async Task A_device_can_ask_for_up_to_five_times_and_gets_them_in_order()
+    {
+        var saved = await _nudges.SaveAsync(
+            BoardA, Input(times: [18 * 60, 7 * 60, 12 * 60, 7 * 60]));
+
+        // Sorted, and the repeat dropped: `DueAt` reads the list as
+        // „everything up to here is done“.
+        Assert.Equal([7 * 60, 12 * 60, 18 * 60], saved.Times);
+
+        // And it survives the round trip through the column.
+        var read = await _nudges.FindAsync(BoardA, Endpoint);
+        Assert.Equal([7 * 60, 12 * 60, 18 * 60], read!.Times);
+    }
+
+    [Fact]
+    public async Task Each_of_the_days_reminders_comes_due_in_its_turn()
+    {
+        // Prague, two hours ahead: 05:00 UTC is 07:00 there.
+        var morning = new DateTimeOffset(2026, 9, 10, 5, 0, 0, TimeSpan.Zero);
+        var subscription = await _nudges.SaveAsync(
+            BoardA, Input(times: [7 * 60, 12 * 60], offset: 120));
+
+        Assert.Equal(7 * 60, Assert.Single(await _nudges.DueAsync(morning)).AtMinutes);
+        await _nudges.MarkSentAsync(subscription, 7 * 60, morning);
+        Assert.Empty(await _nudges.DueAsync(morning));
+
+        var noon = morning.AddHours(5);
+        Assert.Equal(12 * 60, Assert.Single(await _nudges.DueAsync(noon)).AtMinutes);
+        await _nudges.MarkSentAsync(subscription, 12 * 60, noon);
+        Assert.Empty(await _nudges.DueAsync(noon));
+
+        // And tomorrow the list starts again.
+        Assert.Equal(7 * 60, Assert.Single(await _nudges.DueAsync(morning.AddDays(1))).AtMinutes);
+    }
+
+    [Fact]
+    public void More_than_five_reminders_earns_a_sentence()
+    {
+        Assert.Equal(
+            $"Víc než {PushSubscription.MaxTimes} připomenutí denně nejde.",
+            NudgeService.Problem(Input(times: [0, 60, 120, 180, 240, 300])));
+    }
+
+    [Fact]
+    public void A_time_that_is_not_one_earns_a_sentence()
+    {
+        Assert.Equal("Tenhle čas neznám.", NudgeService.Problem(Input(times: [24 * 60])));
+        Assert.Equal("Tenhle čas neznám.", NudgeService.Problem(Input(times: [420, 420])));
+        Assert.Equal("Tenhle čas neznám.", NudgeService.Problem(Input(times: [])));
     }
 
     [Fact]
@@ -136,13 +191,13 @@ public sealed class NudgeServiceTests : IDisposable
     {
         Assert.Equal(
             "Prohlížeč nedal klíče pro upozornění.",
-            NudgeService.Problem(new NudgeInput(Endpoint, null, null, NudgeMode.Daily, 420, 0)));
+            NudgeService.Problem(new NudgeInput(Endpoint, null, null, NudgeMode.Daily, [420], 0)));
     }
 
     [Fact]
     public void A_time_or_a_zone_it_does_not_know_earns_a_sentence()
     {
-        Assert.Equal("Tenhle čas neznám.", NudgeService.Problem(Input(at: 24 * 60)));
+        Assert.Equal("Tenhle čas neznám.", NudgeService.Problem(Input(times: [24 * 60])));
         Assert.Equal("Tohle časové pásmo neznám.", NudgeService.Problem(Input(offset: 15 * 60)));
         Assert.Null(NudgeService.Problem(Input()));
     }
@@ -152,16 +207,16 @@ public sealed class NudgeServiceTests : IDisposable
     [Fact]
     public async Task Opening_the_app_somewhere_else_moves_the_offset_and_nothing_else()
     {
-        await _nudges.SaveAsync(BoardA, Input(mode: NudgeMode.Weekdays, at: 6 * 60, offset: 120));
+        await _nudges.SaveAsync(BoardA, Input(mode: NudgeMode.Weekdays, times: [6 * 60], offset: 120));
 
         Assert.True(await _nudges.UpdateOffsetAsync(BoardA, Endpoint, -180));
 
         var row = await _nudges.FindAsync(BoardA, Endpoint);
         Assert.NotNull(row);
         Assert.Equal(-180, row.UtcOffsetMinutes);
-        // The hour and the mode are the person's; a report of where the phone
-        // is must never overwrite either of them.
-        Assert.Equal(6 * 60, row.AtMinutes);
+        // The hours and the mode are the person's; a report of where the
+        // phone is must never overwrite either of them.
+        Assert.Equal([6 * 60], row.Times);
         Assert.Equal(NudgeMode.Weekdays, row.Mode);
     }
 
