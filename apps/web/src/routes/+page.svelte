@@ -54,7 +54,7 @@
 	} from '$lib/dreams/board';
 	import { deleting } from '$lib/dreams/deleting.svelte';
 	import { formatAnniversary } from '$lib/dreams/format';
-	import { focusDreams, readReel, saveReel, type Reel } from '$lib/dreams/focus';
+	import { REELS, focusDreams, readReel, saveReel, type Reel } from '$lib/dreams/focus';
 	import { CATEGORY_LABEL, FOCUS_MAX } from '$lib/dreams/rules';
 	import { photographDone, replacePhotograph } from '$lib/dreams/upload';
 	import { downscale } from '$lib/images/downscale';
@@ -72,6 +72,7 @@
 	import ReelTile from '$lib/ui/ReelTile.svelte';
 	import TabBar from '$lib/ui/TabBar.svelte';
 	import { pager, type Pager } from '$lib/ui/pager';
+	import { sideways, stepWithin } from '$lib/ui/sideways';
 	import { toast } from '$lib/ui/toast.svelte';
 
 	/** What the server said. A dream deleted a moment ago is still in it (D65). */
@@ -224,6 +225,13 @@
 	/** The reel's scroll region; `pager.ts` drives it. */
 	let region = $state<HTMLElement | null>(null);
 
+	/**
+	 * Teď with nothing on it is a page rather than a reel, and a swipe has to
+	 * carry back out of it or the gesture that got somebody there is a gesture
+	 * that strands them (D71).
+	 */
+	let emptyFocus = $state<HTMLElement | null>(null);
+
 	/** The pager, while the reel is on the screen. */
 	let drive: Pager | null = null;
 
@@ -232,6 +240,29 @@
 
 	/** How tall the floating chrome is, so a tile's badge can clear it. */
 	let band = $state(0);
+
+	/**
+	 * Across the reel to change which reel it is (D71). A gesture the pager
+	 * deliberately ignores — the browser keeps every vertical pan for itself,
+	 * and this takes only what went clearly further across than down — so the
+	 * two never argue over the same swipe. At either end it does nothing,
+	 * because a swipe that wrapped round would go two ways from one gesture.
+	 */
+	$effect(() => {
+		const el = region ?? emptyFocus;
+		if (!el) return;
+
+		const swipes = sideways(el, {
+			onSwipe: (direction) => {
+				const next = stepWithin(REELS, which, direction);
+				if (next === which) return;
+				show(next);
+				navigator.vibrate?.(10);
+			}
+		});
+
+		return () => swipes.destroy();
+	});
 
 	/**
 	 * One dream per gesture, however long the gesture. The browser's own
@@ -556,7 +587,7 @@
 		Vše: the person tapped Teď, so the screen owes them an answer about Teď
 		rather than quietly showing them something else (D53).
 	-->
-	<main class="page">
+	<main class="page" bind:this={emptyFocus}>
 		<div class="seg seg--soft empty__reels" role="group" aria-label="Která nástěnka">
 			<button type="button" class="seg__item" aria-pressed={false} onclick={() => show('all')}
 				>Vše</button

@@ -18,8 +18,15 @@ import type { Dream } from '@aspire/contracts';
 import { reelDreams } from './board';
 import { FOCUS_MAX } from './rules';
 
+/**
+ * The two reels, in the order the segment shows them. A sideways swipe steps
+ * through this list (D71), so the gesture and the pill can never disagree
+ * about which one is next.
+ */
+export const REELS = ['all', 'focus'] as const;
+
 /** Which reel the board is showing. */
-export type Reel = 'all' | 'focus';
+export type Reel = (typeof REELS)[number];
 
 /**
  * The dreams on Teď, in the person's own order.
