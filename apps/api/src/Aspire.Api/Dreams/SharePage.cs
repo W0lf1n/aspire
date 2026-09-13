@@ -50,9 +50,14 @@ public static class SharePage
             head.Append("<meta name=\"twitter:card\" content=\"summary_large_image\">");
         }
 
-        var body = picture is null
-            ? "<main class=\"sky\">"
-            : $"<main style=\"background-image:url('{picture}')\">";
+        // The photograph as a picture rather than as a background, so it keeps
+        // its own proportions instead of being stretched to whatever shape the
+        // window happens to be — and so it can be cropped where the person
+        // cropped it (rule 16).
+        var frame = photo is null
+            ? "<div class=\"frame frame--sky\"></div>"
+            : $"<div class=\"frame\"><img class=\"shot\" src=\"{picture}\" alt=\"\" " +
+              $"style=\"{FocalStyle(photo)}\" decoding=\"async\"></div>";
 
         // `$$` so the CSS keeps its own braces: with two dollars an
         // interpolation is `{{…}}` and a single brace is just a brace.
@@ -66,33 +71,84 @@ public static class SharePage
             {{head}}
             <style>
             *{box-sizing:border-box;margin:0}
-            html,body{height:100%}
-            body{background:#12100e;color:#fff;
+            html{height:100%}
+            body{min-height:100%;display:flex;flex-direction:column;align-items:center;
+            justify-content:center;gap:14px;
+            padding:clamp(16px,4vw,40px) clamp(16px,4vw,40px) calc(clamp(16px,4vw,40px) + env(safe-area-inset-bottom,0px));
+            background:#12100e;color:#fff;
             font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,system-ui,sans-serif;
             -webkit-font-smoothing:antialiased}
-            main{position:relative;display:flex;align-items:flex-end;min-height:100%;
-            padding:clamp(20px,6vw,56px);background-position:center;background-size:cover}
-            main.sky{background-image:linear-gradient(160deg,#2a4d63,#123243)}
-            main::before{content:'';position:absolute;inset:0;
-            background:linear-gradient(to top,rgb(0 0 0/72%) 0%,rgb(0 0 0/34%) 38%,transparent 68%)}
-            .body{position:relative;width:100%;max-width:34rem;margin:0 auto}
-            h1{font-size:clamp(28px,7vw,44px);font-weight:600;line-height:1.12;letter-spacing:-.02em;
-            text-wrap:balance}
-            p{margin-top:.5em;font-size:clamp(15px,3.6vw,19px);line-height:1.45;
-            color:rgb(255 255 255/78%);text-wrap:pretty}
+            /* A phone-shaped card in the middle of whatever window this is,
+               which is what the app itself is on a desktop. */
+            .card{position:relative;width:100%;max-width:25rem;border-radius:20px;overflow:hidden;
+            background:#1b1714;box-shadow:0 24px 64px rgb(0 0 0/55%)}
+            .frame{position:relative;overflow:hidden;aspect-ratio:4/5}
+            .frame--sky{background:linear-gradient(160deg,#e5602a,#d84b7a 48%,#5a4fd6)}
+            .shot{display:block;width:100%;height:100%;object-fit:cover}
+            /* The words at the foot over a scrim, the way a dream reads on the
+               board. Only the bottom: the top of a photograph stays one. */
+            .body{position:absolute;left:0;right:0;bottom:0;padding:22px 20px 20px}
+            .body::before{content:'';position:absolute;inset:-64px 0 0;
+            background:linear-gradient(to top,rgb(0 0 0/78%) 0%,rgb(0 0 0/40%) 46%,transparent 100%);
+            pointer-events:none}
+            h1{position:relative;font-size:clamp(24px,5.6vw,32px);font-weight:600;line-height:1.14;
+            letter-spacing:-.02em;text-wrap:balance}
+            .line{position:relative;margin-top:.4em;font-size:clamp(14px,3.4vw,16px);line-height:1.45;
+            font-weight:500;text-wrap:pretty}
+            /* Whose it is, and no way in: a shared dream opens one dream and
+               the rest of the board is not behind it. */
+            .mark{font-size:13px;font-weight:500;letter-spacing:.06em;color:rgb(255 255 255/42%)}
             </style>
             </head>
             <body>
-            {{body}}
+            <article class="card">
+            {{frame}}
             <div class="body">
             <h1>{{title}}</h1>
-            {{(line.Length > 0 ? $"<p>{line}</p>" : string.Empty)}}
+            {{(line.Length > 0 ? $"<p class=\"line\">{line}</p>" : string.Empty)}}
             </div>
-            </main>
+            </article>
+            <small class="mark">Aspire</small>
             </body>
             </html>
             """;
     }
+
+    /// <summary>
+    /// Where this photograph is looked at, as inline CSS — the server's copy
+    /// of `photoStyle` in `dreams/photos.ts`, because rule 16 says every
+    /// surface that shows a photograph reads the point and the zoom, and this
+    /// page is a surface like any other.
+    ///
+    /// A photograph nobody has moved gets no style at all: the middle and all
+    /// of it is what `object-fit: cover` already does.
+    /// </summary>
+    private static string FocalStyle(DreamImage photo)
+    {
+        var x = Percent(photo.FocusX);
+        var y = Percent(photo.FocusY);
+        var zoom = double.IsFinite(photo.Zoom) ? Math.Max(1, photo.Zoom) : 1;
+
+        var style = new StringBuilder();
+        if (x != 50 || y != 50) style.Append($"object-position:{Number(x)}% {Number(y)}%;");
+        if (zoom != 1)
+        {
+            style.Append($"transform:scale({Number(Round(zoom))});");
+            style.Append($"transform-origin:{Number(x)}% {Number(y)}%;");
+        }
+
+        return style.ToString();
+    }
+
+    private static double Percent(double value) =>
+        Round((double.IsFinite(value) ? Math.Min(1, Math.Max(0, value)) : 0.5) * 100);
+
+    /// <summary>Two decimals is finer than any screen can show and shorter than a float.</summary>
+    private static double Round(double value) => Math.Round(value * 100) / 100;
+
+    /// <summary>A number in CSS, which has never heard of a Czech decimal comma.</summary>
+    private static string Number(double value) =>
+        value.ToString(System.Globalization.CultureInfo.InvariantCulture);
 
     /// <summary>
     /// Somebody's own words, on a page. Every one of these came from a text

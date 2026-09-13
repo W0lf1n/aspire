@@ -40,11 +40,11 @@ public sealed class SharePageTests
 
         Assert.Contains("<title>Dům u lesa</title>", html);
         Assert.Contains("<h1>Dům u lesa</h1>", html);
-        Assert.Contains("<p>Bydlím u lesa</p>", html);
+        Assert.Contains("<p class=\"line\">Bydlím u lesa</p>", html);
         // Absolute, because Open Graph will not resolve a relative one.
         Assert.Contains($"property=\"og:image\" content=\"{Origin}/s/{Key}/card.jpg\"", html);
         Assert.Contains("name=\"twitter:card\" content=\"summary_large_image\"", html);
-        Assert.Contains($"url('{Origin}/media/", html);
+        Assert.Contains($"<img class=\"shot\" src=\"{Origin}/media/", html);
     }
 
     [Fact]
@@ -70,7 +70,7 @@ public sealed class SharePageTests
     {
         var html = SharePage.Render(Dream(), Photo(), Origin);
 
-        Assert.DoesNotContain("<p>", html);
+        Assert.DoesNotContain("<p class=\"line\">", html);
         Assert.DoesNotContain("og:description", html);
     }
 
@@ -79,7 +79,8 @@ public sealed class SharePageTests
     {
         var html = SharePage.Render(Dream(), null, Origin);
 
-        Assert.Contains("<main class=\"sky\">", html);
+        Assert.Contains("<div class=\"frame frame--sky\">", html);
+        Assert.DoesNotContain("<img", html);
         // Nothing to preview, so nothing claimed: a card with a missing
         // picture looks broken where no card at all looks deliberate.
         Assert.DoesNotContain("og:image", html);
