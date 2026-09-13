@@ -127,7 +127,12 @@ async function show(payload: unknown): Promise<void> {
 	await sw.registration.showNotification(nudge.dream ?? nudge.title ?? 'Aspire', {
 		body: nudge.line ?? undefined,
 		icon: '/icon-192.png',
-		badge: '/icon-192.png',
+		// The status bar's mark, which is not a small copy of the icon:
+		// Android takes this image's ALPHA and fills it with the system
+		// accent, so a full-colour PNG with an opaque background — which
+		// `icon-192.png` is — arrives as a plain white square. `badge-96.png`
+		// is the same sun and horizon as a silhouette on nothing (D70).
+		badge: '/badge-96.png',
 		// The photograph itself where the platform shows one; where it does
 		// not, nothing is lost but the picture.
 		image: nudge.image ?? undefined,

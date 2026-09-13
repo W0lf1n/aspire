@@ -612,6 +612,17 @@ a {
 	color: var(--ink);
 }
 
+/**
+ * The chosen one keeps the pill's own ink. Without this the rule above
+ * wins — same specificity, later in the file — and hands the selected segment
+ * `--ink`, which is the colour its `--pill` background already is: near-black
+ * on near-black in the light theme, near-white on near-white in the dark one.
+ * The label was there the whole time and could not be read either way.
+ */
+.seg--glass .seg__item[aria-pressed='true'] {
+	color: var(--pill-ink);
+}
+
 /** A 40 px round glass button on the ground: close, back. */
 .round {
 	display: grid;
