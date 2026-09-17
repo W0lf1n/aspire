@@ -2607,3 +2607,101 @@ drawn at about 1.7× its pixels even from the 2048 file.
   photograph the tile is the `PhotoPicker` it always was.
 - **Offline keeps every cell** at the one rung a cell reads — the 1280 — so
   the prefetch still asks for the file the tile will show (D62).
+
+### D83 — The Seznam narrows to Teď (D48 and D77 extended)
+
+Petr asked to filter the Seznam to the ten on Teď „using some sort of switch“.
+
+- **The board's own words, in the board's own control**: a full-width
+  `.seg--soft` Vše · Teď under the counts, as the board's empty Teď wears it.
+  Teď carries how many are on it, quieter than the word.
+- **Not a fifth count.** Teď is not a state: the four figures add up to
+  celkem, and a dream on Teď is already counted in one of them. A switch also
+  says there are two things to choose between, which is what the board's
+  segment says.
+- **In the list's order, with the list's numbers** (D48). The ten in rank
+  order would read 9, 2, 31, 4; their order is what `/ted` and the reel are
+  for. Like any narrowed list it cannot be reordered (D79).
+- **It stacks** with a count and the search, and „Ukázat všechno“ clears all
+  three. An empty Teď answers about Teď — „Na teď zatím nic nemáš“ and
+  „Vybrat sny“ to `/ted` — rather than „nic takového“.
+- **The three narrowings are a SvelteKit snapshot**, so back from a dream
+  opened off a narrowed list is the same list; the tab bar still opens the
+  whole one. A dream written while the list is narrowed shows the whole list
+  again: it lands on line one, which a narrowed list may not be showing.
+
+### D84 — Up to five photographs in one pick (D82 extended)
+
+D82 made five photographs possible, but the shelf that adds them appeared only
+after the first had been sent, and every way a dream got its first photograph
+took one file. Petr: „it only works since you add one image. I want it to work
+right away.“
+
+- **Every way in takes several**: the empty tile on the dream's screen — the
+  pill reads „Vybrat fotky“ and a hint under it says up to five — Přidat, the
+  reel tile's pill and the shelf's ＋. A pick of one still replaces and still
+  opens the editor; a pick of several opens nothing, because the first is
+  about to be one cell of a collage (D85).
+- **A picker cannot be told a number**, so seven can be chosen. The first
+  ones that fit are kept in the order picked and a toast says so — „Ke snu se
+  vejdou ještě 2 fotky, beru první 2.“ `roomFor` counts rows still being
+  resized, as the server does.
+- **Sent one behind another, waited for once** (`addPhotographs`): the server
+  stands each behind the last, so the first picked is the cover. A refusal
+  halfway does not throw — what was sent is on the dream, and the toast says
+  why the rest are not.
+- **A file that is not a photograph costs only itself** (`downscaleAll`): the
+  rest are sent, and a sentence says one could not be read. One file at a
+  time, because five camera photographs decoded at once is a lot of a phone's
+  memory.
+- Přidat counts what it has sent, so a second tap after a failure sends only
+  the rest. No API change: an upload already appended.
+
+### D85 — A collage is placed as a collage (D54 and D82 extended)
+
+The first photograph was placed on the reel's page with the title on it; the
+second and later ones were placed the same way — alone, filling a whole page,
+which is not the shape of their cell. Petr wanted to see the collage he chose
+while moving each photograph in it.
+
+- **`CollageEditor` is the same page**: the app column, the height of the
+  screen, the scrim, the words where they sit, Zrušit · Na střed · Hotovo —
+  with the chosen template drawn on it and every cell under a finger. The
+  fingers are `ui/placing.ts`, lifted out of `CropEditor` so both move a
+  picture identically, and the page is `.crop` in `app.css`.
+- **Touching a cell takes it in hand** and the drag has already begun; a ring
+  in `--photo-ink` says which one the arrows, a wheel and Na střed move. A
+  second finger on the next cell is still the pinch on the first. Each cell is
+  a button, so a keyboard reaches every one.
+- **The three templates are across the top**, on glass with the segment's
+  lens, because which cells there are is the other half of how the collage
+  looks — and here they are chosen with the photographs in them.
+- **A cell always fills** (D82), so a photograph shown whole is taken in hand
+  as its cell shows it — its point, filling (`cellFocal`) — and saved that way
+  only if it is moved. Its mat is kept for the day it is alone again.
+- **Nothing is sent until Hotovo**: the template if it changed, then one `PUT`
+  per photograph moved. A refusal leaves the editor up with the work in it.
+- „Upravit koláž“ on the tile and „Umístit“ on any photograph of the shelf
+  open it. With one photograph the shelf still opens `CropEditor`.
+- **Found on the way**: the editor's title and pills were under the page's
+  scrim and read dimmed — in `CropEditor` too, since D54. They sit above it
+  now, as a tile's words do.
+
+### D86 — A dream's tile swipes through its photographs
+
+„Next to it I want to be able to have photo carousel … swipe left and then
+right, like on Instagram, to see the images.“
+
+- **On the dream's own screen**, from two photographs up: the collage first,
+  with the words and „Upravit koláž“, then each photograph on its own as it
+  would be shown alone — filling, or whole on its mat. Dots under the tile say
+  where the row is and take a tap.
+- **The browser swipes.** A row scrolled across with `scroll-snap-type: x
+  mandatory` and `scroll-snap-stop: always` — one slide per swipe, momentum
+  and the edge's give native — and `overscroll-behavior-x: contain`, so a
+  swipe past the last photograph is not the browser's back. `ui/carousel.ts`
+  is the arithmetic for the dots, with its test.
+- **Not on the reel.** A swipe across the reel is the other reel (D71), and a
+  collage tile that kept that gesture would take it away on exactly the dreams
+  with the most to show. Putting the carousel there means changing D71, which
+  has not been asked.

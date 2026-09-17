@@ -1,6 +1,6 @@
 # Aspire — Project Plan
 
-Status: M0–M8 done · §3.7 done · §26–§28 done · Owner: Petr · Created: 2026-09-09 · Revised: 2026-09-12
+Status: M0–M8 done · §3.7 done · §26–§30 done · Owner: Petr · Created: 2026-09-09 · Revised: 2026-09-17
 
 Third app in the personal self-improvement trio (Prosper → Planner → **Aspire**, the dreamboard). Building first. Standalone. No integration with the others for now.
 
@@ -1504,3 +1504,27 @@ was added; the entry route is 33.6 kB brotli of 150.
 
 **Took** one session. **Decides** D75–D82; amends D30, D44, D48 and D58, and
 extends D54 and rule 12.
+
+## 30. Four more · 2026-09-17 — done
+
+Four things Petr asked for the same afternoon, one after another. Not a
+milestone, and none of them overturns a decision, so none was asked about.
+
+1. **The Seznam narrows to Teď** (D83): the board's Vše · Teď under the counts,
+   in the list's order and with its numbers, stacking with a count and the
+   search, and kept when he comes back from a dream.
+2. **Five photographs from the first pick** (D84): every way a dream gets a
+   photograph — its empty tile, Přidat, the reel's pill, the shelf's ＋ — takes
+   as many as fit, sent in the order picked.
+3. **A collage is placed as a collage** (D85): the chosen template on the
+   reel's page, every cell under a finger, the three templates over it. The
+   fingers were lifted out of `CropEditor` into `ui/placing.ts`, and the
+   editor's words and pills came out from under its scrim.
+4. **A carousel on the dream's tile** (D86): the collage, then each photograph
+   on its own, swiped across with dots under it. Not on the reel, where a
+   swipe across is the other reel (D71).
+
+No migration, no endpoint and no dependency; the entry route is still 33.6 kB
+brotli of 150.
+
+**Took** one session. **Decides** D83–D86; extends D48, D54, D77 and D82.

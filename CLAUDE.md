@@ -2,7 +2,7 @@
 
 Guidance for Claude Code working in this repository.
 
-**Last revised:** 2026-09-17 · §29 closed, D51–D82 · 423 web tests · 438 API tests
+**Last revised:** 2026-09-17 · §30 closed, D51–D86 · 454 web tests · 438 API tests
 
 ---
 
@@ -82,7 +82,11 @@ says when it was last changed (D77), a sheet is pulled down as Prosper's is
 Začít znovu empties the board behind a typed sentence (D80), a photograph can
 be shown whole on a mat instead of filling its frame (D81), and a dream has
 up to five of them, cut into a collage (D82) — which is §3.1's „1–5 images“,
-finally. Nothing is left in the plan.
+finally. §30 is four more the same afternoon: the Seznam narrows to Teď with
+the board's own Vše · Teď (D83), a dream takes up to five photographs in its
+very first pick (D84), a collage is placed as a collage, every cell under a
+finger on the reel's page (D85), and the dream's tile swipes through its
+photographs (D86). Nothing is left in the plan.
 
 ---
 
@@ -153,7 +157,7 @@ apps/web/src/
 ├─ lib/styles/     tokens.css — the only place a colour exists — and app.css,
 │                  which owns the primitives: page, card, row, circle, badge,
 │                  seg, chip, toggle, facts, stats, well, field, btn, dream,
-│                  swipe — and the five mats a photograph shown whole
+│                  swipe, crop — and the five mats a photograph shown whole
 │                  stands on, `--mat-*`, which are the print's and not a
 │                  third accent (D81).
 ├─ lib/ui/         Hand-rolled components. No component library;
@@ -167,7 +171,11 @@ apps/web/src/
 │                  the tray behind it (D78) and reorder.ts for dragging it
 │                  (D79) — Collage.svelte, PhotoShelf.svelte and
 │                  PhotoLinkSheet.svelte, a dream's five photographs (D82) —
-│                  and ShareSheet.svelte, which two screens open (D78).
+│                  CollageEditor.svelte, where they are placed as one
+│                  picture, with placing.ts, the fingers it shares with
+│                  CropEditor (D85) — PhotoCarousel.svelte and carousel.ts,
+│                  the dream's tile swiped through (D86) — and
+│                  ShareSheet.svelte, which two screens open (D78).
 ├─ lib/api/        client.ts (fetch + bearer), token.ts (localStorage),
 │                  pairing.ts (the flow) and errors.ts (the sentences).
 ├─ lib/dreams/     rules.ts — what a dream may be, and how it reads in a
@@ -189,7 +197,8 @@ apps/web/src/
 │                  templates for two to five photographs (D82) — reset.ts,
 │                  the sentence that empties a board (D80) — upload.ts — the order a
 │                  photograph replaces another in, which two screens do
-│                  (D52) — wallpaper.ts — who can be on a collage and how
+│                  (D52), and the ones that fit when several are picked at
+│                  once (D84) — wallpaper.ts — who can be on a collage and how
 │                  big it is — and format.ts.
 ├─ lib/images/     downscale.ts — the photograph to 2048 px on the device —
 │                  and focal.ts, where a photograph is looked at and how far
@@ -305,7 +314,8 @@ scripts/             check-bundle.mjs, and invite.sh — a board and its code
     without — a circle, a collage's cell, the wallpaper, the shared card —
     reads `photoStyle` and `CropZoom`, which are the point alone for a
     photograph shown whole, because its zoom was chosen against a different
-    scale. A mat is a token's name on the wire, never a colour (rule 1).
+    scale — and the collage editor holds a cell exactly so, `cellFocal`
+    (D85). A mat is a token's name on the wire, never a colour (rule 1).
 17. **A key that is its own permission is made in one place and fenced the
     same way.** `Auth/ShareKey` is those 32 bytes; `/api/v1/w/{key}` is one
     board's collage (D60) and `/s/{key}` is one dream's page (D61), and they

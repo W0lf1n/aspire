@@ -684,6 +684,13 @@ list is narrowed to; ink and surface only, because a count is a fact and
 neither accent has anything to say about it. „Naposledy upraveno“ is a `.hint`
 under it.
 
+**Vše · Teď** (D83) is a full-width `.seg--soft` under that hint — the board's
+two words in the soft segment the board's own empty Teď wears. Teď carries its
+count beside the word at 0.55 of the segment's ink, so the segment still reads
+as two words and the figure follows the chosen pill's colours. Narrowed to Teď
+the list keeps its numbers and shows `n z m` as a search does; an empty Teď is
+a card with an ember „Vybrat sny“ to `/ted`.
+
 **A row is a lid** (D78). `.swipe` clips, `.swipe__face` is the row on an
 opaque `--surface` and slides left over `.swipe__tray`: three 64 px columns,
 icon over an 11 px 600 label — the hearts on `--signal-wash` in `--signal`,
@@ -767,7 +774,9 @@ frame is the reel's own page: the app column at 34 rem, `100dvh`, the
 `--scrim-tall` a tile wears, and the title and line where they will really
 sit. Its picture is the only element in the app with `touch-action: none`.
 Three `.btn--photo` pills sit at the foot — Zrušit · Na střed · Hotovo, the
-last one ember — and the hint rides at the top in `.glass`.
+last one ember — and the hint rides at the top in `.glass`. The page is
+`.crop` in `app.css`, shared with the collage editor, and the words and pills
+sit above its scrim as a tile's words sit above a tile's (D85).
 
 **Vyplnit · Celá** (D81) is a `.seg--glass` under the hint, with the board's
 own lens. Celá shows all of the photograph, contained, and brings out a glass
@@ -800,11 +809,33 @@ the first and a ＋ tile on `--surface-3` while there is room. The chosen thumb
 wears a 2 px ember ring stood off by 2 px of surface, and a row of `.btn--sm`
 follows it: Umístit · Jako první · Smazat. The three templates are 32×44
 diagrams drawn with the collage's own grid, ink-3 cells on `--surface-3`, ink
-and an ember ring on the chosen one.
+and an ember ring on the chosen one. The ＋ takes as many as there is room
+for in one pick (D84), and from two photographs up Umístit opens the collage
+editor with that photograph in hand.
+
+### The collage editor (D85)
+The crop's page with the chosen template drawn on it edge to edge — the
+collage's own 2 px `--mat-night` seams — every cell a button under a finger.
+The cell in hand wears a 2 px inset ring in `--photo-ink`, above the scrim so
+it reads at the foot of the page as well as the top. Under the hint, a glass
+pill of the three templates as 22×40 diagrams — the page's shape, not the
+tile's — in ink-3, the chosen one on `--glass-lens` in ink: the segment's lens
+rather than the accent, because this is over photographs.
+
+### The carousel (D86)
+From two photographs up the dream's tile is a row one slide wide, scrolled
+across and snapped a slide at a time: the collage with the scrim, the title,
+the why and a `.btn--photo` „Upravit koláž“, then each photograph alone with no
+scrim and nothing over it, filling or whole on its mat. Under the tile, dots:
+6 px in ink-3, the one showing stretched to a 14 px bar in ink, each inside a
+20 px button. No arrows and no counter — the dots are the whole interface, and
+it steps back.
 
 ### The photo picker
 The dream's tile with the picture in it, and a wrapping row of `.btn--photo`
-pills under the words: *Vybrat fotku* (a `<label>` over a hidden file input),
+pills under the words: *Vybrat fotku* (a `<label>` over a hidden file input
+— *Vybrat fotky* where a dream has none yet, and a pick of several shows the
+first with a `.dream__tag` badge, „3 fotky“, D84),
 *Umístit* once there is a picture (D54, D81), and *Z odkazu* always (D56). A
 photograph shown whole paints its mat on the tile itself. The
 link opens a `Sheet` (`PhotoLinkSheet`, which the shelf opens too) with one `.field`, a `.hint` saying what the server does
