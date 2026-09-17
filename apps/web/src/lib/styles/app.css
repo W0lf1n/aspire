@@ -41,12 +41,13 @@
 /**
  * App shell: the window itself never scrolls. Every screen is a fixed frame
  * and anything long scrolls inside it, so the tab bar can never drift up the
- * page and a board that swipes owns its own scroll region.
+ * page and a board that swipes owns its own scroll region. A percentage
+ * and not `100dvh`: the frame is pinned to the viewport's edges (`.app`,
+ * D75), and nothing in the chain above it is a length that can go stale.
  */
 html,
 body {
 	height: 100%;
-	height: 100dvh;
 	overflow: hidden;
 	overscroll-behavior: none;
 }

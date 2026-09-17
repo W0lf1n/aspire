@@ -80,20 +80,29 @@
 
 <style>
 	/**
-	 * The frame. A column the height of the *dynamic* viewport: the tab bar is
-	 * `flex: none`, and every screen owns exactly one scroll region inside it.
-	 * On a desktop the app is still a phone-shaped column, and it says so.
+	 * The frame. A column pinned to the four edges of the viewport, and every
+	 * screen owns exactly one scroll region inside it. On a desktop the app is
+	 * still a phone-shaped column, and it says so.
 	 *
-	 * `position: relative` is the containing block the toast and the bar are
-	 * positioned against, which keeps them inside the column on a desktop.
+	 * Pinned rather than `height: 100dvh` (D75). An installed app launched cold
+	 * on Android can be handed a viewport that is still the size of the splash
+	 * — system bars not yet taken out of it — and a `dvh` length worked out
+	 * then is not always worked out again when the real size arrives: the
+	 * frame stayed taller than the screen and the bar hung below its bottom
+	 * edge until a reload. `inset: 0` is the viewport itself rather than a
+	 * length measured from it once, so there is nothing to go stale.
+	 *
+	 * Positioned, so it is still the containing block the toast and the bar
+	 * are placed against, which keeps them inside the column on a desktop; the
+	 * two insets and the auto margins are what centre a column that is
+	 * narrower than the window.
 	 */
 	.app {
-		position: relative;
+		position: fixed;
+		inset: 0;
 		z-index: var(--z-raised);
 		display: flex;
 		flex-direction: column;
-		height: 100vh;
-		height: 100dvh;
 		overflow: hidden;
 		max-width: 34rem;
 		margin-inline: auto;
