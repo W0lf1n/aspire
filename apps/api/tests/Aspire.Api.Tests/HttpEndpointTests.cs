@@ -203,6 +203,26 @@ public sealed class HttpEndpointTests : IAsyncLifetime
     }
 
     [Fact]
+    public async Task Starting_over_takes_the_phrase_as_well_as_the_URL()
+    {
+        await ADreamAsync("První");
+        await ADreamAsync("Druhý");
+
+        var refused = await _client.PostAsync("/api/v1/board/reset", Json("""{"phrase":"ano"}"""));
+        Assert.Equal(HttpStatusCode.BadRequest, refused.StatusCode);
+        var problem = await refused.Content.ReadFromJsonAsync<JsonElement>(Wire);
+        Assert.Equal("Napiš „začínám znovu“. Nic se nesmazalo.", problem.GetProperty("detail").GetString());
+        Assert.Equal(2, (await _client.GetFromJsonAsync<JsonElement>("/api/v1/dreams", Wire)).GetArrayLength());
+
+        // Typed the way a phone types it: a capital, and no carons.
+        var done = await _client.PostAsync("/api/v1/board/reset", Json("""{"phrase":"Zacinam znovu"}"""));
+        Assert.Equal(HttpStatusCode.OK, done.StatusCode);
+        var body = await done.Content.ReadFromJsonAsync<JsonElement>(Wire);
+        Assert.Equal(2, body.GetProperty("dreams").GetInt32());
+        Assert.Equal(0, (await _client.GetFromJsonAsync<JsonElement>("/api/v1/dreams", Wire)).GetArrayLength());
+    }
+
+    [Fact]
     public async Task The_board_says_what_it_holds_against_the_ceiling()
     {
         await ADreamAsync();

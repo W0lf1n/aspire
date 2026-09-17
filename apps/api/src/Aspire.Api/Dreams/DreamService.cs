@@ -104,6 +104,36 @@ public sealed class DreamService(AppDbContext db, MediaStore media)
     }
 
     /// <summary>
+    /// Every dream on the board, and every photograph with them: starting
+    /// over (D80). How many dreams went comes back, for the sentence that says
+    /// so.
+    ///
+    /// The board itself stays, and so does everything that is about the board
+    /// rather than about a dream — its devices, their nudges, its lock-screen
+    /// link. The rows of the photographs and the share links go by cascade and
+    /// by being columns of what is deleted; the files are ours to remove, and
+    /// so is an upload still waiting in the temp directory for the worker.
+    /// </summary>
+    public async Task<int> ResetAsync(string boardId, CancellationToken ct = default)
+    {
+        var rows = await db.Dreams.Where(d => d.BoardId == boardId).ToListAsync(ct);
+        if (rows.Count == 0) return 0;
+
+        var ids = rows.Select(d => d.Id).ToList();
+        var staged = await db.DreamImages
+            .Where(i => ids.Contains(i.DreamId) && i.ProcessedAt == null)
+            .Select(i => i.Id)
+            .ToListAsync(ct);
+
+        db.Dreams.RemoveRange(rows);
+        await db.SaveChangesAsync(ct);
+
+        foreach (var id in ids) media.DeleteDream(id);
+        foreach (var id in staged) File.Delete(Images.ImageService.StagedPath(id));
+        return rows.Count;
+    }
+
+    /// <summary>
     /// This dream to that line of the Seznam, counted from one, and everything
     /// between where it was and where it is now moves over by one (D79).
     ///

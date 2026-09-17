@@ -22,7 +22,8 @@ import type {
 	NudgeSettings,
 	PushKeyResponse,
 	PairRequest,
-	PairResponse
+	PairResponse,
+	ResetResponse
 } from '@aspire/contracts';
 import { connection } from '$lib/offline/status.svelte';
 import { readToken } from './token';
@@ -291,6 +292,14 @@ export function revokeBoardLink(): Promise<void> {
 /** How many photographs the board holds on the server, and what they weigh against the ceiling. */
 export function boardUsage(): Promise<BoardResponse> {
 	return call<BoardResponse>('/board');
+}
+
+/**
+ * Starting over: every dream and photograph on the board (D80). The phrase
+ * goes with it, because the server asks for the sentence as well as the URL.
+ */
+export function resetBoard(phrase: string): Promise<ResetResponse> {
+	return call<ResetResponse>('/board/reset', { method: 'POST', body: JSON.stringify({ phrase }) });
 }
 
 // ── the morning nudge (PLAN.md §3.6) ────────────────────────────

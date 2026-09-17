@@ -9,7 +9,8 @@ import { POLICY_SUMMARY, type OfflinePolicy } from '$lib/offline/policy';
 import type { NudgeMode } from '@aspire/contracts';
 import { THEME_LABEL, type Theme } from './theme';
 
-export type SettingsPage = 'vzhled' | 'upozorneni' | 'tapeta' | 'stahovani' | 'parovani';
+export type SettingsPage =
+	'vzhled' | 'upozorneni' | 'tapeta' | 'stahovani' | 'parovani' | 'zacit-znovu';
 
 export interface SettingsRow {
 	id: SettingsPage;
@@ -66,6 +67,15 @@ export function settingsRows(facts: SettingsFacts): SettingsRow[] {
 			title: 'Párování',
 			sub: facts.paired ? 'spárováno' : 'zatím nespárováno',
 			icon: 'link'
+		},
+		// Last, below the room that would undo it: the one thing in here that
+		// cannot be taken back (D80).
+		{
+			id: 'zacit-znovu',
+			href: '/nastaveni/zacit-znovu',
+			title: 'Začít znovu',
+			sub: facts.paired ? 'smaže všechny sny a fotky' : 'až bude spárováno',
+			icon: 'trash'
 		}
 	];
 }

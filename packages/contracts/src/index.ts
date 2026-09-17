@@ -237,6 +237,22 @@ export interface BoardResponse {
 	bytesLimit: number;
 }
 
+// ── POST /api/v1/board/reset ────────────────────────────────────────────────
+
+/**
+ * Starting over (D80): every dream and every photograph on the board, behind
+ * a phrase typed out. The screen checks the phrase on the keystroke
+ * (`dreams/reset.ts`) and the server checks it again.
+ */
+export interface ResetInput {
+	phrase: string;
+}
+
+/** How many dreams went, for the sentence that says so. */
+export interface ResetResponse {
+	dreams: number;
+}
+
 // ── PUT /api/v1/focus ───────────────────────────────────────────────────────
 
 /**

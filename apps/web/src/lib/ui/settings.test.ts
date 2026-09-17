@@ -36,6 +36,14 @@ describe('settingsRows', () => {
 		expect(sub('all')).toBe('vždy celá nástěnka');
 	});
 
+	it('puts starting over last, and says what it takes (D80)', () => {
+		const rows = settingsRows(facts({ paired: true }));
+
+		expect(rows.at(-1)?.id).toBe('zacit-znovu');
+		expect(rows.at(-1)?.sub).toBe('smaže všechny sny a fotky');
+		expect(settingsRows(facts()).at(-1)?.sub).toBe('až bude spárováno');
+	});
+
 	it('links every row under /nastaveni', () => {
 		for (const row of settingsRows(facts({ theme: 'light', paired: true }))) {
 			expect(row.href.startsWith('/nastaveni/')).toBe(true);

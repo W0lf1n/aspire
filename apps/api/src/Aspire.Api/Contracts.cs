@@ -132,6 +132,15 @@ public sealed record DreamImageDto(
 public sealed record BoardResponse(string Name, int Photographs, long Bytes, long BytesLimit);
 
 /// <summary>
+/// Starting over (D80): the phrase, typed out. The screen checks it on the
+/// keystroke and the server checks it again.
+/// </summary>
+public sealed record ResetInput(string? Phrase);
+
+/// <summary>How many dreams went, for the sentence that says so.</summary>
+public sealed record ResetResponse(int Dreams);
+
+/// <summary>
 /// Teď, in one request: these dreams, in this order, and nothing else on it
 /// (D53). An empty list is a Teď emptied on purpose.
 /// </summary>
