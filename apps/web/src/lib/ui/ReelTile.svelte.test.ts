@@ -42,6 +42,7 @@ function dream(over: Partial<Dream> = {}): Dream {
 		focusRank: null,
 		targetYear: null,
 		layout: 0,
+		photoView: 'collage',
 		likes: 0,
 		achievedAt: null,
 		lastShownAt: null,
@@ -142,10 +143,44 @@ describe('ReelTile', () => {
 		expect(el.querySelector<HTMLElement>('.dream__collage')?.style.gridTemplateRows).toBe(
 			'1fr 1fr 1fr'
 		);
-		// The collage is the picture: no single image, and no blur under one.
-		expect(el.querySelector('.dream__img')).toBeNull();
-		expect(el.querySelector('.dream__under')).toBeNull();
 		expect(el.querySelector('.reel__pick')).toBeNull();
+	});
+
+	it('swipes from the collage to each photograph, every slide the dream’s link (D87)', () => {
+		const el = render({
+			dream: dream({ id: 'house', images: [image('i1', true), image('i2', true)] })
+		});
+
+		const slides = [...el.querySelectorAll('[data-slides] > .reel__slide')];
+		expect(slides).toHaveLength(3);
+		expect(slides[0].querySelector('.dream__collage')).not.toBeNull();
+		expect(
+			slides.slice(1).map((slide) => slide.querySelector('.dream__img')?.getAttribute('src'))
+		).toEqual(['/media/d/i1/screen.webp', '/media/d/i2/screen.webp']);
+		expect(slides.every((slide) => slide.getAttribute('href')?.includes('house'))).toBe(true);
+		// One link announced, not three; and the dots count the slides.
+		expect(el.querySelectorAll('[aria-hidden="true"].reel__slide')).toHaveLength(2);
+		expect(el.querySelector('.reel__open')).toBeNull();
+		expect(el.querySelectorAll('.reel__dot')).toHaveLength(3);
+		expect(el.querySelector('.reel__dot--on')).toBe(el.querySelector('.reel__dot'));
+	});
+
+	it('leaves the collage out of a carousel', () => {
+		const el = render({
+			dream: dream({ photoView: 'carousel', images: [image('i1', true), image('i2', true)] })
+		});
+
+		expect(el.querySelector('.dream__collage')).toBeNull();
+		expect(el.querySelectorAll('.reel__slide')).toHaveLength(2);
+	});
+
+	it('shows a photograph whole on its mat inside its cell (D88)', () => {
+		const whole: DreamImage = { ...image('i2', true), fit: 'whole', mat: 'dusk' };
+		const el = render({ dream: dream({ images: [image('i1', true), whole] }) });
+
+		const cell = el.querySelectorAll<HTMLElement>('.dream__cell')[1];
+		expect(cell.getAttribute('style')).toContain('--mat-dusk');
+		expect(cell.querySelector<HTMLElement>('img')?.style.objectFit).toBe('contain');
 	});
 
 	it('shows one photograph as the photograph while a second is still being made', () => {

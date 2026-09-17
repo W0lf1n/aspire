@@ -22,7 +22,18 @@
  *
  * The arithmetic is a pure function with a test, as the pager's is: node has
  * no finger, but it does have triangles.
+ *
+ * **A dream's own photographs come first** (D87). A tile with several is a
+ * row the browser scrolls across (`carousel.ts`), and the browser moves it on
+ * the same swipe this sees. So when the finger lands, the row under it is
+ * asked how far it can still go; if it could go the way the swipe went, the
+ * swipe was the photographs' and the reel stays. Past the last photograph —
+ * or back past the first — the row cannot, and the same swipe is the other
+ * reel, as it is on a tile with one photograph. The arrow keys ask the row on
+ * the screen the same question, and step it when it can.
  */
+
+import { canGo, roomAcross, stepOffset, type Room } from './carousel';
 
 /**
  * How far across a finger must travel before it is a swipe, in pixels.
@@ -74,6 +85,16 @@ export function stepWithin<T>(list: readonly T[], current: T, step: number): T {
 export interface Swept {
 	/** A sideways swipe happened: −1 back, +1 on. */
 	onSwipe: (direction: -1 | 1) => void;
+	/**
+	 * The row of a dream's photographs a gesture began on — or, for an arrow
+	 * key, the one on the screen — if there is one (D87).
+	 */
+	slides?: (from: EventTarget | null) => HTMLElement | null;
+}
+
+/** How far a row can still go, as it stands now. */
+function roomOf(row: HTMLElement | null | undefined): Room | null {
+	return row ? roomAcross(row.scrollLeft, row.scrollWidth, row.clientWidth) : null;
 }
 
 export interface Sideways {
@@ -90,6 +111,8 @@ export function sideways(el: HTMLElement, swept: Swept): Sideways {
 	let fromY = 0;
 	/** A single finger that has not been joined by a second. */
 	let tracking = false;
+	/** How far the photographs under that finger could still go when it landed. */
+	let room: Room | null = null;
 
 	const onTouchStart = (event: TouchEvent) => {
 		// One finger only: a second is a pinch, and a pinch that ends wide is
@@ -102,6 +125,7 @@ export function sideways(el: HTMLElement, swept: Swept): Sideways {
 		tracking = true;
 		fromX = event.touches[0].clientX;
 		fromY = event.touches[0].clientY;
+		room = roomOf(swept.slides?.(event.target));
 	};
 
 	const onTouchMove = (event: TouchEvent) => {
@@ -116,7 +140,10 @@ export function sideways(el: HTMLElement, swept: Swept): Sideways {
 		if (!gone) return;
 
 		const direction = swipeOf(gone.clientX - fromX, gone.clientY - fromY);
-		if (direction !== 0) swept.onSwipe(direction);
+		if (direction === 0) return;
+		// The browser has already moved the photographs on this swipe.
+		if (canGo(room, direction)) return;
+		swept.onSwipe(direction);
 	};
 
 	const onKey = (event: KeyboardEvent) => {
@@ -127,11 +154,20 @@ export function sideways(el: HTMLElement, swept: Swept): Sideways {
 		const on = document.activeElement;
 		if (on instanceof HTMLInputElement || on instanceof HTMLTextAreaElement) return;
 
-		if (event.key === 'ArrowRight') swept.onSwipe(1);
-		else if (event.key === 'ArrowLeft') swept.onSwipe(-1);
-		else return;
-
+		const direction = event.key === 'ArrowRight' ? 1 : event.key === 'ArrowLeft' ? -1 : 0;
+		if (direction === 0) return;
 		event.preventDefault();
+
+		const row = swept.slides?.(null);
+		if (row && canGo(roomOf(row), direction)) {
+			const reduced = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+			row.scrollTo({
+				left: stepOffset(row.scrollLeft, row.clientWidth, row.scrollWidth, direction),
+				behavior: reduced ? 'auto' : 'smooth'
+			});
+			return;
+		}
+		swept.onSwipe(direction);
 	};
 
 	el.addEventListener('touchstart', onTouchStart, { passive: true });

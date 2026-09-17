@@ -30,7 +30,9 @@
 	 * carousel — the collage, then each photograph on its own (D86) — and
 	 * „Upravit koláž“ on it, or „Umístit“ on any photograph of the shelf,
 	 * opens the collage on the reel's page with every cell under a finger and
-	 * the three templates over it (D85).
+	 * the three templates over it (D85). Or the dream is a carousel — the
+	 * photographs alone, chosen on the shelf (D87) — and then there is no
+	 * collage to place: each photograph is a whole page, placed as one.
 	 *
 	 * And this is where a dream is shared: „Sdílet“ opens a sheet with a link
 	 * that is its own key (D61), for somebody who has no app and never will.
@@ -38,7 +40,7 @@
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
-	import type { Dream, DreamImage, DreamImageKind } from '@aspire/contracts';
+	import type { Dream, DreamImage, DreamImageKind, PhotoView } from '@aspire/contracts';
 	import {
 		addToFocus,
 		deleteImage,
@@ -49,6 +51,7 @@
 		orderImages,
 		removeFromFocus,
 		saveLayout,
+		saveView,
 		uploadImage
 	} from '$lib/api/client';
 	import { describeError } from '$lib/api/errors';
@@ -57,6 +60,7 @@
 	import { changedAt } from '$lib/dreams/stats';
 	import { formatDate, formatWhen } from '$lib/dreams/format';
 	import { PHOTOS_MAX, templateFor } from '$lib/dreams/collage';
+	import { slidesOf, viewOf } from '$lib/dreams/slides';
 	import { dreamtCount, dreamtPhotos, photoOf, photosOf, reelUrl } from '$lib/dreams/photos';
 	import { focalOf as cropOf, toInput, type Focal } from '$lib/images/focal';
 	import {
@@ -115,6 +119,10 @@
 	/** The dreamt photographs as the tile shows them, and the template that cuts them (D82). */
 	const cells = $derived(dream ? dreamtPhotos(dream) : []);
 	const template = $derived(templateFor(cells.length, dream?.layout));
+
+	/** What the tile swipes through, and whether it starts with the collage (D87). */
+	const slides = $derived(dream ? slidesOf(dream) : []);
+	const view = $derived(dream ? viewOf(dream) : 'collage');
 
 	/** A write of the shelf's is in flight: a template, an order, a photograph going. */
 	let shelving = $state(false);
@@ -316,6 +324,14 @@
 		}, 'Fotka je pryč');
 	}
 
+	function chooseView(chosen: PhotoView) {
+		if (view === chosen) return;
+		void shelve(
+			(id) => saveView(id, chosen),
+			chosen === 'carousel' ? 'Fotky se listují jedna po druhé' : 'Fotky jsou zase koláž'
+		);
+	}
+
 	function chooseLayout(layout: number) {
 		if (dream?.layout === layout) return;
 		void shelve((id) => saveLayout(id, layout), 'Koláž je přeskládaná');
@@ -383,20 +399,21 @@
 	<AppBar title="Sen" back="/" />
 
 	{#if dream}
-		{#if template}
+		{#if slides.length > 0}
 			<!--
 				Two photographs or more: the collage the reel shows, on the same
-				4:5 print, and each photograph after it a swipe away (D86). No
-				„vyměnit“ on it — with five photographs it does not say which,
-				and the shelf under it does — but the collage itself is placed
-				from here, as one photograph is placed from its own tile (D85).
+				4:5 print, and each photograph after it a swipe away (D86) — or
+				the photographs alone (D87). No „vyměnit“ on it — with five
+				photographs it does not say which, and the shelf under it does —
+				but a collage is placed from here, as one photograph is placed
+				from its own tile (D85).
 			-->
-			<PhotoCarousel photos={cells} {template}>
+			<PhotoCarousel {slides}>
 				<h2 class="dream__title dream__title--sm">{dream.title}</h2>
 				{#if dream.why}
 					<p class="dream__why">{dream.why}</p>
 				{/if}
-				{#if connection.online}
+				{#if connection.online && view === 'collage'}
 					<button
 						type="button"
 						class="btn btn--photo"
@@ -410,7 +427,7 @@
 			</PhotoCarousel>
 
 			<CollageEditor
-				open={arranging}
+				open={arranging && template !== null}
 				photos={cells}
 				layout={dream.layout ?? 0}
 				start={arrangeFrom}
@@ -450,6 +467,7 @@
 				onlead={leadPhoto}
 				onremove={removePhoto}
 				onlayout={chooseLayout}
+				onview={chooseView}
 				onproblem={(sentence) => toast.show(sentence)}
 			/>
 		{/if}

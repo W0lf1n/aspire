@@ -14,13 +14,22 @@
 	 * dream. The styles for all of it are here rather than on the board,
 	 * because a scoped rule that stays behind when its markup moves is a rule
 	 * that silently stops matching.
+	 *
+	 * **Two photographs or more are a row swiped across** (D87): the collage
+	 * and then each photograph, or the photographs alone, as the dream says
+	 * (`dreams/slides.ts`). The row is the browser's own sideways scroller,
+	 * inside the page and no taller than it, so rule 14 holds; every slide is
+	 * the link, and the words, the heart and the dots stay where they are while
+	 * the photographs pass under them. Past the last photograph the same swipe
+	 * is the other reel — `sideways.ts` asks the row, which is why it wears
+	 * `data-slides`.
 	 */
 	import { resolve } from '$app/paths';
 	import type { Dream } from '@aspire/contracts';
+	import type { DreamImage } from '@aspire/contracts';
 	import {
 		matIsBlur,
 		matStyle,
-		dreamtPhotos,
 		photoComing,
 		photoOf,
 		photoStyle,
@@ -28,11 +37,12 @@
 		tileStyle
 	} from '$lib/dreams/photos';
 	import { tileLine } from '$lib/dreams/board';
-	import { templateFor } from '$lib/dreams/collage';
 	import { CATEGORY_LABEL, STATUS_BADGE } from '$lib/dreams/rules';
+	import { slideKey, slidesOf } from '$lib/dreams/slides';
 	import { writes } from '$lib/offline/writes.svelte';
 	import Collage from '$lib/ui/Collage.svelte';
 	import Icon from '$lib/ui/Icon.svelte';
+	import { slideAt } from './carousel';
 
 	interface Props {
 		dream: Dream;
@@ -63,16 +73,32 @@
 	const photo = $derived(photoOf(dream, 'dreamt'));
 
 	/**
-	 * Two photographs or more are a collage, cut by the dream's template
-	 * (D82); one is the photograph, exactly as it was. The cover is still
-	 * `photo` either way — it is what says the tile has a picture at all.
+	 * Two photographs or more are slides — the collage and each photograph,
+	 * or the photographs alone (D87); one is the photograph, exactly as it
+	 * was. The cover is still `photo` either way — it is what says the tile
+	 * has a picture at all.
 	 */
-	const cells = $derived(dreamtPhotos(dream));
-	const template = $derived(templateFor(cells.length, dream.layout));
+	const slides = $derived(slidesOf(dream));
 	const line = $derived(tileLine(dream));
+
+	/** Which slide is showing, for the dots. */
+	let row: HTMLElement | null = $state(null);
+	let showing = $state(0);
+
+	function scrolled() {
+		if (row) showing = slideAt(row.scrollLeft, row.clientWidth, slides.length);
+	}
+
+	// A photograph taken away while the last slide was showing.
+	$effect(() => {
+		if (showing > Math.max(0, slides.length - 1)) showing = Math.max(0, slides.length - 1);
+	});
 
 	/** This tile is the one having its photograph taken. */
 	const busy = $derived(preview !== null);
+
+	/** The row is up, rather than the one picture or the file being saved. */
+	const sliding = $derived(slides.length > 0 && !busy);
 
 	/**
 	 * A photograph uploaded and not yet resized. The tile paints the sky for
@@ -93,13 +119,63 @@
 	 * its pixels (D63) — and it would show through the mat around a picture
 	 * that does not cover it, so on a colour it is left out.
 	 */
-	const mat = $derived(busy || template ? '' : matStyle(photo));
-	const under = $derived(photo !== null && (photo.fit !== 'whole' || matIsBlur(photo)));
+	const mat = $derived(busy || sliding ? '' : matStyle(photo));
+	const under = $derived(photo !== null && underFor(photo));
+
+	function underFor(image: DreamImage): boolean {
+		return image.fit !== 'whole' || matIsBlur(image);
+	}
 </script>
 
-<article class="dream reel__tile" class:dream--sky={!src} style={mat}>
-	{#if template && !busy}
-		<Collage photos={cells} {template} {loading} />
+<article class="dream reel__tile" class:dream--sky={!src && !sliding} style={mat}>
+	{#if sliding}
+		<div class="reel__slides" data-slides bind:this={row} onscroll={scrolled}>
+			{#each slides as slide, index (slideKey(slide))}
+				<!--
+					Every slide is the dream's link, so a tap anywhere on the row
+					opens it and a swipe across it is the browser's. Only the
+					first is announced: the rest are the same link again.
+				-->
+				<a
+					class="reel__slide"
+					href={resolve('/sen/[id]', { id: dream.id })}
+					draggable="false"
+					style={slide.kind === 'photo' ? matStyle(slide.photo) : ''}
+					tabindex={index === 0 ? undefined : -1}
+					aria-hidden={index === 0 ? undefined : 'true'}
+					aria-label={index === 0 ? dream.title : undefined}
+				>
+					{#if slide.kind === 'collage'}
+						<Collage
+							photos={slide.photos}
+							template={slide.template}
+							loading={index === 0 ? loading : 'lazy'}
+						/>
+					{:else}
+						{#if underFor(slide.photo)}
+							<img
+								class="dream__under"
+								src={slide.photo.thumbUrl}
+								alt=""
+								aria-hidden="true"
+								style={photoStyle(slide.photo)}
+								loading={index === 0 ? loading : 'lazy'}
+								decoding="async"
+							/>
+						{/if}
+						<img
+							class="dream__img"
+							src={reelUrl(slide.photo)}
+							alt=""
+							style={tileStyle(slide.photo)}
+							draggable="false"
+							loading={index === 0 ? loading : 'lazy'}
+							decoding="async"
+						/>
+					{/if}
+				</a>
+			{/each}
+		</div>
 	{:else if src}
 		{#if photo && under && !busy}
 			<!-- The thumb, blurred, under the picture: the shape of the
@@ -128,8 +204,19 @@
 	<span class="badge dream__tag">
 		{STATUS_BADGE[dream.status]}{dream.category ? ` · ${CATEGORY_LABEL[dream.category]}` : ''}
 	</span>
-	<a class="reel__open" href={resolve('/sen/[id]', { id: dream.id })} aria-label={dream.title}></a>
+	{#if !sliding}
+		<a class="reel__open" href={resolve('/sen/[id]', { id: dream.id })} aria-label={dream.title}
+		></a>
+	{/if}
 	<div class="dream__body reel__body">
+		{#if sliding}
+			<!-- Where in the row the tile is: over the photograph, in its ink. -->
+			<div class="reel__dots" aria-hidden="true">
+				{#each slides as slide, index (slideKey(slide))}
+					<span class="reel__dot" class:reel__dot--on={index === showing}></span>
+				{/each}
+			</div>
+		{/if}
 		<h2 class="dream__title">{dream.title}</h2>
 		{#if line.text}
 			<p class="dream__why" class:dream__say={line.said}>{line.text}</p>
@@ -228,6 +315,59 @@
 		position: absolute;
 		inset: 0;
 		z-index: 1;
+	}
+
+	/* The row: the page's own size, scrolled across and snapped a slide at a
+	   time. Under the scrim, which lets a tap through, so the words still read
+	   over every photograph. `contain`, so a swipe past the last photograph is
+	   not the browser's back — it is the other reel, which `sideways.ts` says. */
+	.reel__slides {
+		position: absolute;
+		inset: 0;
+		display: flex;
+		overflow-x: auto;
+		overflow-y: hidden;
+		overscroll-behavior-x: contain;
+		scroll-snap-type: x mandatory;
+		scrollbar-width: none;
+		touch-action: pan-x pan-y pinch-zoom;
+	}
+
+	.reel__slides::-webkit-scrollbar {
+		display: none;
+	}
+
+	.reel__slide {
+		position: relative;
+		flex: 0 0 100%;
+		overflow: hidden;
+		scroll-snap-align: start;
+		scroll-snap-stop: always;
+		-webkit-user-drag: none;
+	}
+
+	/* The dots: the photograph's ink, the one showing at full strength and
+	   stretched — no accent over a photograph (rule 4). */
+	.reel__dots {
+		display: flex;
+		gap: 6px;
+		margin-bottom: var(--space-1);
+	}
+
+	.reel__dot {
+		width: 6px;
+		height: 6px;
+		border-radius: var(--radius-full);
+		background: var(--photo-ink);
+		opacity: 0.45;
+		transition:
+			width var(--dur-fast) var(--ease-out),
+			opacity var(--dur-fast) var(--ease-out);
+	}
+
+	.reel__dot--on {
+		width: 14px;
+		opacity: 1;
 	}
 
 	/* The words let the tap through to the link; only the controls take it.

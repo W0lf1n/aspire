@@ -2,7 +2,8 @@
 	/**
 	 * A dream's tile once it has two photographs or more (D86): the collage
 	 * first, as the reel shows it, and then each photograph on its own, swiped
-	 * across the way a post in a feed is.
+	 * across the way a post in a feed is — or the photographs alone, when the
+	 * dream is a carousel (D87). `dreams/slides.ts` says which.
 	 *
 	 * A collage is five photographs a third of their size, and the dream's own
 	 * screen is where there is time to look at one properly. So the tile is a
@@ -10,36 +11,33 @@
 	 * gesture of ours to get wrong, momentum and the edge's give included —
 	 * and the dots under it say where in the row it is and take a tap.
 	 *
-	 * Only here. On the reel a swipe across already means the other reel
-	 * (D71), and a tile that kept it for its photographs would take that
-	 * gesture away on exactly the dreams that have the most to show.
+	 * The reel has the same row (`ReelTile`), where past the last photograph a
+	 * swipe is the other reel (D87); here there is no other reel, and the row
+	 * simply stops.
 	 *
 	 * The first slide carries the words and whatever the screen puts beside
 	 * them; the photographs after it carry nothing, and wear what the
 	 * photograph would wear on its own — filling, or whole on its mat (D81).
 	 */
 	import type { Snippet } from 'svelte';
-	import type { DreamImage } from '@aspire/contracts';
-	import type { Template } from '$lib/dreams/collage';
 	import { matIsBlur, matStyle, photoStyle, reelUrl, tileStyle } from '$lib/dreams/photos';
+	import { slideKey, type Slide } from '$lib/dreams/slides';
 	import Collage from './Collage.svelte';
 	import { offsetOf, slideAt } from './carousel';
 
 	interface Props {
-		/** The ready dreamt photographs, in order; the first is the lead. */
-		photos: DreamImage[];
-		template: Template;
-		/** What the first slide says over the collage. */
+		/** What is swiped through, in order (`slidesOf`). */
+		slides: Slide[];
+		/** What the first slide says over its picture. */
 		children: Snippet;
 	}
 
-	let { photos, template, children }: Props = $props();
+	let { slides, children }: Props = $props();
 
 	let track: HTMLElement | null = $state(null);
 	let showing = $state(0);
 
-	/** The collage, and every photograph after it. */
-	const count = $derived(photos.length + 1);
+	const count = $derived(slides.length);
 
 	function scrolled() {
 		if (track) showing = slideAt(track.scrollLeft, track.clientWidth, count);
@@ -73,42 +71,41 @@
 			aria-roledescription="galerie"
 			aria-label="Fotky snu"
 		>
-			<div
-				class="gallery__slide gallery__slide--lead"
-				role="group"
-				aria-label={`Koláž, 1 z ${count}`}
-			>
-				<Collage {photos} {template} loading="eager" />
-				<div class="dream__body">
-					{@render children()}
-				</div>
-			</div>
-
-			{#each photos as photo, index (photo.id)}
+			{#each slides as slide, index (slideKey(slide))}
 				<div
 					class="gallery__slide"
+					class:gallery__slide--lead={index === 0}
 					role="group"
-					aria-label={`Fotka ${index + 1}, ${index + 2} z ${count}`}
-					style={matStyle(photo)}
+					aria-label={`${slide.kind === 'collage' ? 'Koláž' : 'Fotka'}, ${index + 1} z ${count}`}
+					style={slide.kind === 'photo' ? matStyle(slide.photo) : ''}
 				>
-					{#if matIsBlur(photo)}
+					{#if slide.kind === 'collage'}
+						<Collage photos={slide.photos} template={slide.template} loading="eager" />
+					{:else}
+						{#if matIsBlur(slide.photo)}
+							<img
+								class="dream__under"
+								src={slide.photo.thumbUrl}
+								alt=""
+								aria-hidden="true"
+								style={photoStyle(slide.photo)}
+								loading="lazy"
+							/>
+						{/if}
 						<img
-							class="dream__under"
-							src={photo.thumbUrl}
+							class="dream__img"
+							src={reelUrl(slide.photo)}
 							alt=""
-							aria-hidden="true"
-							style={photoStyle(photo)}
-							loading="lazy"
+							style={tileStyle(slide.photo)}
+							loading={index === 0 ? 'eager' : 'lazy'}
+							decoding="async"
 						/>
 					{/if}
-					<img
-						class="dream__img"
-						src={reelUrl(photo)}
-						alt=""
-						style={tileStyle(photo)}
-						loading="lazy"
-						decoding="async"
-					/>
+					{#if index === 0}
+						<div class="dream__body">
+							{@render children()}
+						</div>
+					{/if}
 				</div>
 			{/each}
 		</div>
@@ -120,7 +117,7 @@
 				type="button"
 				class="gallery__dot"
 				aria-current={showing === slide ? 'true' : undefined}
-				aria-label={slide === 0 ? 'Koláž' : `Fotka ${slide}`}
+				aria-label={`Snímek ${slide + 1}`}
 				onclick={() => go(slide)}
 			></button>
 		{/each}

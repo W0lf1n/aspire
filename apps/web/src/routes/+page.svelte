@@ -247,6 +247,11 @@
 	 * and this takes only what went clearly further across than down — so the
 	 * two never argue over the same swipe. At either end it does nothing,
 	 * because a swipe that wrapped round would go two ways from one gesture.
+	 *
+	 * A dream with several photographs has them first (D87): while its row can
+	 * still move the way the swipe went, the swipe was the row's, and only past
+	 * its last photograph — or back past its first — is it the other reel. The
+	 * arrow keys ask the row on the screen.
 	 */
 	$effect(() => {
 		const el = region ?? emptyFocus;
@@ -258,6 +263,11 @@
 				if (next === which) return;
 				show(next);
 				navigator.vibrate?.(10);
+			},
+			slides: (from) => {
+				if (from instanceof Element) return from.closest<HTMLElement>('[data-slides]');
+				const tile = region?.querySelectorAll<HTMLElement>('.reel__tile')[at];
+				return tile?.querySelector<HTMLElement>('[data-slides]') ?? null;
 			}
 		});
 

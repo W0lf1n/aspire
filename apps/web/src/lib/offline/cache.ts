@@ -26,6 +26,7 @@ import {
 	thisScreen,
 	type Screen
 } from '$lib/dreams/photos';
+import { viewOf } from '$lib/dreams/slides';
 
 /** The service worker's names for them; deleting both is forgetting the board. */
 export const MEDIA_CACHE = 'aspire-media';
@@ -55,9 +56,18 @@ export function tileUrls(dreams: Dream[], screen: Screen = thisScreen()): string
 		const { dreamt, achieved } = photosOf(dream);
 		const cells = dreamtPhotos(dream);
 		if (cells.length > 1) {
-			// A collage: the cover's thumb, which the Seznam's circle shows, and
-			// every cell at the one rung a cell reads (D82).
-			urls.push(cells[0].thumbUrl, ...cells.map(cellUrl));
+			// Slides (D87): every photograph's thumb — the cover's is the
+			// Seznam's circle, and each goes under its own slide — then the
+			// collage's cells at the one rung a cell reads (D82), if it is one,
+			// then each photograph at the rung this screen reads, as a tile
+			// with one photograph keeps it. A rung that is also a cell's is
+			// asked for once.
+			const wanted = [
+				...cells.map((cell) => cell.thumbUrl),
+				...(viewOf(dream) === 'collage' ? cells.map(cellUrl) : []),
+				...cells.map((cell) => reelUrl(cell, screen)!)
+			];
+			urls.push(...wanted.filter((url, at) => wanted.indexOf(url) === at));
 		} else if (dreamt) {
 			urls.push(dreamt.thumbUrl, reelUrl(dreamt, screen)!);
 		}
