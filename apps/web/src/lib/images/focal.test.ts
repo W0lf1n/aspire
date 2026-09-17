@@ -3,11 +3,13 @@ import {
 	CENTRED,
 	MAX_ZOOM,
 	MIN_ZOOM,
+	cellFocal,
 	dragged,
 	fitted,
 	isCentred,
 	overflow,
 	room,
+	samePlace,
 	sane,
 	spread,
 	startsWhole,
@@ -179,5 +181,42 @@ describe('startsWhole', () => {
 	it('leaves a square, and a picture with no size, filling', () => {
 		expect(startsWhole({ width: 1000, height: 1000 })).toBe(false);
 		expect(startsWhole({ width: 0, height: 0 })).toBe(false);
+	});
+});
+
+describe('cellFocal (D85)', () => {
+	const saved = { focusX: 0.2, focusY: 0.7, zoom: 1.6, mat: 'dusk' as const };
+
+	it('is the crop as saved for a photograph that fills', () => {
+		expect(cellFocal({ ...saved, fit: 'fill' })).toEqual({
+			x: 0.2,
+			y: 0.7,
+			zoom: 1.6,
+			fit: 'fill',
+			mat: 'dusk'
+		});
+	});
+
+	it('is the point alone, filling, for a photograph shown whole — as the cell shows it', () => {
+		expect(cellFocal({ ...saved, fit: 'whole' })).toEqual({
+			x: 0.2,
+			y: 0.7,
+			zoom: MIN_ZOOM,
+			fit: 'fill',
+			mat: 'dusk'
+		});
+	});
+
+	it('is the middle for no photograph', () => {
+		expect(cellFocal(null)).toEqual(CENTRED);
+	});
+});
+
+describe('samePlace', () => {
+	it('compares where the picture is, and not what it stands on', () => {
+		expect(samePlace(CENTRED, { ...CENTRED, mat: 'ember' })).toBe(true);
+		expect(samePlace(CENTRED, { ...CENTRED, x: 0.4 })).toBe(false);
+		expect(samePlace(CENTRED, { ...CENTRED, zoom: 1.2 })).toBe(false);
+		expect(samePlace(CENTRED, { ...CENTRED, fit: 'whole' })).toBe(false);
 	});
 });

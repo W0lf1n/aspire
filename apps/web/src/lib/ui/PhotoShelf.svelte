@@ -38,6 +38,11 @@
 		onadd: (photos: Blob[], focal: Focal) => void;
 		/** Where one is looked at, after the editor. */
 		onplace: (image: DreamImage, focal: Focal) => void;
+		/**
+		 * Placing one of a collage: the screen opens the collage with this
+		 * photograph in hand (D85), because a cell is placed for its cell.
+		 */
+		onarrange: (image: DreamImage) => void;
 		/** This one first: the cover, and the big cell. */
 		onlead: (image: DreamImage) => void;
 		onremove: (image: DreamImage) => void;
@@ -52,6 +57,7 @@
 		busy = false,
 		onadd,
 		onplace,
+		onarrange,
 		onlead,
 		onremove,
 		onlayout,
@@ -164,7 +170,7 @@
 			<button
 				type="button"
 				class="btn btn--sm"
-				onclick={() => (placing = true)}
+				onclick={() => (photos.length > 1 ? onarrange(chosen) : (placing = true))}
 				use:writes={() => resting}
 			>
 				<Icon name="image" size={16} stroke={1.8} />

@@ -26,6 +26,12 @@
 	 * many as one pick chooses, so the collage is there on the first pick
 	 * rather than after a photograph and then the shelf.
 	 *
+	 * **The collage is swiped across and placed as a collage.** The tile is a
+	 * carousel — the collage, then each photograph on its own (D86) — and
+	 * „Upravit koláž“ on it, or „Umístit“ on any photograph of the shelf,
+	 * opens the collage on the reel's page with every cell under a finger and
+	 * the three templates over it (D85).
+	 *
 	 * And this is where a dream is shared: „Sdílet“ opens a sheet with a link
 	 * that is its own key (D61), for somebody who has no app and never will.
 	 */
@@ -61,8 +67,9 @@
 	} from '$lib/dreams/upload';
 	import { CATEGORY_LABEL, STATUS_BADGE, STATUS_CLASS } from '$lib/dreams/rules';
 	import AppBar from '$lib/ui/AppBar.svelte';
-	import Collage from '$lib/ui/Collage.svelte';
+	import CollageEditor from '$lib/ui/CollageEditor.svelte';
 	import Icon from '$lib/ui/Icon.svelte';
+	import PhotoCarousel from '$lib/ui/PhotoCarousel.svelte';
 	import PhotoPicker from '$lib/ui/PhotoPicker.svelte';
 	import PhotoShelf from '$lib/ui/PhotoShelf.svelte';
 	import ShareSheet from '$lib/ui/ShareSheet.svelte';
@@ -111,6 +118,10 @@
 
 	/** A write of the shelf's is in flight: a template, an order, a photograph going. */
 	let shelving = $state(false);
+
+	/** Whether the collage editor is up, and which photograph it opened with in hand (D85). */
+	let arranging = $state(false);
+	let arrangeFrom = $state<string | null>(null);
 
 	$effect(() => {
 		const id = page.params.id ?? '';
@@ -310,6 +321,42 @@
 		void shelve((id) => saveLayout(id, layout), 'Koláž je přeskládaná');
 	}
 
+	function arrange(image: DreamImage | null) {
+		arrangeFrom = image?.id ?? null;
+		arranging = true;
+	}
+
+	/**
+	 * What the collage editor chose (D85): the template if it changed, then
+	 * every photograph that was moved, one small request each. The editor
+	 * stays up until they have all gone, so a refusal leaves the collage as
+	 * it was being made rather than as it was before.
+	 */
+	async function arranged(layout: number, moved: { image: DreamImage; focal: Focal }[]) {
+		if (!dream || shelving) return;
+		if (layout === (dream.layout ?? 0) && moved.length === 0) {
+			arranging = false;
+			return;
+		}
+
+		shelving = true;
+		try {
+			let next = dream;
+			if (layout !== (next.layout ?? 0)) next = await saveLayout(next.id, layout);
+			for (const { image, focal } of moved) {
+				const saved = await moveImage(next.id, image.id, toInput(focal));
+				next = { ...next, images: next.images.map((one) => (one.id === saved.id ? saved : one)) };
+			}
+			dream = next;
+			arranging = false;
+			toast.show('Koláž je, jak má být');
+		} catch (e) {
+			toast.show(describeError(e));
+		} finally {
+			shelving = false;
+		}
+	}
+
 	/** Where each of the two photographs is looked at, for the pickers. */
 	function focalOf(kind: DreamImageKind): Focal {
 		const image = dream ? photoOf(dream, kind) : null;
@@ -339,18 +386,40 @@
 		{#if template}
 			<!--
 				Two photographs or more: the collage the reel shows, on the same
-				4:5 print. No pill on it — with five photographs „vyměnit“ does
-				not say which, and the shelf under it does.
+				4:5 print, and each photograph after it a swipe away (D86). No
+				„vyměnit“ on it — with five photographs it does not say which,
+				and the shelf under it does — but the collage itself is placed
+				from here, as one photograph is placed from its own tile (D85).
 			-->
-			<article class="dream tile">
-				<Collage photos={cells} {template} loading="eager" />
-				<div class="dream__body">
-					<h2 class="dream__title dream__title--sm">{dream.title}</h2>
-					{#if dream.why}
-						<p class="dream__why">{dream.why}</p>
-					{/if}
-				</div>
-			</article>
+			<PhotoCarousel photos={cells} {template}>
+				<h2 class="dream__title dream__title--sm">{dream.title}</h2>
+				{#if dream.why}
+					<p class="dream__why">{dream.why}</p>
+				{/if}
+				{#if connection.online}
+					<button
+						type="button"
+						class="btn btn--photo"
+						onclick={() => arrange(null)}
+						disabled={shelving || uploading !== null}
+					>
+						<Icon name="image" size={18} stroke={1.8} />
+						Upravit koláž
+					</button>
+				{/if}
+			</PhotoCarousel>
+
+			<CollageEditor
+				open={arranging}
+				photos={cells}
+				layout={dream.layout ?? 0}
+				start={arrangeFrom}
+				title={dream.title}
+				line={dream.why}
+				busy={shelving}
+				onsave={arranged}
+				oncancel={() => (arranging = false)}
+			/>
 		{:else}
 			<PhotoPicker
 				current={reelUrl(photos.dreamt)}
@@ -377,6 +446,7 @@
 				busy={uploading !== null || shelving}
 				onadd={addPhotos}
 				onplace={placePhoto}
+				onarrange={arrange}
 				onlead={leadPhoto}
 				onremove={removePhoto}
 				onlayout={chooseLayout}
@@ -505,18 +575,6 @@
 <TabBar />
 
 <style>
-	/* The collage's print, as `PhotoPicker`'s is: on a desktop a 4:5 tile
-	   would push the card under the bar, so it gives up its ratio first. */
-	.tile {
-		flex: none;
-	}
-
-	@media (min-width: 35rem) {
-		.tile {
-			max-height: 24rem;
-		}
-	}
-
 	/* The second photograph and the two lines that say what it is for; the
 	   picker is a tile of its own, so this only stacks them. */
 	.proof {
