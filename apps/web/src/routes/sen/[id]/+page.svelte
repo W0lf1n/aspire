@@ -22,6 +22,10 @@
 	 * (`ui/PhotoShelf.svelte`). The achieved photograph is not one of the five;
 	 * it is still its own picker, further down.
 	 *
+	 * **And all five at once** (D84). A dream with no photograph yet takes as
+	 * many as one pick chooses, so the collage is there on the first pick
+	 * rather than after a photograph and then the shelf.
+	 *
 	 * And this is where a dream is shared: „Sdílet“ opens a sheet with a link
 	 * that is its own key (D61), for somebody who has no app and never will.
 	 */
@@ -46,10 +50,15 @@
 	import { letGo } from '$lib/dreams/letgo';
 	import { changedAt } from '$lib/dreams/stats';
 	import { formatDate, formatWhen } from '$lib/dreams/format';
-	import { templateFor } from '$lib/dreams/collage';
+	import { PHOTOS_MAX, templateFor } from '$lib/dreams/collage';
 	import { dreamtCount, dreamtPhotos, photoOf, photosOf, reelUrl } from '$lib/dreams/photos';
 	import { focalOf as cropOf, toInput, type Focal } from '$lib/images/focal';
-	import { addPhotograph, photographDone, replacePhotograph } from '$lib/dreams/upload';
+	import {
+		addPhotographs,
+		photographDone,
+		photographsAdded,
+		replacePhotograph
+	} from '$lib/dreams/upload';
 	import { CATEGORY_LABEL, STATUS_BADGE, STATUS_CLASS } from '$lib/dreams/rules';
 	import AppBar from '$lib/ui/AppBar.svelte';
 	import Collage from '$lib/ui/Collage.svelte';
@@ -227,13 +236,21 @@
 
 	// ── the shelf (D82) ─────────────────────────────────────────────────────
 
-	/** One more photograph, behind the ones already there. */
-	async function addPhoto(picked: Blob, at: Focal) {
+	/**
+	 * Photographs behind the ones already there: one or several from the
+	 * shelf, or up to five picked at once on a dream that had none (D84). One
+	 * refused halfway keeps the ones before it, and the toast says why the
+	 * rest are not there.
+	 */
+	async function addPhotos(picked: Blob[], at: Focal) {
 		if (!dream || uploading) return;
 		uploading = 'dreamt';
 		try {
-			dream = await addPhotograph(dream, picked, { uploadImage, getDream }, toInput(at));
-			toast.show('Fotka je u snu');
+			const added = await addPhotographs(dream, picked, { uploadImage, getDream }, toInput(at));
+			dream = added.dream;
+			toast.show(
+				added.failed === null ? photographsAdded(added.sent) : describeError(added.failed)
+			);
 		} catch (e) {
 			toast.show(describeError(e));
 		} finally {
@@ -341,17 +358,24 @@
 				title={dream.title}
 				why={dream.why}
 				busy={uploading !== null || !connection.online}
-				onpick={(picked, at) => replacePhoto(picked, 'dreamt', at)}
+				several={dreamtCount(dream) === 0}
+				onpick={(picked, at, more) =>
+					more.length > 0 ? addPhotos([picked, ...more], at) : replacePhoto(picked, 'dreamt', at)}
 				onmove={(at) => movePhoto('dreamt', at)}
 				onproblem={(sentence) => toast.show(sentence)}
 			/>
+			{#if dreamtCount(dream) === 0}
+				<p class="hint">
+					Vyber klidně až {PHOTOS_MAX} fotek najednou — ze dvou a víc se na nástěnce složí koláž.
+				</p>
+			{/if}
 		{/if}
 
 		{#if dreamtCount(dream) > 0 && connection.online}
 			<PhotoShelf
 				{dream}
 				busy={uploading !== null || shelving}
-				onadd={addPhoto}
+				onadd={addPhotos}
 				onplace={placePhoto}
 				onlead={leadPhoto}
 				onremove={removePhoto}

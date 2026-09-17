@@ -32,7 +32,6 @@
 	import { DREAM_CATEGORIES } from '@aspire/contracts';
 	import {
 		ApiError,
-		deleteImage,
 		getDream,
 		likeDream,
 		listBoard,
@@ -56,8 +55,9 @@
 	import { formatAnniversary } from '$lib/dreams/format';
 	import { REELS, focusDreams, readReel, saveReel, type Reel } from '$lib/dreams/focus';
 	import { CATEGORY_LABEL, FOCUS_MAX } from '$lib/dreams/rules';
-	import { photographDone, replacePhotograph } from '$lib/dreams/upload';
-	import { downscale } from '$lib/images/downscale';
+	import { dreamtCount } from '$lib/dreams/photos';
+	import { addPhotographs, photographDone, roomFor } from '$lib/dreams/upload';
+	import { downscaleAll, unreadableSentence } from '$lib/images/downscale';
 	import { aheadOf, prefetchOrder, rememberBoard } from '$lib/offline/cache';
 	import {
 		capFor,
@@ -416,35 +416,41 @@
 	});
 
 	/**
-	 * The photograph a dream on the reel did not have (D52).
+	 * The photographs a dream on the reel did not have (D52) — up to five in
+	 * one pick (D84).
 	 *
 	 * A dream written as a sentence in the Seznam arrives with no picture, and
 	 * the reel is where that is noticed — so it is where it gets fixed, rather
 	 * than two screens away. The sequence is the dream screen's own
-	 * (`dreams/upload.ts`): the file downscaled here, the old row of this kind
-	 * out, the new one in, and the dream asked for again until its sizes are
-	 * ready.
+	 * (`dreams/upload.ts`): the files downscaled here, sent in the order they
+	 * were picked so the first is the cover, and the dream asked for again
+	 * until their sizes are ready. Nothing is taken out first: the pill is
+	 * only on a tile with no photograph, ready or coming, to take out.
 	 */
 	async function takePhoto(dream: Dream, event: Event) {
 		const input = event.currentTarget as HTMLInputElement;
-		const file = input.files?.[0];
+		const files = [...(input.files ?? [])];
 		// Cleared so picking the same file twice is still a change event.
 		input.value = '';
-		if (!file || picking) return;
+		if (files.length === 0 || picking) return;
 
+		const { taken, note } = roomFor(files, dreamtCount(dream));
 		try {
-			const photo = await downscale(file);
+			const { photos, unreadable } = await downscaleAll(taken);
+			const said = note ?? (unreadable > 0 ? unreadableSentence(unreadable, taken.length) : null);
+			if (said) toast.show(said);
+
+			const [cover] = photos;
+			if (!cover) return;
 			if (lastPreview) URL.revokeObjectURL(lastPreview);
-			lastPreview = URL.createObjectURL(photo);
+			lastPreview = URL.createObjectURL(cover);
 			picking = { id: dream.id, preview: lastPreview };
 
-			const saved = await replacePhotograph(dream, photo, 'dreamt', {
-				deleteImage,
-				uploadImage,
-				getDream
-			});
-			dreams = dreams?.map((d) => (d.id === saved.id ? saved : d)) ?? null;
-			toast.show(photographDone('dreamt'));
+			const added = await addPhotographs(dream, photos, { uploadImage, getDream });
+			dreams = dreams?.map((d) => (d.id === added.dream.id ? added.dream : d)) ?? null;
+			toast.show(
+				added.failed === null ? photographDone('dreamt', added.sent) : describeError(added.failed)
+			);
 		} catch (e) {
 			toast.show(describeError(e));
 		} finally {

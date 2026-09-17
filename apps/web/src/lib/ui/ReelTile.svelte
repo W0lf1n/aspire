@@ -177,11 +177,12 @@
 				-->
 				<label class="btn btn--photo reel__pick" class:reel__pick--busy={busy}>
 					<Icon name="camera" size={18} stroke={1.8} />
-					{busy ? 'Ukládám…' : 'Přidat fotku'}
+					{busy ? 'Ukládám…' : 'Přidat fotky'}
 					<input
 						class="reel__file"
 						type="file"
 						accept="image/*"
+						multiple
 						onchange={(event) => onpick(dream, event)}
 						use:writes={() => !canPick}
 					/>

@@ -5,6 +5,10 @@
 	 * make one the first; take one away; and, from two up, choose which of
 	 * three templates the tile cuts them into.
 	 *
+	 * The ＋ takes as many as there is room for in one pick (D84): the phone's
+	 * picker chooses several, the first ones that fit are kept in the order
+	 * they were chosen, and the rest are said rather than silently dropped.
+	 *
 	 * The first photograph is the one that matters twice. It is the cover —
 	 * the Seznam's circle, the wallpaper's cell, the shared card and the
 	 * notification all show it alone — and in every template with a big cell
@@ -18,7 +22,8 @@
 	import type { Dream, DreamImage } from '@aspire/contracts';
 	import { PHOTOS_MAX, gridStyle, templatesFor } from '$lib/dreams/collage';
 	import { dreamtCount, dreamtPhotos, photoStyle } from '$lib/dreams/photos';
-	import { downscale } from '$lib/images/downscale';
+	import { roomFor } from '$lib/dreams/upload';
+	import { downscaleAll, unreadableSentence } from '$lib/images/downscale';
 	import { CENTRED, focalOf, type Focal } from '$lib/images/focal';
 	import { writes } from '$lib/offline/writes.svelte';
 	import CropEditor from './CropEditor.svelte';
@@ -29,8 +34,8 @@
 		dream: Dream;
 		/** A request of this screen's is in flight, and the shelf rests. */
 		busy?: boolean;
-		/** One more photograph, downscaled and ready to send. */
-		onadd: (photo: Blob, focal: Focal) => void;
+		/** More photographs, downscaled, in the order picked, and where the first is looked at. */
+		onadd: (photos: Blob[], focal: Focal) => void;
 		/** Where one is looked at, after the editor. */
 		onplace: (image: DreamImage, focal: Focal) => void;
 		/** This one first: the cover, and the big cell. */
@@ -60,6 +65,9 @@
 	const coming = $derived(count - photos.length);
 	const full = $derived(count >= PHOTOS_MAX);
 
+	/** Whether one pick may choose several: only while there is room for more than one. */
+	const several = $derived(PHOTOS_MAX - count > 1);
+
 	const templates = $derived(templatesFor(photos.length));
 
 	/** The photograph the row of actions is about. None until one is tapped. */
@@ -74,15 +82,17 @@
 
 	async function pick(event: Event) {
 		const input = event.currentTarget as HTMLInputElement;
-		const file = input.files?.[0];
+		const files = [...(input.files ?? [])];
 		input.value = '';
-		if (!file) return;
+		if (files.length === 0) return;
 
+		const { taken: fit, note } = roomFor(files, count);
 		reading = true;
 		try {
-			onadd(await downscale(file), { ...CENTRED });
-		} catch {
-			onproblem('Tohle se nepodařilo přečíst jako fotku.');
+			const { photos: read, unreadable } = await downscaleAll(fit);
+			const said = note ?? (unreadable > 0 ? unreadableSentence(unreadable, fit.length) : null);
+			if (said) onproblem(said);
+			if (read.length > 0) onadd(read, { ...CENTRED });
 		} finally {
 			reading = false;
 		}
@@ -90,7 +100,7 @@
 
 	function taken(photo: Blob) {
 		asking = false;
-		onadd(photo, { ...CENTRED });
+		onadd([photo], { ...CENTRED });
 	}
 
 	function placed(focal: Focal) {
@@ -136,11 +146,12 @@
 		{#if !full}
 			<label class="shelf__thumb shelf__add" class:shelf__add--resting={resting}>
 				<Icon name="plus" size={22} stroke={2} />
-				<span class="visually-hidden">Přidat fotku</span>
+				<span class="visually-hidden">{several ? 'Přidat fotky' : 'Přidat fotku'}</span>
 				<input
 					class="shelf__file"
 					type="file"
 					accept="image/*"
+					multiple={several}
 					onchange={pick}
 					use:writes={() => resting}
 				/>

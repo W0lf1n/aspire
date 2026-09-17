@@ -4,7 +4,11 @@
 	 * ember pill, and back to the board when it is on it. The dream is made
 	 * first and the photograph sent after, so a failed upload leaves a dream
 	 * with the sky rather than nothing; a second tap then only sends the
-	 * photograph.
+	 * photographs that did not go.
+	 *
+	 * Up to five of them, picked at once (D84): sent in the order they were
+	 * picked, so the first is the cover, and the crop chosen on the tile is
+	 * the first one's.
 	 *
 	 * The board is fetched alongside, only so the form can say when the dream
 	 * being written is already written down (D50). It is a note and not a
@@ -26,7 +30,7 @@
 	import { CENTRED, toInput, type Focal } from '$lib/images/focal';
 
 	const locked = $derived(cannot(connection.online, 'add'));
-	let photo = $state<Blob | null>(null);
+	let photos = $state<Blob[]>([]);
 
 	/**
 	 * A link shared into the app from another one (D56). Android's share sheet
@@ -60,8 +64,11 @@
 		};
 	});
 
-	/** The dream already made by an earlier tap, if the upload failed after it. */
+	/** The dream already made by an earlier tap, if an upload failed after it. */
 	let createdId: string | null = null;
+
+	/** How many of the picked photographs are on it already, so a second tap sends only the rest. */
+	let sent = 0;
 
 	async function add(input: DreamInput) {
 		busy = true;
@@ -69,8 +76,13 @@
 		try {
 			if (createdId) await updateDream(createdId, input);
 			else createdId = (await createDream(input)).id;
-			if (photo) {
-				await uploadImage(createdId, photo, 'dreamt', toInput(focal));
+			for (; sent < photos.length; sent++) {
+				await uploadImage(
+					createdId,
+					photos[sent],
+					'dreamt',
+					sent === 0 ? toInput(focal) : undefined
+				);
 			}
 			toast.show('Sen je na nástěnce');
 			await goto(resolve('/'));
@@ -92,8 +104,10 @@
 		wide
 		sharedLink={shared}
 		busy={busy || !!locked}
-		onpick={(picked, at) => {
-			photo = picked;
+		several
+		onpick={(picked, at, more) => {
+			photos = [picked, ...more];
+			sent = 0;
 			focal = at;
 		}}
 		onmove={(at) => (focal = at)}

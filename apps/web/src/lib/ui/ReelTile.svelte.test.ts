@@ -81,7 +81,7 @@ describe('ReelTile', () => {
 		expect(el.querySelector('.dream--sky')).not.toBeNull();
 		expect(el.querySelector('.dream__img')).toBeNull();
 		expect(el.querySelector('.reel__file')).not.toBeNull();
-		expect(el.querySelector('.reel__pick')?.textContent).toContain('Přidat fotku');
+		expect(el.querySelector('.reel__pick')?.textContent).toContain('Přidat fotky');
 	});
 
 	it('says the photograph is being made instead of asking for it again', () => {

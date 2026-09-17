@@ -11,9 +11,16 @@
 	 * answers with a focal point the screen either sends with the upload — a
 	 * picture picked here is positioned before the dream may even exist — or
 	 * saves against the photograph that is already there.
+	 *
+	 * Where a dream has no photograph yet, one pick can choose up to five
+	 * (D84) — `several`. The tile shows the first, which is the cover, and says
+	 * how many came with it; the editor is not opened on a pick of several,
+	 * because the first is about to become one cell of a collage and each is
+	 * placed afterwards on the dream's shelf.
 	 */
 	import { matIsBlur, matStyle, photoStyle, tileStyle } from '$lib/dreams/photos';
-	import { downscale } from '$lib/images/downscale';
+	import { roomFor } from '$lib/dreams/upload';
+	import { downscaleAll, unreadableSentence } from '$lib/images/downscale';
 	import { CENTRED, toInput, type Focal } from '$lib/images/focal';
 	import CropEditor from './CropEditor.svelte';
 	import Icon from './Icon.svelte';
@@ -36,8 +43,16 @@
 		/** 16:10 on a form, where the words are below; 4:5 on a dream's own screen. */
 		wide?: boolean;
 		busy?: boolean;
-		/** The downscaled photograph, ready to send, and where it is looked at. */
-		onpick: (photo: Blob, focal: Focal) => void;
+		/**
+		 * Whether one pick may choose up to five (D84): a dream that has no
+		 * photograph yet. Otherwise a pick is the one photograph that replaces.
+		 */
+		several?: boolean;
+		/**
+		 * The downscaled photograph, ready to send, where it is looked at, and
+		 * any picked with it, in the order they were picked.
+		 */
+		onpick: (photo: Blob, focal: Focal, more: Blob[]) => void;
 		/** The crop, after the editor. For a picture already saved, save it. */
 		onmove?: (focal: Focal) => void;
 		/** A sentence when the picture could not be read. */
@@ -52,6 +67,7 @@
 		why = '',
 		wide = false,
 		busy = false,
+		several = false,
 		onpick,
 		onmove,
 		onproblem
@@ -59,6 +75,10 @@
 
 	let preview = $state<string | null>(null);
 	let reading = $state(false);
+
+	/** How many photographs the last pick here chose, and how many are being read now. */
+	let picked = $state(0);
+	let readingCount = $state(0);
 	let placing = $state(false);
 
 	/** Whether the link sheet is up, and the link it opens with, if any. */
@@ -75,7 +95,11 @@
 	});
 
 	const shown = $derived(preview ?? current);
-	const label = $derived(reading ? 'Čtu fotku…' : shown ? 'Vyměnit fotku' : 'Vybrat fotku');
+	const label = $derived.by(() => {
+		if (reading) return readingCount > 1 ? 'Čtu fotky…' : 'Čtu fotku…';
+		if (shown) return picked > 1 ? 'Vyměnit fotky' : 'Vyměnit fotku';
+		return several ? 'Vybrat fotky' : 'Vybrat fotku';
+	});
 
 	/** Where the picture on this tile is looked at, as it is being decided. */
 	let at = $state<Focal>({ ...CENTRED });
@@ -102,23 +126,35 @@
 
 	async function pick(event: Event) {
 		const input = event.currentTarget as HTMLInputElement;
-		const file = input.files?.[0];
+		const files = [...(input.files ?? [])];
 		input.value = '';
-		if (!file) return;
+		if (files.length === 0) return;
 
+		// A dream with no photograph has room for all five; a replacement is one.
+		const { taken: fit, note } = several
+			? roomFor(files, 0)
+			: { taken: files.slice(0, 1), note: null };
 		reading = true;
+		readingCount = fit.length;
 		try {
-			const photo = await downscale(file);
+			const { photos, unreadable } = await downscaleAll(fit);
+			const said = note ?? (unreadable > 0 ? unreadableSentence(unreadable, fit.length) : null);
+			if (said) onproblem(said);
+
+			const [photo, ...more] = photos;
+			if (!photo) return;
+
 			if (preview) URL.revokeObjectURL(preview);
 			preview = URL.createObjectURL(photo);
-			// A new picture starts in the middle, and is offered the frame it
-			// will really be seen in straight away.
+			picked = photos.length;
+			// A new picture starts in the middle, and one picked alone is
+			// offered the frame it will really be seen in straight away.
 			at = { ...CENTRED };
-			onpick(photo, at);
-			fresh = true;
-			placing = true;
-		} catch {
-			onproblem('Tohle se nepodařilo přečíst jako fotku.');
+			onpick(photo, at, more);
+			if (more.length === 0) {
+				fresh = true;
+				placing = true;
+			}
 		} finally {
 			reading = false;
 		}
@@ -138,8 +174,9 @@
 	function taken(photo: Blob) {
 		if (preview) URL.revokeObjectURL(preview);
 		preview = URL.createObjectURL(photo);
+		picked = 1;
 		at = { ...CENTRED };
-		onpick(photo, at);
+		onpick(photo, at, []);
 		asking = false;
 		link = '';
 		fresh = true;
@@ -163,6 +200,10 @@
 			/>
 		{/if}
 		<img class="dream__img" src={shown} alt="" {style} />
+		{#if preview && picked > 1}
+			<!-- The cover, and how many came with it: the rest are not on this tile. -->
+			<span class="badge dream__tag">{picked} {picked < 5 ? 'fotky' : 'fotek'}</span>
+		{/if}
 	{/if}
 	<div class="dream__body">
 		{#if title}
@@ -179,6 +220,7 @@
 					class="picker__input"
 					type="file"
 					accept="image/*"
+					multiple={several}
 					onchange={pick}
 					disabled={busy || reading}
 				/>
