@@ -12,14 +12,12 @@
 	 * picture picked here is positioned before the dream may even exist — or
 	 * saves against the photograph that is already there.
 	 */
-	import { fetchImageFromUrl } from '$lib/api/client';
-	import { describeError } from '$lib/api/errors';
 	import { matIsBlur, matStyle, photoStyle, tileStyle } from '$lib/dreams/photos';
 	import { downscale } from '$lib/images/downscale';
 	import { CENTRED, toInput, type Focal } from '$lib/images/focal';
 	import CropEditor from './CropEditor.svelte';
 	import Icon from './Icon.svelte';
-	import Sheet from './Sheet.svelte';
+	import PhotoLinkSheet from './PhotoLinkSheet.svelte';
 
 	interface Props {
 		/** What is there now: the saved photograph's URL, or nothing. */
@@ -63,25 +61,15 @@
 	let reading = $state(false);
 	let placing = $state(false);
 
-	/** Whether the link sheet is up, and what is typed in it. */
+	/** Whether the link sheet is up, and the link it opens with, if any. */
 	let asking = $state(false);
 	let link = $state('');
-
-	/**
-	 * Why the last link gave nothing, said inside the sheet.
-	 *
-	 * Not through `onproblem`: that sentence lands on the screen underneath,
-	 * which while the sheet is up is a sentence nobody can see. A failure
-	 * belongs where the thing that failed was asked for.
-	 */
-	let problem = $state('');
 
 	/** A link shared in from another app opens the sheet with it ready to take. */
 	$effect(() => {
 		const shared = sharedLink?.trim();
 		if (shared) {
 			link = shared;
-			problem = '';
 			asking = true;
 		}
 	});
@@ -144,32 +132,18 @@
 	}
 
 	/**
-	 * The picture behind a pasted link (D56). The server fetches it — the
-	 * phone cannot read another origin's image, and cannot read a pin's page
-	 * at all — and what comes back is treated exactly like a picked file,
-	 * down to opening the editor on it.
+	 * The picture behind a pasted link (D56), from `PhotoLinkSheet`. It is
+	 * treated exactly like a picked file, down to opening the editor on it.
 	 */
-	async function take() {
-		if (reading || link.trim().length === 0) return;
-
-		reading = true;
-		try {
-			const fetched = await fetchImageFromUrl(link);
-			// Already 2048 from the server, so this only settles the format.
-			const photo = await downscale(fetched);
-			if (preview) URL.revokeObjectURL(preview);
-			preview = URL.createObjectURL(photo);
-			at = { ...CENTRED };
-			onpick(photo, at);
-			asking = false;
-			link = '';
-			fresh = true;
-			placing = true;
-		} catch (e) {
-			problem = describeError(e);
-		} finally {
-			reading = false;
-		}
+	function taken(photo: Blob) {
+		if (preview) URL.revokeObjectURL(preview);
+		preview = URL.createObjectURL(photo);
+		at = { ...CENTRED };
+		onpick(photo, at);
+		asking = false;
+		link = '';
+		fresh = true;
+		placing = true;
 	}
 
 	$effect(() => () => {
@@ -230,7 +204,6 @@
 				class="btn btn--photo"
 				onclick={() => {
 					link = '';
-					problem = '';
 					asking = true;
 				}}
 				disabled={busy || reading}
@@ -259,45 +232,7 @@
 	/>
 {/if}
 
-<Sheet open={asking} title="Fotka z odkazu" onclose={() => (asking = false)}>
-	<label class="field">
-		<span class="field__label">Odkaz na obrázek nebo pin</span>
-		<input
-			class="field__input"
-			type="url"
-			inputmode="url"
-			bind:value={link}
-			placeholder="https://cz.pinterest.com/pin/…"
-			autocomplete="off"
-			autocapitalize="off"
-			spellcheck="false"
-			disabled={reading}
-		/>
-	</label>
-
-	{#if problem}
-		<p class="note" role="alert">{problem}</p>
-	{:else}
-		<p class="hint">
-			Zkopíruj odkaz na pin nebo přímo na obrázek. Fotku stáhne server a uloží ji k tobě — ze
-			stránky si nebere nic jiného.
-		</p>
-	{/if}
-
-	<div class="actions actions--fill">
-		<button type="button" class="btn" onclick={() => (asking = false)} disabled={reading}>
-			Zrušit
-		</button>
-		<button
-			type="button"
-			class="btn btn--accent"
-			onclick={take}
-			disabled={reading || link.trim().length === 0}
-		>
-			{reading ? 'Stahuju…' : 'Vzít'}
-		</button>
-	</div>
-</Sheet>
+<PhotoLinkSheet open={asking} start={link} onphoto={taken} onclose={() => (asking = false)} />
 
 <style>
 	.picker {

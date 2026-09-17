@@ -40,6 +40,33 @@ export interface PhotoApi {
 	getDream(id: string): Promise<Dream>;
 }
 
+/**
+ * One more photograph on a dream that already has some (D82). Nothing goes
+ * out first — that is the whole difference from replacing — and the wait is
+ * for *this* photograph's sizes rather than for any of its kind, because the
+ * dream had a ready one before the upload began.
+ *
+ * Throws what the API threw, the sixth photograph's sentence included.
+ */
+export async function addPhotograph(
+	dream: Dream,
+	photo: Blob,
+	api: Pick<PhotoApi, 'uploadImage' | 'getDream'>,
+	focal?: FocalInput,
+	wait: (ms: number) => Promise<void> = sleep
+): Promise<Dream> {
+	const added = await api.uploadImage(dream.id, photo, 'dreamt', focal);
+
+	let latest = dream;
+	for (let attempt = 0; attempt < READY_ATTEMPTS; attempt++) {
+		await wait(READY_EVERY_MS);
+		latest = await api.getDream(dream.id);
+		if (latest.images.some((image) => image.id === added.id && image.ready)) break;
+	}
+
+	return latest;
+}
+
 /** What the toast says when it worked, which depends on which picture it was. */
 export function photographDone(kind: DreamImageKind): string {
 	return kind === 'dreamt' ? 'Fotka je na nástěnce' : 'Skutečná fotka je u snu';

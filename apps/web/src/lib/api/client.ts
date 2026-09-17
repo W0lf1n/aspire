@@ -233,6 +233,22 @@ export function moveImage(
 	});
 }
 
+/** The dreamt photographs in a new order; the first is the cover (D82). */
+export function orderImages(dreamId: string, imageIds: string[]): Promise<Dream> {
+	return call<Dream>(`/dreams/${dreamId}/images/order`, {
+		method: 'PUT',
+		body: JSON.stringify({ imageIds })
+	});
+}
+
+/** Which of the three collage templates the dream's tile uses (D82). */
+export function saveLayout(dreamId: string, layout: number): Promise<Dream> {
+	return call<Dream>(`/dreams/${dreamId}/layout`, {
+		method: 'PUT',
+		body: JSON.stringify({ layout })
+	});
+}
+
 /**
  * The lock-screen collage, as a JPEG (PLAN.md §3.5). The ids go in the order
  * they were chosen, which is the order they appear on it. Nothing is stored

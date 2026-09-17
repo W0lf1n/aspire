@@ -18,7 +18,14 @@
 
 import type { Dream } from '@aspire/contracts';
 import { REEL_WINDOW, achievedDreams, reelOrder } from '$lib/dreams/board';
-import { photosOf, reelUrl, thisScreen, type Screen } from '$lib/dreams/photos';
+import {
+	cellUrl,
+	dreamtPhotos,
+	photosOf,
+	reelUrl,
+	thisScreen,
+	type Screen
+} from '$lib/dreams/photos';
 
 /** The service worker's names for them; deleting both is forgetting the board. */
 export const MEDIA_CACHE = 'aspire-media';
@@ -46,7 +53,14 @@ export function tileUrls(dreams: Dream[], screen: Screen = thisScreen()): string
 	const urls: string[] = [];
 	for (const dream of dreams) {
 		const { dreamt, achieved } = photosOf(dream);
-		if (dreamt) urls.push(dreamt.thumbUrl, reelUrl(dreamt, screen)!);
+		const cells = dreamtPhotos(dream);
+		if (cells.length > 1) {
+			// A collage: the cover's thumb, which the Seznam's circle shows, and
+			// every cell at the one rung a cell reads (D82).
+			urls.push(cells[0].thumbUrl, ...cells.map(cellUrl));
+		} else if (dreamt) {
+			urls.push(dreamt.thumbUrl, reelUrl(dreamt, screen)!);
+		}
 		if (achieved) urls.push(achieved.screenUrl);
 	}
 	return urls;

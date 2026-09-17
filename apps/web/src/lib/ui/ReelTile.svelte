@@ -20,6 +20,7 @@
 	import {
 		matIsBlur,
 		matStyle,
+		dreamtPhotos,
 		photoComing,
 		photoOf,
 		photoStyle,
@@ -27,8 +28,10 @@
 		tileStyle
 	} from '$lib/dreams/photos';
 	import { tileLine } from '$lib/dreams/board';
+	import { templateFor } from '$lib/dreams/collage';
 	import { CATEGORY_LABEL, STATUS_BADGE } from '$lib/dreams/rules';
 	import { writes } from '$lib/offline/writes.svelte';
+	import Collage from '$lib/ui/Collage.svelte';
 	import Icon from '$lib/ui/Icon.svelte';
 
 	interface Props {
@@ -58,6 +61,14 @@
 	const { dream, eager = false, preview = null, canPick = false, onlike, onpick }: Props = $props();
 
 	const photo = $derived(photoOf(dream, 'dreamt'));
+
+	/**
+	 * Two photographs or more are a collage, cut by the dream's template
+	 * (D82); one is the photograph, exactly as it was. The cover is still
+	 * `photo` either way — it is what says the tile has a picture at all.
+	 */
+	const cells = $derived(dreamtPhotos(dream));
+	const template = $derived(templateFor(cells.length, dream.layout));
 	const line = $derived(tileLine(dream));
 
 	/** This tile is the one having its photograph taken. */
@@ -82,12 +93,14 @@
 	 * its pixels (D63) — and it would show through the mat around a picture
 	 * that does not cover it, so on a colour it is left out.
 	 */
-	const mat = $derived(busy ? '' : matStyle(photo));
+	const mat = $derived(busy || template ? '' : matStyle(photo));
 	const under = $derived(photo !== null && (photo.fit !== 'whole' || matIsBlur(photo)));
 </script>
 
 <article class="dream reel__tile" class:dream--sky={!src} style={mat}>
-	{#if src}
+	{#if template && !busy}
+		<Collage photos={cells} {template} {loading} />
+	{:else if src}
 		{#if photo && under && !busy}
 			<!-- The thumb, blurred, under the picture: the shape of the
 			     photograph arrives with its first kilobytes while the rest is

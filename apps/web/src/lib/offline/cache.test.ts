@@ -41,6 +41,7 @@ function dream(id: string, images: DreamImage[], over: Partial<Dream> = {}): Dre
 		sortOrder: 0,
 		focusRank: null,
 		targetYear: null,
+		layout: 0,
 		likes: 0,
 		achievedAt: null,
 		lastShownAt: null,
@@ -66,7 +67,8 @@ const phone = { dpr: 3, metered: false };
 describe('tileUrls', () => {
 	it('takes the first ready photograph of each dream: the thumb, then the picture', () => {
 		const dreams = [
-			dream('a', [image('a1', false), image('a2', true), image('a3', true)]),
+			// One still being made and one ready: a single photograph, not a collage.
+			dream('a', [image('a1', false), image('a2', true)]),
 			dream('b', [image('b1', true)]),
 			dream('c', []),
 			dream('d', [image('d1', false)])
@@ -259,5 +261,28 @@ describe('aheadOf', () => {
 		expect(aheadOf(reel, 12)).toHaveLength(12);
 		expect(aheadOf(reel.slice(0, 3), REEL_WINDOW)).toHaveLength(3);
 		expect(aheadOf([], REEL_WINDOW)).toEqual([]);
+	});
+});
+
+describe('tileUrls, for a collage (D82)', () => {
+	it('keeps every cell at the rung a cell reads, and the cover for the list', () => {
+		const three = dream('house', [image('a', true), image('b', true), image('c', true)]);
+
+		expect(tileUrls([three], { dpr: 3, metered: false })).toEqual([
+			'/media/d/a/thumb.webp',
+			'/media/d/a/screen.webp',
+			'/media/d/b/screen.webp',
+			'/media/d/c/screen.webp'
+		]);
+	});
+
+	it('does not count a photograph that is still being made as a cell', () => {
+		// One ready and one on its way is still a single photograph on the tile.
+		const one = dream('house', [image('a', true), image('b', false)]);
+
+		expect(tileUrls([one], { dpr: 1, metered: false })).toEqual([
+			'/media/d/a/thumb.webp',
+			'/media/d/a/screen.webp'
+		]);
 	});
 });

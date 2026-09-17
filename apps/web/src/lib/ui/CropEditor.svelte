@@ -62,6 +62,12 @@
 		 * a photograph somebody has already placed opens as they left it.
 		 */
 		fresh?: boolean;
+		/**
+		 * Whether Vyplnit · Celá is offered at all. Not for a photograph that is
+		 * one cell of a collage (D82): a cell always fills, and a control that
+		 * changes nothing anybody can see is a control that looks broken.
+		 */
+		fits?: boolean;
 		/** What the tile will say over it, so nothing is hidden behind words. */
 		title?: string;
 		line?: string;
@@ -76,6 +82,7 @@
 		src,
 		focal,
 		fresh = false,
+		fits = true,
 		title = '',
 		line = '',
 		busy = false,
@@ -309,35 +316,37 @@
 				{#if now.zoom > MIN_ZOOM}<span class="crop__zoom">{round(now.zoom)}×</span>{/if}
 			</p>
 
-			<div
-				class="seg seg--glass crop__fit"
-				style:--slot={now.fit === 'fill' ? 0 : 1}
-				role="group"
-				aria-label="Jak fotka vyplní dlaždici"
-			>
-				<!-- The lens, as the board's segment has one (D74). -->
-				<span class="seg__lens" aria-hidden="true"></span>
-				<button
-					type="button"
-					class="seg__item"
-					aria-pressed={now.fit === 'fill'}
-					onclick={() => (now = fitted(now, 'fill'))}
-					disabled={busy}
+			{#if fits}
+				<div
+					class="seg seg--glass crop__fit"
+					style:--slot={now.fit === 'fill' ? 0 : 1}
+					role="group"
+					aria-label="Jak fotka vyplní dlaždici"
 				>
-					Vyplnit
-				</button>
-				<button
-					type="button"
-					class="seg__item"
-					aria-pressed={now.fit === 'whole'}
-					onclick={() => (now = fitted(now, 'whole'))}
-					disabled={busy}
-				>
-					Celá
-				</button>
-			</div>
+					<!-- The lens, as the board's segment has one (D74). -->
+					<span class="seg__lens" aria-hidden="true"></span>
+					<button
+						type="button"
+						class="seg__item"
+						aria-pressed={now.fit === 'fill'}
+						onclick={() => (now = fitted(now, 'fill'))}
+						disabled={busy}
+					>
+						Vyplnit
+					</button>
+					<button
+						type="button"
+						class="seg__item"
+						aria-pressed={now.fit === 'whole'}
+						onclick={() => (now = fitted(now, 'whole'))}
+						disabled={busy}
+					>
+						Celá
+					</button>
+				</div>
+			{/if}
 
-			{#if now.fit === 'whole'}
+			{#if fits && now.fit === 'whole'}
 				<div class="crop__mats glass" role="group" aria-label="Pozadí kolem fotky">
 					{#each PHOTO_MATS as one (one)}
 						<button

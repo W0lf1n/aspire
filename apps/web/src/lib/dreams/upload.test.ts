@@ -1,6 +1,12 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { Dream, DreamImage, DreamImageKind, FocalInput } from '@aspire/contracts';
-import { READY_ATTEMPTS, photographDone, replacePhotograph, type PhotoApi } from './upload';
+import {
+	READY_ATTEMPTS,
+	addPhotograph,
+	photographDone,
+	replacePhotograph,
+	type PhotoApi
+} from './upload';
 
 function image(id: string, kind: DreamImageKind, ready = true): DreamImage {
 	return {
@@ -32,6 +38,7 @@ function dream(images: DreamImage[]): Dream {
 		sortOrder: 0,
 		focusRank: null,
 		targetYear: null,
+		layout: 0,
 		likes: 0,
 		achievedAt: null,
 		lastShownAt: null,
@@ -182,5 +189,52 @@ describe('photographDone', () => {
 	it('says which of the two pictures it was', () => {
 		expect(photographDone('dreamt')).toBe('Fotka je na nástěnce');
 		expect(photographDone('achieved')).toBe('Skutečná fotka je u snu');
+	});
+});
+
+describe('addPhotograph (D82)', () => {
+	it('takes nothing out: that is the whole difference from replacing', async () => {
+		const had = dream([image('first', 'dreamt')]);
+		const { api, calls, wait } = fake([dream([image('first', 'dreamt'), image('new', 'dreamt')])]);
+
+		await addPhotograph(had, photo, api, undefined, wait);
+
+		expect(calls.filter((call) => call.startsWith('delete'))).toEqual([]);
+		expect(calls[0]).toBe('upload dreamt');
+	});
+
+	it('waits for this photograph, not for any of its kind', async () => {
+		// The dream had a ready one before the upload began, so „is there a
+		// ready dreamt photograph“ would say yes on the first look.
+		const waiting = dream([image('first', 'dreamt'), image('new', 'dreamt', false)]);
+		const done = dream([image('first', 'dreamt'), image('new', 'dreamt')]);
+		const { api, calls, wait } = fake([waiting, waiting, done]);
+
+		const after = await addPhotograph(
+			dream([image('first', 'dreamt')]),
+			photo,
+			api,
+			undefined,
+			wait
+		);
+
+		expect(calls.filter((call) => call === 'get')).toHaveLength(3);
+		expect(after).toBe(done);
+	});
+
+	it('hands the dream back as it stands when the sizes never come', async () => {
+		const waiting = dream([image('first', 'dreamt'), image('new', 'dreamt', false)]);
+		const { api, calls, wait } = fake(Array.from({ length: READY_ATTEMPTS + 5 }, () => waiting));
+
+		const after = await addPhotograph(
+			dream([image('first', 'dreamt')]),
+			photo,
+			api,
+			undefined,
+			wait
+		);
+
+		expect(calls.filter((call) => call === 'get')).toHaveLength(READY_ATTEMPTS);
+		expect(after).toBe(waiting);
 	});
 });

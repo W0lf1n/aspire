@@ -19,6 +19,7 @@ function dream(
 		sortOrder,
 		focusRank,
 		targetYear: null,
+		layout: 0,
 		likes: 0,
 		achievedAt: null,
 		lastShownAt: null,

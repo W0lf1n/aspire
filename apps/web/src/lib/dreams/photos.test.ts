@@ -3,6 +3,9 @@ import type { Dream, DreamImage, DreamImageKind } from '@aspire/contracts';
 import {
 	photoComing,
 	photoOf,
+	cellUrl,
+	dreamtCount,
+	dreamtPhotos,
 	matIsBlur,
 	matStyle,
 	photoStyle,
@@ -221,5 +224,40 @@ describe('a photograph shown whole (D81)', () => {
 		expect(matIsBlur(whole(0.5, 0.5, 1, 'night'))).toBe(false);
 		expect(matIsBlur({ fit: 'fill', mat: 'blur' })).toBe(false);
 		expect(matIsBlur(null)).toBe(false);
+	});
+});
+
+describe('the five dreamt photographs (D82)', () => {
+	it('are the ready dreamt ones, in order, and never the proof', () => {
+		const dream = {
+			images: [
+				image('a', 'dreamt'),
+				image('waiting', 'dreamt', false),
+				image('proof', 'achieved'),
+				image('b', 'dreamt')
+			]
+		};
+
+		expect(dreamtPhotos(dream).map((one) => one.id)).toEqual(['a', 'b']);
+		// The cover is still the first of them.
+		expect(photoOf(dream, 'dreamt')?.id).toBe('a');
+	});
+
+	it('are five at most, whatever arrived', () => {
+		const many = { images: ['a', 'b', 'c', 'd', 'e', 'f', 'g'].map((id) => image(id, 'dreamt')) };
+
+		expect(dreamtPhotos(many)).toHaveLength(5);
+	});
+
+	it('count the ones still being made, as the server does against the five', () => {
+		const dream = {
+			images: [image('a', 'dreamt'), image('b', 'dreamt', false), image('proof', 'achieved')]
+		};
+
+		expect(dreamtCount(dream)).toBe(2);
+	});
+
+	it('read a cell at the 1280, on every screen', () => {
+		expect(cellUrl(image('a', 'dreamt'))).toBe(image('a', 'dreamt').screenUrl);
 	});
 });

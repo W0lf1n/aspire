@@ -75,6 +75,34 @@ export function photoOf(dream: Pick<Dream, 'images'>, kind: DreamImageKind): Dre
 	return dream.images.find((image) => image.kind === kind && image.ready) ?? null;
 }
 
+/**
+ * The dreamt photographs a big surface shows together: every ready one, in
+ * order, five at most (D82). One is the photograph; two or more are a collage
+ * (`dreams/collage.ts`). `photoOf(dream, 'dreamt')` is still the first of
+ * them, which is the cover everything small shows.
+ */
+export function dreamtPhotos(dream: Pick<Dream, 'images'>): DreamImage[] {
+	return dream.images.filter((image) => image.kind === 'dreamt' && image.ready).slice(0, 5);
+}
+
+/**
+ * How many dreamt photographs a dream has or is about to have — rows still
+ * being resized count, because the server counts them against the five.
+ */
+export function dreamtCount(dream: Pick<Dream, 'images'>): number {
+	return dream.images.filter((image) => image.kind === 'dreamt').length;
+}
+
+/**
+ * The URL a collage's cell shows. Always the 1280: the biggest cell there is
+ * is a little over half a phone screen, which 1280 covers at 3× with room to
+ * spare, and one rule for every cell is what lets the prefetch ask for the
+ * file the tile will show (`offline/cache.ts`, D62).
+ */
+export function cellUrl(image: Pick<DreamImage, 'screenUrl'>): string {
+	return image.screenUrl;
+}
+
 /** Both of them at once, for a screen that shows the pair. */
 export function photosOf(dream: Pick<Dream, 'images'>): {
 	dreamt: DreamImage | null;

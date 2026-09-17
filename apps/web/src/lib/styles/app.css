@@ -323,6 +323,38 @@ a {
 	filter: blur(14px);
 }
 
+/**
+ * A dream's photographs as one picture cut into cells (D82, `Collage.svelte`).
+ * Absolute and edge to edge like `.dream__img`, so it adds no height to a
+ * page of the reel. The grid's tracks and each cell's area arrive inline from
+ * the template; the seam between two cells is the darkest mat showing
+ * through — two pixels, which is what the pair on the wall has.
+ */
+.dream__collage {
+	position: absolute;
+	inset: 0;
+	display: grid;
+	gap: 2px;
+	background: var(--mat-night);
+}
+
+/* `min-*: 0` or a cell is as big as its picture wants rather than as its
+   track says; `overflow` because a photograph zoomed in a cell grows past it. */
+.dream__cell {
+	position: relative;
+	min-width: 0;
+	min-height: 0;
+	overflow: hidden;
+}
+
+.dream__cell > img {
+	position: absolute;
+	inset: 0;
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+}
+
 /* The scrim sits between the image and the words, and only at the bottom:
    the top of a photograph stays a photograph. */
 .dream::after {

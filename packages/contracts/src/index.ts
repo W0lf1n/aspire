@@ -72,6 +72,13 @@ export interface Dream {
 	 */
 	focusRank: number | null;
 	targetYear: number | null;
+	/**
+	 * Which of the three collage templates the tile uses, for however many
+	 * photographs the dream has: 0, 1 or 2 (D82). A variant rather than a
+	 * name, because what it picks among depends on the count; the templates
+	 * themselves are `dreams/collage.ts`, and the server never draws one.
+	 */
+	layout: number;
 	/** Taps on the heart, counted. Within the board, never across. */
 	likes: number;
 	/** ISO datetime, or null while the dream is still a dream. */
@@ -91,7 +98,12 @@ export interface Dream {
 	 * do not move it, so the date means „I last worked on this one then“.
 	 */
 	updatedAt: string;
-	/** Both kinds, in board order; `photosOf` picks the one a screen wants. */
+	/**
+	 * Both kinds, in order. Up to five are dreamt (D82): the first is the
+	 * cover every small surface shows, and together they are the collage on
+	 * the reel and on the dream's own tile. `dreams/photos.ts` picks what a
+	 * screen wants; no screen reads this by hand.
+	 */
 	images: DreamImage[];
 }
 
@@ -291,6 +303,21 @@ export interface ResetResponse {
  */
 export interface FocusInput {
 	dreamIds: string[];
+}
+
+// ── PUT /api/v1/dreams/{id}/layout · PUT /api/v1/dreams/{id}/images/order ───
+
+/** Which collage template a dream's tile uses, 0 to 2 (D82). */
+export interface LayoutInput {
+	layout: number;
+}
+
+/**
+ * A dream's dreamt photographs in the order they stand in, whole (D82): every
+ * one of them, and nothing else. The first is the cover.
+ */
+export interface ImageOrderInput {
+	imageIds: string[];
 }
 
 // ── PUT /api/v1/dreams/{id}/place ───────────────────────────────────────────

@@ -13,6 +13,7 @@ function dream(id: string, over: Partial<Dream> = {}): Dream {
 		sortOrder: 0,
 		focusRank: null,
 		targetYear: null,
+		layout: 0,
 		likes: 0,
 		achievedAt: null,
 		lastShownAt: null,

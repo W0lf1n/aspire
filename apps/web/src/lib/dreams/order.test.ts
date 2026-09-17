@@ -13,6 +13,7 @@ function dream(id: string, sortOrder: number): Dream {
 		sortOrder,
 		focusRank: null,
 		targetYear: null,
+		layout: 0,
 		likes: 0,
 		achievedAt: null,
 		lastShownAt: null,

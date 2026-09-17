@@ -41,6 +41,7 @@ function dream(over: Partial<Dream> = {}): Dream {
 		sortOrder: 0,
 		focusRank: null,
 		targetYear: null,
+		layout: 0,
 		likes: 0,
 		achievedAt: null,
 		lastShownAt: null,
@@ -121,6 +122,37 @@ describe('ReelTile', () => {
 
 		expect(el.querySelector('.dream__under')?.getAttribute('src')).toBe('/media/d/i1/thumb.webp');
 		expect(el.querySelector('.reel__tile')?.getAttribute('style') ?? '').not.toContain('--mat-');
+	});
+
+	it('cuts two photographs or more into a collage, one cell each (D82)', () => {
+		const el = render({
+			dream: dream({
+				layout: 1,
+				images: [image('i1', true), image('i2', true), image('i3', true)]
+			})
+		});
+
+		const cells = [...el.querySelectorAll('.dream__cell img')];
+		expect(cells.map((cell) => cell.getAttribute('src'))).toEqual([
+			'/media/d/i1/screen.webp',
+			'/media/d/i2/screen.webp',
+			'/media/d/i3/screen.webp'
+		]);
+		// The second template for three: three bands.
+		expect(el.querySelector<HTMLElement>('.dream__collage')?.style.gridTemplateRows).toBe(
+			'1fr 1fr 1fr'
+		);
+		// The collage is the picture: no single image, and no blur under one.
+		expect(el.querySelector('.dream__img')).toBeNull();
+		expect(el.querySelector('.dream__under')).toBeNull();
+		expect(el.querySelector('.reel__pick')).toBeNull();
+	});
+
+	it('shows one photograph as the photograph while a second is still being made', () => {
+		const el = render({ dream: dream({ images: [image('i1', true), image('i2', false)] }) });
+
+		expect(el.querySelector('.dream__collage')).toBeNull();
+		expect(el.querySelector('.dream__img')).not.toBeNull();
 	});
 
 	it('shows the picked file before the server has it, and hides the blur under it', () => {
