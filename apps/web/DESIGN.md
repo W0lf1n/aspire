@@ -799,8 +799,9 @@ a collage.
 height of its own, so it is a page of the reel and a 4:5 print with one set of
 templates. A template is `grid-template-columns`, `grid-template-rows` and one
 `grid-area` per photograph; `.dream__cell` clips, and its picture is `cover`
-at the photograph's own point. The first photograph is the lead and takes the
-big cell wherever there is one.
+at the photograph's own point — or, shown whole, `contain` on its mat, which the
+cell paints, or on its own thumb blurred and bled past the cell's edge (D88).
+The first photograph is the lead and takes the big cell wherever there is one.
 
 ### The shelf (D82)
 A card under the dream's tile: „Fotky“ and `n z 5`, a row of 52 px thumbs at
@@ -811,7 +812,10 @@ follows it: Umístit · Jako první · Smazat. The three templates are 32×44
 diagrams drawn with the collage's own grid, ink-3 cells on `--surface-3`, ink
 and an ember ring on the chosen one. The ＋ takes as many as there is room
 for in one pick (D84), and from two photographs up Umístit opens the collage
-editor with that photograph in hand.
+editor with that photograph in hand. From two up a full-width `.seg--soft`
+Koláž · Karusel sits under the thumbs (D87); the templates are shown only for
+Koláž, and in Karusel Umístit opens the crop, because each photograph is a
+page of its own there.
 
 ### The collage editor (D85)
 The crop's page with the chosen template drawn on it edge to edge — the
@@ -820,7 +824,8 @@ The cell in hand wears a 2 px inset ring in `--photo-ink`, above the scrim so
 it reads at the foot of the page as well as the top. Under the hint, a glass
 pill of the three templates as 22×40 diagrams — the page's shape, not the
 tile's — in ink-3, the chosen one on `--glass-lens` in ink: the segment's lens
-rather than the accent, because this is over photographs.
+rather than the accent, because this is over photographs. Under them the cell
+in hand has the crop's own Vyplnit · Celá and mats (`FitControls`, D88).
 
 ### The carousel (D86)
 From two photographs up the dream's tile is a row one slide wide, scrolled
@@ -829,7 +834,13 @@ the why and a `.btn--photo` „Upravit koláž“, then each photograph alone wi
 scrim and nothing over it, filling or whole on its mat. Under the tile, dots:
 6 px in ink-3, the one showing stretched to a 14 px bar in ink, each inside a
 20 px button. No arrows and no counter — the dots are the whole interface, and
-it steps back.
+it steps back. A carousel dream (D87) starts on its first photograph, which
+then carries the scrim and the words.
+
+**On the reel** (D87) the same row fills the page under the scrim. The words,
+the heart and the pill stay where they are; above the title a row of 6 px dots
+in `--photo-ink` at 45 %, the one showing stretched to 14 px at full ink — no
+accent over a photograph. Every slide is the dream's link.
 
 ### The photo picker
 The dream's tile with the picture in it, and a wrapping row of `.btn--photo`

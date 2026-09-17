@@ -2,7 +2,7 @@
 
 Guidance for Claude Code working in this repository.
 
-**Last revised:** 2026-09-17 · §30 closed, D51–D86 · 454 web tests · 438 API tests
+**Last revised:** 2026-09-17 · §31 closed, D51–D88 · 472 web tests · 439 API tests
 
 ---
 
@@ -86,7 +86,10 @@ finally. §30 is four more the same afternoon: the Seznam narrows to Teď with
 the board's own Vše · Teď (D83), a dream takes up to five photographs in its
 very first pick (D84), a collage is placed as a collage, every cell under a
 finger on the reel's page (D85), and the dream's tile swipes through its
-photographs (D86). Nothing is left in the plan.
+photographs (D86). §31 puts that carousel on the reel — photographs first, and
+past the last one the swipe is the other reel — lets a dream be a collage or
+a carousel (D87), and lets a photograph stand whole in its cell (D88). Nothing
+is left in the plan.
 
 ---
 
@@ -173,8 +176,11 @@ apps/web/src/
 │                  PhotoLinkSheet.svelte, a dream's five photographs (D82) —
 │                  CollageEditor.svelte, where they are placed as one
 │                  picture, with placing.ts, the fingers it shares with
-│                  CropEditor (D85) — PhotoCarousel.svelte and carousel.ts,
-│                  the dream's tile swiped through (D86) — and
+│                  CropEditor (D85), and FitControls.svelte, Vyplnit · Celá
+│                  and the mats for both editors (D88) —
+│                  PhotoCarousel.svelte and carousel.ts, the tile swiped
+│                  through, and how far a row can still go before a swipe
+│                  is the reel's (D86, D87) — and
 │                  ShareSheet.svelte, which two screens open (D78).
 ├─ lib/api/        client.ts (fetch + bearer), token.ts (localStorage),
 │                  pairing.ts (the flow) and errors.ts (the sentences).
@@ -194,7 +200,9 @@ apps/web/src/
 │                  letgo.ts, the one Smazat every screen calls (D78) —
 │                  order.ts, a dream moved to a line of the Seznam (D79) —
 │                  stats.ts, the board counted (D77) — collage.ts, the
-│                  templates for two to five photographs (D82) — reset.ts,
+│                  templates for two to five photographs (D82) — slides.ts,
+│                  what a tile swipes through: the collage and each
+│                  photograph, or the photographs alone (D87) — reset.ts,
 │                  the sentence that empties a board (D80) — upload.ts — the order a
 │                  photograph replaces another in, which two screens do
 │                  (D52), and the ones that fit when several are picked at
@@ -298,7 +306,8 @@ scripts/             check-bundle.mjs, and invite.sh — a board and its code
     every screen that writes a title checks the same way.
 14. **The reel is a pager.** Every page is exactly the scrollport, the
     offsets are multiples of it, and `ui/pager.ts` guarantees one dream per
-    gesture on top of the browser's own snapping (D40). Anything that adds
+    gesture on top of the browser's own snapping (D40). A dream's photographs
+    scroll across inside its page, never down (D87). Anything that adds
     height to that scroll region — a mark, a header, a gap — breaks the
     arithmetic, and the guarantee with it.
 15. **The link fetcher may only reach the public internet.** Every address is
@@ -310,12 +319,12 @@ scripts/             check-bundle.mjs, and invite.sh — a board and its code
     `FocalCrop` on the server, and every surface that shows a photograph
     reads them (D54). The three files on disk are never re-cut. **And it
     either fills its frame or stands whole on a mat** — `fit` · `mat` (D81).
-    A surface with room for a mat reads `tileStyle` and `matStyle`; one
-    without — a circle, a collage's cell, the wallpaper, the shared card —
-    reads `photoStyle` and `CropZoom`, which are the point alone for a
-    photograph shown whole, because its zoom was chosen against a different
-    scale — and the collage editor holds a cell exactly so, `cellFocal`
-    (D85). A mat is a token's name on the wire, never a colour (rule 1).
+    A surface with room for a mat reads `tileStyle` and `matStyle` — a
+    collage's cell is one since D88; one without — a circle, the wall's pair,
+    the wallpaper, the shared card — reads `photoStyle` and `CropZoom`, which
+    are the point alone for a photograph shown whole, because its zoom was
+    chosen against a different scale. A mat is a token's name on the wire,
+    never a colour (rule 1).
 17. **A key that is its own permission is made in one place and fenced the
     same way.** `Auth/ShareKey` is those 32 bytes; `/api/v1/w/{key}` is one
     board's collage (D60) and `/s/{key}` is one dream's page (D61), and they

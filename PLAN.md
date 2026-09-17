@@ -1,6 +1,6 @@
 # Aspire — Project Plan
 
-Status: M0–M8 done · §3.7 done · §26–§30 done · Owner: Petr · Created: 2026-09-09 · Revised: 2026-09-17
+Status: M0–M8 done · §3.7 done · §26–§31 done · Owner: Petr · Created: 2026-09-09 · Revised: 2026-09-17
 
 Third app in the personal self-improvement trio (Prosper → Planner → **Aspire**, the dreamboard). Building first. Standalone. No integration with the others for now.
 
@@ -1528,3 +1528,22 @@ No migration, no endpoint and no dependency; the entry route is still 33.6 kB
 brotli of 150.
 
 **Took** one session. **Decides** D83–D86; extends D48, D54, D77 and D82.
+
+## 31. The carousel on the reel · 2026-09-17 — done
+
+Three things asked for together, two of which change a decision; Petr was
+asked once, three questions, and chose every recommendation.
+
+1. **The reel swipes through a dream's photographs** (D87): photographs first,
+   and past the last or first one the same swipe is the other reel (D71
+   amended).
+2. **A dream is a collage or a carousel** (D87): Koláž · Karusel on the shelf,
+   saved on the dream; Karusel drops the collage from the reel and the tile.
+3. **A photograph can stand whole in its cell** (D88): Vyplnit · Celá and the
+   mats for each cell in the collage editor.
+
+One migration, `DreamPhotoView`, and one endpoint, `PUT /dreams/{id}/view`. No
+dependency.
+
+**Took** one session. **Decides** D87–D88; amends D71, D82, D85, D86 and rule
+16.

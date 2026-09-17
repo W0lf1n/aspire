@@ -2705,3 +2705,59 @@ right, like on Instagram, to see the images.“
   collage tile that kept that gesture would take it away on exactly the dreams
   with the most to show. Putting the carousel there means changing D71, which
   has not been asked.
+
+### D87 — The reel swipes through a dream's photographs, and a dream is a collage or a carousel (D71 and D86 amended)
+
+Petr asked for the carousel on the reel too, and for a dream to be able to drop
+the collage and keep the carousel only. D86 had kept the carousel off the reel
+because a sideways swipe there is the other reel (D71).
+
+- **Photographs first, then the reel.** Petr chose this over photographs only
+  on those tiles and over dropping D71. A tile with several photographs is a
+  row the browser scrolls across; when the finger lands, `sideways.ts` asks
+  the row under it how far it can still go (`roomAcross`), and if it could go
+  the way the swipe went, the swipe was the photographs'. Past the last
+  photograph — or back past the first — the row cannot, and the same swipe is
+  the other reel, exactly as on a tile with one photograph. The arrow keys ask
+  the row on the screen and step it while it can.
+- **The browser moves the row**, as on the dream's tile (D86): `scroll-snap`
+  a slide at a time, `touch-action: pan-x pan-y pinch-zoom` on the row, which
+  is its own scroll container, so the reel's `pan-y` does not reach it.
+  Vertical pans still chain to the reel, and the row adds no height to a page
+  (rule 14). Every slide is the dream's link — one announced, the rest hidden
+  from a screen reader — and the words, the heart and the dots stay put while
+  the photographs pass under them.
+- **Per dream, `photoView`** — `collage` or `carousel` — chosen on the shelf as
+  Koláž · Karusel. Petr chose this over one app-wide setting. Koláž is the
+  collage and then each photograph; Karusel is the photographs alone, with no
+  templates offered and no „Upravit koláž“, and Umístit places a photograph as
+  the whole page it is there. One photograph is the photograph either way.
+  `dreams/slides.ts` says what a tile swipes through, for the reel and the
+  dream's tile alike. It moves `updatedAt`, as the template does (rule 24).
+- **One migration** (`DreamPhotoView`: `dreams.photo_view`, text, default
+  `collage`, so every dream reads as it did) and one endpoint,
+  `PUT /dreams/{id}/view`.
+- **Offline keeps every slide**: each photograph's thumb, the cells if there
+  is a collage, and each photograph at the rung the screen reads — a rung that
+  is also a cell's asked for once (D62).
+- **One crop per photograph** still (D54): a photograph zoomed in its cell is
+  zoomed on its own slide too.
+
+### D88 — A photograph can stand whole in its cell (D82, D85 and rule 16 amended)
+
+Petr: in a collage „the user sees only a part of“ a photograph, and he wanted
+it to be changeable. D82 had every cell fill, so a landscape photograph in a
+tall cell was a sliver of itself.
+
+- **A cell reads the photograph as a tile does**: `tileStyle` and `matStyle`,
+  filling or whole on its mat, with the thumb blurred under it when that is
+  the mat. Petr chose this over draggable lines between cells.
+- **The collage editor has Vyplnit · Celá and the mats for the cell in hand**,
+  the same `FitControls` the single-photograph editor has, and the drag and the
+  zoom work in the room a whole photograph floats in (`room`). `cellFocal` is
+  gone: the editor holds a cell's crop as saved, and saves it when anything a
+  cell shows has changed (`sameCrop`).
+- **Surfaces with no room for a mat still fill**: the Seznam's circle, the
+  wall's pair, the wallpaper and the shared card read the point alone.
+- A photograph set whole while it was alone is now whole in its cell too,
+  because that is what was saved for it.
