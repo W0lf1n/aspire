@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { Dream, DreamStatus } from '@aspire/contracts';
 import { FOCUS_MAX } from './rules';
-import { focusDreams, focusFull, focusFullSentence, readReel, saveReel } from './focus';
+import { byReel, focusDreams, focusFull, focusFullSentence, readReel, saveReel } from './focus';
 
 function dream(
 	id: string,
@@ -60,6 +60,32 @@ describe('focusDreams', () => {
 		const board = [dream('a', 1), dream('c', 7), dream('b', 4)];
 
 		expect(focusDreams(board).map((d) => d.id)).toEqual(['a', 'b', 'c']);
+	});
+});
+
+describe('byReel', () => {
+	it('is the whole list on Vše, achieved dreams and all', () => {
+		const list = [dream('a', null), dream('b', 1, 'achieved'), dream('c', 2)];
+
+		expect(byReel(list, 'all')).toBe(list);
+	});
+
+	it('is the dreams on Teď in the order the list was in, not their ranks', () => {
+		// The Seznam numbers a line by its place in the whole list (D48), so
+		// the ten keep the list's order and their numbers still count down.
+		const list = [dream('third', 3), dream('loose', null), dream('first', 1), dream('second', 2)];
+
+		expect(byReel(list, 'focus').map((d) => d.id)).toEqual(['third', 'first', 'second']);
+	});
+
+	it('leaves out a dream achieved with its rank still on it, as Teď does', () => {
+		const list = [dream('done', 1, 'achieved'), dream('going', 2, 'in-progress')];
+
+		expect(byReel(list, 'focus').map((d) => d.id)).toEqual(['going']);
+	});
+
+	it('is empty when nothing is on Teď', () => {
+		expect(byReel([dream('a', null), dream('b', null)], 'focus')).toEqual([]);
 	});
 });
 

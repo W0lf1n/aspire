@@ -44,18 +44,30 @@
 	 * narrows the list to the dreams it counted, the way the field narrows it
 	 * to the ones it found, and the two stack. `dreams/stats.ts`.
 	 *
+	 * Under them, the board's own segment: Vše · Teď (D83). Teď narrows the
+	 * list to the ten on the second reel, in the list's order and with the
+	 * list's numbers, and stacks with a count and the field like either of
+	 * them. It is a switch rather than a fifth count because it is not a
+	 * state: the four figures add up to celkem and a dream on Teď is already
+	 * counted in one of them.
+	 *
+	 * All three are kept in a snapshot, so the back gesture from a dream opened
+	 * off a narrowed list comes back to the same narrowed list.
+	 *
 	 * A line swiped to the left shows its hearts, Sdílet and Smazat (D78),
 	 * `ui/DreamRow.svelte`.
 	 */
+	import { resolve } from '$app/paths';
 	import { DREAM_STATUSES, type Dream, type DreamInput } from '@aspire/contracts';
 	import { createDream, likeDream, listBoard, placeDream } from '$lib/api/client';
 	import { deleting } from '$lib/dreams/deleting.svelte';
 	import { describeError } from '$lib/api/errors';
 	import { listOrder } from '$lib/dreams/board';
+	import { byReel, type Reel } from '$lib/dreams/focus';
 	import { formatWhen } from '$lib/dreams/format';
 	import { letGo } from '$lib/dreams/letgo';
 	import { placed, serverPlace } from '$lib/dreams/order';
-	import { STATUS_BADGE } from '$lib/dreams/rules';
+	import { FOCUS_MAX, STATUS_BADGE } from '$lib/dreams/rules';
 	import { SEARCH_FROM, searchDreams } from '$lib/dreams/search';
 	import { boardStats, byStatus, type StatusFilter } from '$lib/dreams/stats';
 	import { connection } from '$lib/offline/status.svelte';
@@ -68,6 +80,7 @@
 	import Sheet from '$lib/ui/Sheet.svelte';
 	import TabBar from '$lib/ui/TabBar.svelte';
 	import { toast } from '$lib/ui/toast.svelte';
+	import type { Snapshot } from './$types';
 
 	let dreams = $state<Dream[]>([]);
 
@@ -101,14 +114,21 @@
 	const stats = $derived(boardStats(rows));
 	let only = $state<StatusFilter>(null);
 
-	const found = $derived(searchDreams(byStatus(rows, only), query));
+	/** Which of the board's two words the list is showing (D83). */
+	let reel = $state<Reel>('all');
+
+	/** How many dreams are on Teď, so an empty Teď can say so instead of „nic takového“. */
+	const onFocus = $derived(byReel(rows, 'focus').length);
+	const focusEmpty = $derived(reel === 'focus' && onFocus === 0);
+
+	const found = $derived(searchDreams(byStatus(byReel(rows, reel), only), query));
 
 	/** Whether the field is worth having at all, and whether it is being used. */
 	const searchable = $derived(rows.length >= SEARCH_FROM);
 	const searching = $derived(searchable && query.trim().length > 0);
 
-	/** Whether the list is less than the whole of itself, for either reason. */
-	const narrowed = $derived(searching || only !== null);
+	/** Whether the list is less than the whole of itself, for any of the three reasons. */
+	const narrowed = $derived(searching || only !== null || reel === 'focus');
 
 	/** Whether a line can go anywhere: the whole list, a signal, and somewhere to go. */
 	const movable = $derived(!narrowed && connection.online && rows.length > 1);
@@ -116,7 +136,16 @@
 	function everything() {
 		query = '';
 		only = null;
+		reel = 'all';
 	}
+
+	/** Back from a dream opened off a narrowed list is the same narrowed list. */
+	export const snapshot: Snapshot<{ query: string; only: StatusFilter; reel: Reel }> = {
+		capture: () => ({ query, only, reel }),
+		restore: (kept) => {
+			({ query, only, reel } = kept);
+		}
+	};
 
 	const locked = $derived(cannot(connection.online, 'add'));
 
@@ -154,6 +183,10 @@
 		error = '';
 		try {
 			dreams = [await createDream(input), ...dreams];
+			// It lands on the first line, which a narrowed list may not be
+			// showing: a new dream is on no Teď, in no state but „sním“, and
+			// matches no search typed before it existed.
+			everything();
 			writing = false;
 			toast.show('Sen je v seznamu');
 		} catch (e) {
@@ -356,6 +389,27 @@
 		{#if stats.lastChange}
 			<p class="hint count">Naposledy upraveno {formatWhen(stats.lastChange)}</p>
 		{/if}
+
+		<!--
+			The board's two words, as its segment says them (D53), narrowing the
+			list rather than changing a reel (D83). The soft one on the ground,
+			full width, as the board's empty Teď wears it.
+		-->
+		<div class="seg seg--soft" role="group" aria-label="Které sny">
+			<button
+				type="button"
+				class="seg__item"
+				aria-pressed={reel === 'all'}
+				onclick={() => (reel = 'all')}>Vše</button
+			>
+			<button
+				type="button"
+				class="seg__item"
+				aria-pressed={reel === 'focus'}
+				onclick={() => (reel = 'focus')}
+				>Teď{#if onFocus > 0}<span class="seg__n">{onFocus}</span>{/if}</button
+			>
+		</div>
 	{/if}
 
 	{#if searchable}
@@ -382,7 +436,7 @@
 		</label>
 	{/if}
 
-	{#if narrowed}
+	{#if narrowed && !focusEmpty}
 		<p class="hint count" aria-live="polite">{found.length} z {rows.length}</p>
 	{/if}
 
@@ -409,6 +463,20 @@
 					ongrab={grab}
 				/>
 			{/each}
+		</section>
+	{:else if focusEmpty}
+		<!--
+			Teď with nothing on it answers about Teď, as the board's empty Teď
+			does, rather than „nic takového“: nothing was searched for.
+		-->
+		<section class="card">
+			<p class="hint">
+				Na teď zatím nic nemáš. Vyber až {FOCUS_MAX} snů, na které se teď soustředíš — na nástěnce je
+				pak najdeš pod „Teď“, v pořadí, které jim dáš.
+			</p>
+			<div class="actions actions--fill">
+				<a class="btn btn--accent" href={resolve('/ted')}>Vybrat sny</a>
+			</div>
 		</section>
 	{:else if narrowed}
 		<section class="card">
@@ -466,6 +534,15 @@
 	.count {
 		margin-inline: var(--space-2);
 		font-variant-numeric: tabular-nums;
+	}
+
+	/* How many are on Teď, beside its word: a quieter figure than the word,
+	   so the segment still reads as two words. It follows the segment's own
+	   ink, chosen or not, rather than having a colour of its own. */
+	.seg__n {
+		margin-left: 6px;
+		font-variant-numeric: tabular-nums;
+		opacity: 0.55;
 	}
 
 	/* The card clips its lines, so a face that slides aside and a line's own

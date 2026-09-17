@@ -45,6 +45,21 @@ export function focusDreams(dreams: Dream[]): Dream[] {
 		.sort((a, b) => a.focusRank! - b.focusRank! || a.sortOrder - b.sortOrder);
 }
 
+/**
+ * The Seznam narrowed by the board's own two words (D83). „Vše“ is the whole
+ * list — the achieved dreams too, because the Seznam is the inventory and not
+ * the reel (D44) — and „Teď“ is the dreams on the second reel.
+ *
+ * In the list's order, not Teď's. A line's number is its place in the whole
+ * list (D48), and the ten read in rank order would be numbered 9, 2, 31, 4;
+ * the order of the ten is what `/ted` and the reel are for.
+ */
+export function byReel(dreams: Dream[], reel: Reel): Dream[] {
+	if (reel === 'all') return dreams;
+	const on = new Set(focusDreams(dreams).map((dream) => dream.id));
+	return dreams.filter((dream) => on.has(dream.id));
+}
+
 /** Whether Teď is full, so the pill can say so on the tap (D53). */
 export function focusFull(dreams: Dream[]): boolean {
 	return focusDreams(dreams).length >= FOCUS_MAX;
