@@ -1111,6 +1111,109 @@ a {
 	white-space: nowrap;
 }
 
+/**
+ * The editor's page: a photograph placed on the reel's own page (D54) — one
+ * on its own in `CropEditor`, or a collage cell by cell in `CollageEditor`
+ * (D85). The same frame for both, so the second photograph is placed on the
+ * same surface as the first. Each editor declares only what it puts on it.
+ */
+/* The whole screen, and no dialog of its own: the frame *is* the surface
+   being positioned for. The app's own column width, so on a desktop this
+   is the same shape the reel is rather than the shape of the monitor. */
+.crop {
+	width: 100%;
+	max-width: none;
+	height: 100dvh;
+	max-height: none;
+	margin: 0;
+	padding: 0;
+	border: 0;
+	background: var(--ground);
+	overflow: hidden;
+}
+
+.crop::backdrop {
+	background: rgb(0 0 0 / 60%);
+}
+
+.crop__frame {
+	position: relative;
+	width: 100%;
+	max-width: 34rem;
+	height: 100dvh;
+	margin-inline: auto;
+	overflow: hidden;
+	background: var(--surface-3);
+	isolation: isolate;
+}
+
+/* The scrim the reel's own tile wears, so the words read the same here. */
+.crop__frame::after {
+	content: '';
+	position: absolute;
+	inset: 0;
+	background: var(--scrim-tall);
+	pointer-events: none;
+}
+
+/* Over the scrim, as a tile's words are over its scrim — under it they were
+   dimmed by the very gradient that is there to make them read. */
+.crop__words {
+	position: absolute;
+	z-index: 1;
+	left: 0;
+	right: 0;
+	bottom: calc(var(--space-8) + var(--space-7));
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	gap: var(--space-2);
+	padding-inline: var(--space-4);
+	color: var(--photo-ink);
+	pointer-events: none;
+}
+
+/* Everything above the picture, in one column: what to do, which of the
+   two fits, and — whole — what it stands on. Only the controls take a
+   tap; the gaps between them are still the picture's to be dragged by. */
+.crop__top {
+	position: absolute;
+	top: calc(var(--space-3) + env(safe-area-inset-top, 0px));
+	left: var(--space-4);
+	right: var(--space-4);
+	z-index: 1;
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	gap: var(--space-2);
+	pointer-events: none;
+}
+
+.crop__how {
+	align-self: stretch;
+	padding: var(--space-2) var(--space-3);
+	border-radius: var(--radius-lg);
+}
+
+.crop__zoom {
+	font-variant-numeric: tabular-nums;
+	font-weight: 600;
+}
+
+.crop__acts {
+	position: absolute;
+	z-index: 1;
+	left: var(--space-4);
+	right: var(--space-4);
+	bottom: calc(var(--space-4) + env(safe-area-inset-bottom, 0px));
+	display: flex;
+	gap: var(--space-2);
+}
+
+.crop__acts > :last-child {
+	margin-left: auto;
+}
+
 /** A recessed slab inside a card: the why, quoted. */
 .well {
 	padding: 14px var(--space-4);

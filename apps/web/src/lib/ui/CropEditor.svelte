@@ -15,8 +15,8 @@
 	 *
 	 * One finger moves the picture, two pinch it, a wheel zooms on a laptop,
 	 * and the arrow keys nudge it for anybody who has no pointer at all. The
-	 * arithmetic is `images/focal.ts`, which has the tests; what is here is
-	 * the gestures and the frame.
+	 * arithmetic is `images/focal.ts` and the fingers are `ui/placing.ts`,
+	 * which `CollageEditor` shares (D85); what is here is the frame.
 	 *
 	 * **Vyplnit or Celá** (D81). A photograph either fills the frame, cropped
 	 * to its shape, or stands whole inside it on a mat — which is the answer to
@@ -27,18 +27,9 @@
 	 */
 	import { PHOTO_MATS, type PhotoMat } from '@aspire/contracts';
 	import { matIsBlur, matStyle, photoStyle, tileStyle } from '$lib/dreams/photos';
-	import {
-		CENTRED,
-		MIN_ZOOM,
-		dragged,
-		fitted,
-		spread,
-		startsWhole,
-		toInput,
-		zoomed,
-		type Focal
-	} from '$lib/images/focal';
+	import { CENTRED, MIN_ZOOM, fitted, startsWhole, toInput, type Focal } from '$lib/images/focal';
 	import Icon from './Icon.svelte';
+	import { hands } from './placing';
 
 	/** What each mat is called when it is read out; on the screen it is a colour. */
 	const MAT_LABEL: Record<PhotoMat, string> = {
@@ -139,16 +130,6 @@
 		measure();
 	});
 
-	/** Where the gesture began, and the crop it began from. */
-	let from: { x: number; y: number; focal: Focal; gap: number; zoom: number } | null = null;
-
-	/**
-	 * Every finger currently down, so two of them can be a pinch. A plain
-	 * array rather than a reactive collection: nothing on the screen is drawn
-	 * from it, and the crop it produces is what `now` holds.
-	 */
-	let touches: { id: number; x: number; y: number }[] = [];
-
 	$effect(() => {
 		const dialog = el;
 		if (!dialog) return;
@@ -178,92 +159,14 @@
 		return { width: box?.width ?? 0, height: box?.height ?? 0 };
 	}
 
-	function put(event: PointerEvent) {
-		touches = [
-			...touches.filter((one) => one.id !== event.pointerId),
-			{ id: event.pointerId, x: event.clientX, y: event.clientY }
-		];
-	}
-
-	function down(event: PointerEvent) {
-		if (busy) return;
-		put(event);
-		try {
-			// Keeps the gesture on this element once a finger leaves it. A
-			// pointer the browser has already let go of throws here, and a
-			// drag that works without capture is better than one that stops.
-			(event.currentTarget as HTMLElement).setPointerCapture(event.pointerId);
-		} catch {
-			/* no capture; the move and up handlers still fire on this element */
-		}
-
-		from = {
-			x: event.clientX,
-			y: event.clientY,
-			focal: { ...now },
-			gap: touches.length === 2 ? spread(touches[0], touches[1]) : 0,
-			zoom: now.zoom
-		};
-	}
-
-	function move(event: PointerEvent) {
-		if (!from || !touches.some((one) => one.id === event.pointerId)) return;
-		put(event);
-
-		if (touches.length === 2 && from.gap > 0) {
-			// A pinch: the zoom is the distance between the fingers against the
-			// distance they started at, so letting go and starting again does
-			// not jump.
-			now = zoomed({ ...now, zoom: from.zoom }, spread(touches[0], touches[1]) / from.gap);
-			return;
-		}
-
-		// The whole drag from where the finger went down, not frame by frame,
-		// so a gesture that hits an edge and comes back ends where it should.
-		now = dragged(from.focal, event.clientX - from.x, event.clientY - from.y, measured(), picture);
-	}
-
-	function up(event: PointerEvent) {
-		touches = touches.filter((one) => one.id !== event.pointerId);
-		if (touches.length === 0) {
-			from = null;
-			return;
-		}
-
-		// A finger lifted off a pinch: whatever is left starts a new drag from
-		// where it is, rather than sending the picture across the screen.
-		const left = touches[0];
-		from = { x: left.x, y: left.y, focal: { ...now }, gap: 0, zoom: now.zoom };
-	}
-
-	function wheel(event: WheelEvent) {
-		if (busy) return;
-		event.preventDefault();
-		now = zoomed(now, event.deltaY < 0 ? 1.08 : 1 / 1.08);
-	}
-
-	function keys(event: KeyboardEvent) {
-		const step = 24;
-		const by: Record<string, [number, number]> = {
-			ArrowLeft: [-step, 0],
-			ArrowRight: [step, 0],
-			ArrowUp: [0, -step],
-			ArrowDown: [0, step]
-		};
-		const nudge = by[event.key];
-		if (nudge) {
-			event.preventDefault();
-			now = dragged(now, nudge[0], nudge[1], measured(), picture);
-			return;
-		}
-		if (event.key === '+' || event.key === '=') {
-			event.preventDefault();
-			now = zoomed(now, 1.1);
-		} else if (event.key === '-') {
-			event.preventDefault();
-			now = zoomed(now, 1 / 1.1);
-		}
-	}
+	/** The fingers on the picture, moving the crop being edited. */
+	const placed = hands({
+		get: () => now,
+		set: (focal) => (now = focal),
+		frame: measured,
+		picture: () => picture,
+		resting: () => busy
+	});
 </script>
 
 <dialog
@@ -274,7 +177,7 @@
 		event.preventDefault();
 		oncancel();
 	}}
-	onkeydown={keys}
+	onkeydown={placed.keys}
 >
 	<div class="crop__frame" bind:this={frame} style={mat}>
 		{#if blurred}
@@ -295,11 +198,11 @@
 			draggable="false"
 			bind:this={img}
 			onload={measure}
-			onpointerdown={down}
-			onpointermove={move}
-			onpointerup={up}
-			onpointercancel={up}
-			onwheel={wheel}
+			onpointerdown={placed.down}
+			onpointermove={placed.move}
+			onpointerup={placed.up}
+			onpointercancel={placed.up}
+			onwheel={placed.wheel}
 		/>
 
 		<!-- Where the words will be, so nothing is positioned under them. -->
@@ -389,45 +292,6 @@
 </dialog>
 
 <style>
-	/* The whole screen, and no dialog of its own: the frame *is* the surface
-	   being positioned for. The app's own column width, so on a desktop this
-	   is the same shape the reel is rather than the shape of the monitor. */
-	.crop {
-		width: 100%;
-		max-width: none;
-		height: 100dvh;
-		max-height: none;
-		margin: 0;
-		padding: 0;
-		border: 0;
-		background: var(--ground);
-		overflow: hidden;
-	}
-
-	.crop::backdrop {
-		background: rgb(0 0 0 / 60%);
-	}
-
-	.crop__frame {
-		position: relative;
-		width: 100%;
-		max-width: 34rem;
-		height: 100dvh;
-		margin-inline: auto;
-		overflow: hidden;
-		background: var(--surface-3);
-		isolation: isolate;
-	}
-
-	/* The scrim the reel's own tile wears, so the words read the same here. */
-	.crop__frame::after {
-		content: '';
-		position: absolute;
-		inset: 0;
-		background: var(--scrim-tall);
-		pointer-events: none;
-	}
-
 	.crop__img {
 		position: absolute;
 		inset: 0;
@@ -443,42 +307,6 @@
 
 	.crop__img:active {
 		cursor: grabbing;
-	}
-
-	.crop__words {
-		position: absolute;
-		left: 0;
-		right: 0;
-		bottom: calc(var(--space-8) + var(--space-7));
-		display: flex;
-		flex-direction: column;
-		align-items: flex-start;
-		gap: var(--space-2);
-		padding-inline: var(--space-4);
-		color: var(--photo-ink);
-		pointer-events: none;
-	}
-
-	/* Everything above the picture, in one column: what to do, which of the
-	   two fits, and — whole — what it stands on. Only the controls take a
-	   tap; the gaps between them are still the picture's to be dragged by. */
-	.crop__top {
-		position: absolute;
-		top: calc(var(--space-3) + env(safe-area-inset-top, 0px));
-		left: var(--space-4);
-		right: var(--space-4);
-		z-index: 1;
-		display: flex;
-		flex-direction: column;
-		align-items: flex-start;
-		gap: var(--space-2);
-		pointer-events: none;
-	}
-
-	.crop__how {
-		align-self: stretch;
-		padding: var(--space-2) var(--space-3);
-		border-radius: var(--radius-lg);
 	}
 
 	.crop__fit,
@@ -513,23 +341,5 @@
 		box-shadow:
 			inset 0 0 0 2px var(--mat-night),
 			0 0 0 2px var(--photo-ink);
-	}
-
-	.crop__zoom {
-		font-variant-numeric: tabular-nums;
-		font-weight: 600;
-	}
-
-	.crop__acts {
-		position: absolute;
-		left: var(--space-4);
-		right: var(--space-4);
-		bottom: calc(var(--space-4) + env(safe-area-inset-bottom, 0px));
-		display: flex;
-		gap: var(--space-2);
-	}
-
-	.crop__acts > :last-child {
-		margin-left: auto;
 	}
 </style>
