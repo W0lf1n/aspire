@@ -127,6 +127,15 @@ export function deleteDream(id: string, keepalive = false): Promise<void> {
 	return call<void>(`/dreams/${id}`, { method: 'DELETE', keepalive });
 }
 
+/**
+ * This dream to that line of the Seznam, counted from one (D79). Nothing
+ * comes back: the screen has already moved the row, and `dreams/order.ts`
+ * numbers the board the same way the server does.
+ */
+export function placeDream(id: string, place: number): Promise<void> {
+	return call<void>(`/dreams/${id}/place`, { method: 'PUT', body: JSON.stringify({ place }) });
+}
+
 /** One more on the heart; the dream comes back with its new count. */
 export function likeDream(id: string): Promise<Dream> {
 	return call<Dream>(`/dreams/${id}/likes`, { method: 'POST' });

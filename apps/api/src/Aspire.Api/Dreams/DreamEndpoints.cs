@@ -130,6 +130,30 @@ public static class DreamEndpoints
             return await dreams.MarkShownAsync(device.BoardId, id, ct) ? Results.NoContent() : Results.NotFound();
         });
 
+        // This dream to that line of the Seznam (D79). One dream and one
+        // number rather than the whole order: both ways of moving a dream —
+        // dragging it, and typing over its number — are exactly this.
+        app.MapPut("/api/v1/dreams/{id:guid}/place", async (
+            Guid id,
+            PlaceInput input,
+            HttpContext http,
+            DeviceAuth auth,
+            DreamService dreams,
+            CancellationToken ct) =>
+        {
+            var device = await auth.ResolveAsync(http.Request.Headers.Authorization, ct);
+            if (device is null) return Results.Unauthorized();
+
+            if (input.Place is not { } place || place < 1)
+            {
+                return Results.Problem("Místo v seznamu je číslo od jedné.", statusCode: 400);
+            }
+
+            return await dreams.PlaceAsync(device.BoardId, id, place, ct)
+                ? Results.NoContent()
+                : Results.NotFound();
+        });
+
         // ── Teď, the second reel (D53) ────────────────────────────────────────
 
         // Put this dream on Teď, behind the ones already there. 409 when it

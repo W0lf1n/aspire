@@ -82,21 +82,25 @@ export function reelDreams(dreams: Dream[]): Dream[] {
 }
 
 /**
- * The list: every dream there is, the most recently written first (D44).
+ * The list: every dream there is, in the person's own order (D79).
  *
  * Not the reel and not the wall — both of those are a selection, and this is
  * the board itself, the one place a dream that is achieved and a dream that
- * is not stand in the same column. Newest first because the list is where
- * dreams are written: what you just added is at the top, where you are
- * looking.
+ * is not stand in the same column. It was newest first until the list could
+ * be reordered (D44); it still starts that way, because a new dream goes in
+ * front of the lowest `sortOrder`, and from there it is whatever he drags it
+ * into. `dreams/order.ts` is the moving; this is only the reading.
  *
- * Ties go to the later `sortOrder`, so two dreams written in the same second
- * — an import, a fast thumb — still come out in a fixed order rather than
- * swapping places between renders.
+ * Ties go to the later-written and then to the id, so two dreams given the
+ * same key — two phones adding at the same moment — still come out in a
+ * fixed order rather than swapping places between renders.
  */
 export function listOrder(dreams: Dream[]): Dream[] {
 	return [...dreams].sort(
-		(a, b) => stamp(b.createdAt) - stamp(a.createdAt) || b.sortOrder - a.sortOrder
+		(a, b) =>
+			a.sortOrder - b.sortOrder ||
+			stamp(b.createdAt) - stamp(a.createdAt) ||
+			a.id.localeCompare(b.id)
 	);
 }
 

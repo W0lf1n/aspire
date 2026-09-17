@@ -137,6 +137,11 @@ public sealed record BoardResponse(string Name, int Photographs, long Bytes, lon
 /// </summary>
 public sealed record FocusInput(IReadOnlyList<Guid>? DreamIds);
 
+/// <summary>
+/// Which line of the Seznam a dream is moved to, counted from one (D79).
+/// </summary>
+public sealed record PlaceInput(int? Place);
+
 public sealed record DreamDto(
     Guid Id,
     string Title,

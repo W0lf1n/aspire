@@ -144,36 +144,46 @@ describe('categoriesOnBoard', () => {
 });
 
 describe('listOrder', () => {
-	it('is the most recently written first', () => {
+	it('is his own order, the lowest key first (D79)', () => {
 		const rows = [
-			dream('old', { createdAt: A_WEEK_AGO }),
-			dream('new', { createdAt: TODAY }),
-			dream('middle', { createdAt: YESTERDAY })
+			dream('third', { sortOrder: 2 }),
+			dream('first', { sortOrder: -4 }),
+			dream('second', { sortOrder: 0 })
 		];
 
-		expect(listOrder(rows).map((d) => d.id)).toEqual(['new', 'middle', 'old']);
+		expect(listOrder(rows).map((d) => d.id)).toEqual(['first', 'second', 'third']);
+	});
+
+	it('does not care when a dream was written once it has a place', () => {
+		const rows = [
+			dream('new', { createdAt: TODAY, sortOrder: 1 }),
+			dream('old', { createdAt: A_WEEK_AGO, sortOrder: 0 })
+		];
+
+		expect(listOrder(rows).map((d) => d.id)).toEqual(['old', 'new']);
 	});
 
 	it('keeps an achieved dream, which the reel and the wall each drop half of', () => {
 		const rows = [
-			dream('done', { status: 'achieved', achievedAt: YESTERDAY, createdAt: TODAY }),
-			dream('still', { createdAt: YESTERDAY })
+			dream('done', { status: 'achieved', achievedAt: YESTERDAY, sortOrder: 0 }),
+			dream('still', { sortOrder: 1 })
 		];
 
 		expect(listOrder(rows).map((d) => d.id)).toEqual(['done', 'still']);
 	});
 
-	it('breaks a tie on the later sortOrder, so the order never wobbles', () => {
+	it('breaks a tie on the later-written, then the id, so the order never wobbles', () => {
 		const rows = [
-			dream('first', { createdAt: TODAY, sortOrder: 1 }),
-			dream('second', { createdAt: TODAY, sortOrder: 2 })
+			dream('b', { createdAt: YESTERDAY }),
+			dream('a', { createdAt: YESTERDAY }),
+			dream('newest', { createdAt: TODAY })
 		];
 
-		expect(listOrder(rows).map((d) => d.id)).toEqual(['second', 'first']);
+		expect(listOrder(rows).map((d) => d.id)).toEqual(['newest', 'a', 'b']);
 	});
 
 	it('leaves the board it was given alone', () => {
-		const rows = [dream('a', { createdAt: A_WEEK_AGO }), dream('b', { createdAt: TODAY })];
+		const rows = [dream('a', { sortOrder: 1 }), dream('b', { sortOrder: 0 })];
 		listOrder(rows);
 
 		expect(rows.map((d) => d.id)).toEqual(['a', 'b']);

@@ -57,10 +57,13 @@ public sealed class DreamService(AppDbContext db, MediaStore media)
 
     public async Task<Dream> CreateAsync(string boardId, DreamInput input, CancellationToken ct = default)
     {
-        // Behind everything already there: a new dream joins at the end.
-        var last = await db.Dreams
+        // In front of everything already there: a new dream is number one in
+        // the Seznam, which is where the person writing it is looking (D44,
+        // D79). Below zero is fine — it is a key to order by, and the next
+        // `PlaceAsync` counts the board off from nought again.
+        var first = await db.Dreams
             .Where(d => d.BoardId == boardId)
-            .MaxAsync(d => (int?)d.SortOrder, ct);
+            .MinAsync(d => (int?)d.SortOrder, ct);
 
         var now = DateTimeOffset.UtcNow;
         var dream = new Dream
@@ -68,7 +71,7 @@ public sealed class DreamService(AppDbContext db, MediaStore media)
             Id = Guid.NewGuid(),
             BoardId = boardId,
             Title = string.Empty,
-            SortOrder = (last ?? -1) + 1,
+            SortOrder = (first ?? 1) - 1,
             CreatedAt = now
         };
         Apply(dream, input, now);
@@ -97,6 +100,30 @@ public sealed class DreamService(AppDbContext db, MediaStore media)
         db.Dreams.Remove(dream);
         await db.SaveChangesAsync(ct);
         media.DeleteDream(dream.Id);
+        return true;
+    }
+
+    /// <summary>
+    /// This dream to that line of the Seznam, counted from one, and everything
+    /// between where it was and where it is now moves over by one (D79).
+    ///
+    /// The whole board is counted off again, 0…N−1, rather than a gap being
+    /// found between two neighbours: a hundred rows is nothing, and an order
+    /// that is always whole numbers from nought is an order with no drift to
+    /// tidy up later. A place past either end is the end. `UpdatedAt` is left
+    /// alone — where a dream stands in a list is about the list (D77).
+    /// </summary>
+    public async Task<bool> PlaceAsync(string boardId, Guid id, int place, CancellationToken ct = default)
+    {
+        var rows = await ListAsync(boardId, ct);
+        var dream = rows.FirstOrDefault(d => d.Id == id);
+        if (dream is null) return false;
+
+        rows.Remove(dream);
+        rows.Insert(Math.Clamp(place - 1, 0, rows.Count), dream);
+        for (var i = 0; i < rows.Count; i++) rows[i].SortOrder = i;
+
+        await db.SaveChangesAsync(ct);
         return true;
     }
 

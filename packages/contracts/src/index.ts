@@ -59,6 +59,11 @@ export interface Dream {
 	status: DreamStatus;
 	/** One of the three, or null. */
 	category: DreamCategory | null;
+	/**
+	 * Board order, lowest first: the order the Seznam is in, which is the
+	 * person's own (D79). A key to sort by and not a line number — the screen
+	 * counts the lines — so it may be negative and may have gaps.
+	 */
 	sortOrder: number;
 	/**
 	 * Where this dream stands on Teď, the second reel, or null when it is not
@@ -240,6 +245,17 @@ export interface BoardResponse {
  */
 export interface FocusInput {
 	dreamIds: string[];
+}
+
+// ── PUT /api/v1/dreams/{id}/place ───────────────────────────────────────────
+
+/**
+ * Which line of the Seznam a dream is moved to, counted from one (D79). One
+ * dream and one number, because both ways of moving a dream — dragging it and
+ * typing over its number — are exactly that. A place past the end is the end.
+ */
+export interface PlaceInput {
+	place: number;
 }
 
 // ── POST /api/v1/dreams · PUT /api/v1/dreams/{id} ──────────────────────────

@@ -172,6 +172,37 @@ public sealed class HttpEndpointTests : IAsyncLifetime
     }
 
     [Fact]
+    public async Task A_dream_is_moved_to_a_line_of_the_Seznam_and_the_list_comes_back_in_that_order()
+    {
+        var first = await ADreamAsync("První");
+        await ADreamAsync("Druhý");
+        await ADreamAsync("Třetí");
+
+        // Newest in front, so „První“ is on the third line; up to the first.
+        var moved = await _client.PutAsync(
+            $"/api/v1/dreams/{first.GetProperty("id").GetString()}/place", Json("""{"place":1}"""));
+        Assert.Equal(HttpStatusCode.NoContent, moved.StatusCode);
+
+        var board = await _client.GetFromJsonAsync<JsonElement>("/api/v1/dreams", Wire);
+        Assert.Equal(
+            ["První", "Třetí", "Druhý"],
+            board.EnumerateArray().Select(d => d.GetProperty("title").GetString()));
+    }
+
+    [Fact]
+    public async Task A_place_that_is_not_a_line_is_a_400_with_a_sentence()
+    {
+        var dream = await ADreamAsync();
+
+        var refused = await _client.PutAsync(
+            $"/api/v1/dreams/{dream.GetProperty("id").GetString()}/place", Json("""{"place":0}"""));
+
+        Assert.Equal(HttpStatusCode.BadRequest, refused.StatusCode);
+        var problem = await refused.Content.ReadFromJsonAsync<JsonElement>(Wire);
+        Assert.Equal("Místo v seznamu je číslo od jedné.", problem.GetProperty("detail").GetString());
+    }
+
+    [Fact]
     public async Task The_board_says_what_it_holds_against_the_ceiling()
     {
         await ADreamAsync();

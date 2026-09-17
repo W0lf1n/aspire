@@ -43,15 +43,17 @@ public sealed class DreamServiceTests : IDisposable
         new(title, why, status, category, year, affirmation);
 
     [Fact]
-    public async Task A_new_dream_joins_the_end_of_its_own_board()
+    public async Task A_new_dream_goes_in_front_of_its_own_board()
     {
-        await _dreams.CreateAsync(BoardA, Input("První"));
+        // Number one in the Seznam is the dream just written (D44, D79), and
+        // another board's dreams do not count towards where that is.
+        var first = await _dreams.CreateAsync(BoardA, Input("První"));
         await _dreams.CreateAsync(BoardB, Input("Cizí"));
         var second = await _dreams.CreateAsync(BoardA, Input("Druhý"));
 
-        Assert.Equal(1, second.SortOrder);
+        Assert.Equal(first.SortOrder - 1, second.SortOrder);
         var listed = await _dreams.ListAsync(BoardA);
-        Assert.Equal(["První", "Druhý"], listed.Select(d => d.Title));
+        Assert.Equal(["Druhý", "První"], listed.Select(d => d.Title));
     }
 
     [Fact]
@@ -405,7 +407,71 @@ public sealed class DreamServiceTests : IDisposable
         await _dreams.RemoveFromFocusAsync(BoardA, made[1].Id);
         await _dreams.LikeAsync(BoardA, made[0].Id);
 
-        var after = await _dreams.ListAsync(BoardA);
-        Assert.Equal(before, after.Select(d => d.UpdatedAt).ToList());
+        await _dreams.PlaceAsync(BoardA, made[0].Id, 1);
+
+        var after = (await _dreams.ListAsync(BoardA)).ToDictionary(d => d.Id, d => d.UpdatedAt);
+        Assert.Equal(before, made.Select(d => after[d.Id]).ToList());
+    }
+
+    // ── the Seznam's own order (D79) ────────────────────────────────────────
+
+    private async Task<List<string>> Titles() =>
+        (await _dreams.ListAsync(BoardA)).Select(d => d.Title).ToList();
+
+    [Fact]
+    public async Task A_dream_moved_up_pushes_the_ones_it_passed_down_by_one()
+    {
+        // Made 0, 1, 2, 3 and each went in front, so the list reads 3, 2, 1, 0.
+        var made = await Made(4);
+        Assert.Equal(["Sen 3", "Sen 2", "Sen 1", "Sen 0"], await Titles());
+
+        // The third line to the first: what was first is second, what was
+        // second is third, and the fourth never moved.
+        Assert.True(await _dreams.PlaceAsync(BoardA, made[1].Id, 1));
+
+        Assert.Equal(["Sen 1", "Sen 3", "Sen 2", "Sen 0"], await Titles());
+    }
+
+    [Fact]
+    public async Task A_dream_moved_down_pulls_the_ones_it_passed_up_by_one()
+    {
+        var made = await Made(4);
+
+        Assert.True(await _dreams.PlaceAsync(BoardA, made[3].Id, 3));
+
+        Assert.Equal(["Sen 2", "Sen 1", "Sen 3", "Sen 0"], await Titles());
+    }
+
+    [Fact]
+    public async Task The_board_is_counted_off_from_nought_every_time()
+    {
+        var made = await Made(3);
+
+        await _dreams.PlaceAsync(BoardA, made[0].Id, 2);
+
+        Assert.Equal([0, 1, 2], (await _dreams.ListAsync(BoardA)).Select(d => d.SortOrder));
+    }
+
+    [Fact]
+    public async Task A_place_past_the_end_is_the_end()
+    {
+        var made = await Made(3);
+
+        await _dreams.PlaceAsync(BoardA, made[2].Id, 99);
+
+        Assert.Equal(["Sen 1", "Sen 0", "Sen 2"], await Titles());
+    }
+
+    [Fact]
+    public async Task Another_board_cannot_move_it_and_is_not_counted_among_it()
+    {
+        var made = await Made(2);
+        var elsewhere = await _dreams.CreateAsync(BoardB, Input("Cizí"));
+
+        Assert.False(await _dreams.PlaceAsync(BoardB, made[0].Id, 1));
+        Assert.True(await _dreams.PlaceAsync(BoardA, made[0].Id, 1));
+
+        Assert.Equal(["Sen 0", "Sen 1"], await Titles());
+        Assert.Equal(elsewhere.SortOrder, (await _dreams.FindAsync(BoardB, elsewhere.Id))!.SortOrder);
     }
 }

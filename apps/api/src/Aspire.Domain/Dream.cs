@@ -45,7 +45,12 @@ public sealed class Dream
     /// </summary>
     public DreamCategory? Category { get; set; }
 
-    /// <summary>Board order — the person's own priority, set by dragging.</summary>
+    /// <summary>
+    /// Board order, lowest first: the order the Seznam is in, which is the
+    /// person's own — dragged, or typed into a line's number (D79). A new
+    /// dream goes in front of the lowest. The reel does not read it except to
+    /// break a tie: Vše is still shuffled (D30).
+    /// </summary>
     public int SortOrder { get; set; }
 
     /// <summary>
