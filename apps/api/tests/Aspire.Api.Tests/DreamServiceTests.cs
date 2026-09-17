@@ -391,4 +391,21 @@ public sealed class DreamServiceTests : IDisposable
         Assert.Empty(await _dreams.FocusAsync(BoardB));
         Assert.Equal(["Sen 0"], await FocusTitles());
     }
+
+    [Fact]
+    public async Task A_place_on_Teď_is_not_a_change_to_the_dream()
+    {
+        // The date on a dream's screen means „I last changed this“ (D77):
+        // which reel it is on, and where, is about the board.
+        var made = await Made(2);
+        var before = made.Select(d => d.UpdatedAt).ToList();
+
+        await _dreams.AddToFocusAsync(BoardA, made[0].Id);
+        await _dreams.ReorderFocusAsync(BoardA, [made[1].Id, made[0].Id]);
+        await _dreams.RemoveFromFocusAsync(BoardA, made[1].Id);
+        await _dreams.LikeAsync(BoardA, made[0].Id);
+
+        var after = await _dreams.ListAsync(BoardA);
+        Assert.Equal(before, after.Select(d => d.UpdatedAt).ToList());
+    }
 }

@@ -169,8 +169,10 @@ public sealed class DreamService(AppDbContext db, MediaStore media)
             .Where(d => d.BoardId == boardId && d.FocusRank != null)
             .MaxAsync(d => (int?)d.FocusRank, ct);
 
+        // `UpdatedAt` stays where it was, here and in the two below: which reel
+        // a dream is on says something about the board and nothing about the
+        // dream, and the date on its screen means „I last changed this“ (D77).
         dream.FocusRank = (last ?? 0) + 1;
-        dream.UpdatedAt = DateTimeOffset.UtcNow;
         await db.SaveChangesAsync(ct);
         return (dream, null);
     }
@@ -186,7 +188,6 @@ public sealed class DreamService(AppDbContext db, MediaStore media)
         if (dream.FocusRank is null) return true;
 
         dream.FocusRank = null;
-        dream.UpdatedAt = DateTimeOffset.UtcNow;
         await db.SaveChangesAsync(ct);
         return true;
     }
@@ -220,8 +221,6 @@ public sealed class DreamService(AppDbContext db, MediaStore media)
             return (null, "Splněný sen na teď nepatří.");
         }
 
-        var now = DateTimeOffset.UtcNow;
-
         // Everything that was on Teď leaves it first, so a dream left out of
         // the new order is off it. These are the same tracked instances the
         // query above returned, so the ranks below land on top.
@@ -230,14 +229,12 @@ public sealed class DreamService(AppDbContext db, MediaStore media)
             .ToListAsync(ct))
         {
             dream.FocusRank = null;
-            dream.UpdatedAt = now;
         }
 
         var byId = asked.ToDictionary(d => d.Id);
         for (var i = 0; i < ids.Count; i++)
         {
             byId[ids[i]].FocusRank = i + 1;
-            byId[ids[i]].UpdatedAt = now;
         }
 
         await db.SaveChangesAsync(ct);

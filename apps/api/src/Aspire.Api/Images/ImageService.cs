@@ -105,6 +105,7 @@ public sealed class ImageService(AppDbContext db, MediaStore media, ImageQueue q
         }
 
         db.DreamImages.Add(image);
+        Touch(dream);
         await db.SaveChangesAsync(ct);
         await queue.EnqueueAsync(image.Id, ct);
         return (image, null);
@@ -116,6 +117,7 @@ public sealed class ImageService(AppDbContext db, MediaStore media, ImageQueue q
         if (image is null) return false;
 
         db.DreamImages.Remove(image);
+        Touch(dream);
         await db.SaveChangesAsync(ct);
         media.DeleteImage(dream.Id, imageId);
         File.Delete(StagedPath(imageId));
@@ -142,8 +144,24 @@ public sealed class ImageService(AppDbContext db, MediaStore media, ImageQueue q
         image.FocusX = input.FocusX ?? image.FocusX;
         image.FocusY = input.FocusY ?? image.FocusY;
         image.Zoom = input.Zoom ?? image.Zoom;
+        Touch(dream);
         await db.SaveChangesAsync(ct);
         return (image, null);
+    }
+
+    /// <summary>
+    /// A photograph put on a dream, taken off it or moved is the dream being
+    /// changed, and the date on its screen says so (D77). The dream is the
+    /// caller's tracked row, or is attached here when it is not, so the stamp
+    /// rides in the same save as the photograph.
+    /// </summary>
+    private void Touch(Dream dream)
+    {
+        dream.UpdatedAt = DateTimeOffset.UtcNow;
+        if (db.Entry(dream).State == EntityState.Detached)
+        {
+            db.Dreams.Attach(dream).Property(d => d.UpdatedAt).IsModified = true;
+        }
     }
 
     /// <summary>The sentence for a crop that is not one, or null.</summary>

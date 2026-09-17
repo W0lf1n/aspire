@@ -386,4 +386,27 @@ public sealed class ImageServiceTests : IDisposable
         second.Position = 0;
         Assert.Null((await roomy.AddAsync(dream, second, second.Length)).Problem);
     }
+
+    [Fact]
+    public async Task A_photograph_put_on_moved_or_taken_off_is_the_dream_being_changed()
+    {
+        var dream = await ADream();
+        var stamps = new List<DateTimeOffset> { dream.UpdatedAt };
+        using var png = Png(400, 500);
+
+        var (image, _) = await _images.AddAsync(dream, png, png.Length);
+        stamps.Add((await _dreams.FindAsync(Board, dream.Id))!.UpdatedAt);
+
+        await Task.Delay(5);
+        await _images.MoveAsync(dream, image!.Id, new FocalInput(0.2, null, null));
+        stamps.Add((await _dreams.FindAsync(Board, dream.Id))!.UpdatedAt);
+
+        await Task.Delay(5);
+        await _images.RemoveAsync(dream, image.Id);
+        stamps.Add((await _dreams.FindAsync(Board, dream.Id))!.UpdatedAt);
+
+        // Later every time, which is all the screen needs of it (D77).
+        Assert.Equal(stamps.OrderBy(s => s).ToList(), stamps);
+        Assert.Equal(stamps.Count, stamps.Distinct().Count());
+    }
 }

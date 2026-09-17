@@ -79,6 +79,13 @@ export interface Dream {
 	lastShownAt: string | null;
 	/** ISO datetime. */
 	createdAt: string;
+	/**
+	 * ISO datetime of the last time the dream itself was changed: its words,
+	 * its status, its area, its year or one of its photographs (D77). A heart,
+	 * the day's „shown“ stamp and a place in an order are about the board and
+	 * do not move it, so the date means „I last worked on this one then“.
+	 */
+	updatedAt: string;
 	/** Both kinds, in board order; `photosOf` picks the one a screen wants. */
 	images: DreamImage[];
 }

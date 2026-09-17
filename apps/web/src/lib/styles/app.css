@@ -863,6 +863,51 @@ a {
 	color: var(--ink);
 }
 
+/**
+ * The stats: a card's worth of counts side by side, a figure over the word
+ * for it (D77). Each one is a button that narrows the list to what it
+ * counted, pressed by luminance the way a soft segment is — ink and surface
+ * only, because a count is a fact and neither accent has anything to say
+ * about it.
+ */
+.stats {
+	display: grid;
+	grid-template-columns: repeat(var(--stats, 4), minmax(0, 1fr));
+	gap: var(--space-1);
+	padding: var(--space-2);
+}
+
+.stats__item {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 2px;
+	min-height: var(--touch-lg);
+	padding: var(--space-2) var(--space-1);
+	border-radius: var(--radius-md);
+	color: var(--ink);
+	transition: background var(--dur-fast) var(--ease-out);
+}
+
+.stats__item:active,
+.stats__item[aria-pressed='true'] {
+	background: var(--surface-3);
+}
+
+.stats__n {
+	font-size: var(--text-xl);
+	font-weight: 600;
+	line-height: var(--leading-tight);
+	letter-spacing: var(--track-xl);
+	font-variant-numeric: tabular-nums;
+}
+
+.stats__label {
+	font-size: var(--text-xs);
+	color: var(--ink-2);
+	white-space: nowrap;
+}
+
 /** A recessed slab inside a card: the why, quoted. */
 .well {
 	padding: 14px var(--space-4);

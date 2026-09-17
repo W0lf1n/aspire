@@ -151,6 +151,7 @@ public sealed record DreamDto(
     DateTimeOffset? AchievedAt,
     DateTimeOffset? LastShownAt,
     DateTimeOffset CreatedAt,
+    DateTimeOffset UpdatedAt,
     IReadOnlyList<DreamImageDto> Images)
 {
     public static DreamDto From(Dream dream, IEnumerable<DreamImage> images) => new(
@@ -167,5 +168,6 @@ public sealed record DreamDto(
         dream.AchievedAt,
         dream.LastShownAt,
         dream.CreatedAt,
+        dream.UpdatedAt,
         images.Select(DreamImageDto.From).ToList());
 }

@@ -8,6 +8,25 @@ export function formatDate(iso: string): string {
 }
 
 /**
+ * A date as something that happened lately: „dnes“, „včera“, and the long
+ * date for everything older (D77). The day is the device's own, as the daily
+ * pick's is — a dream changed at eleven at night was changed today, whatever
+ * UTC thinks.
+ */
+export function formatWhen(iso: string, now: Date = new Date()): string {
+	const then = new Date(iso);
+	const days = Math.round((dayOf(now) - dayOf(then)) / 86_400_000);
+	if (days === 0) return 'dnes';
+	if (days === 1) return 'včera';
+	return formatDate(iso);
+}
+
+/** The day a date falls in where the device is. `Date.UTC` has no summer time. */
+function dayOf(date: Date): number {
+	return Date.UTC(date.getFullYear(), date.getMonth(), date.getDate());
+}
+
+/**
  * The anniversary line: „Před rokem se ti splnil sen ‚Dům u lesa‘.“
  *
  * The verb agrees with *sen*, not with the person, so the sentence is right

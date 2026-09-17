@@ -39,6 +39,7 @@ function dream(id: string, over: Partial<Dream> = {}): Dream {
 		achievedAt: null,
 		lastShownAt: null,
 		createdAt: '2026-09-01T00:00:00Z',
+		updatedAt: '2026-09-01T00:00:00Z',
 		images: [],
 		...over
 	};

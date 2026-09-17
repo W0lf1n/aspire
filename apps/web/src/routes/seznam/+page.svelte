@@ -29,16 +29,23 @@
 	 * (D49). It runs here rather than on the server, over the board this
 	 * screen has already fetched, so it answers on the keystroke and answers
 	 * offline.
+	 *
+	 * Above both is the board counted (D77): how many dreams, how many in each
+	 * state, and when any of them was last changed. A number is a button — it
+	 * narrows the list to the dreams it counted, the way the field narrows it
+	 * to the ones it found, and the two stack. `dreams/stats.ts`.
 	 */
 	import { resolve } from '$app/paths';
-	import type { Dream, DreamInput } from '@aspire/contracts';
+	import { DREAM_STATUSES, type Dream, type DreamInput } from '@aspire/contracts';
 	import { createDream, listBoard } from '$lib/api/client';
 	import { deleting } from '$lib/dreams/deleting.svelte';
 	import { describeError } from '$lib/api/errors';
 	import { listOrder } from '$lib/dreams/board';
+	import { formatWhen } from '$lib/dreams/format';
 	import { photoOf, photoStyle } from '$lib/dreams/photos';
-	import { listLine } from '$lib/dreams/rules';
+	import { STATUS_BADGE, listLine } from '$lib/dreams/rules';
 	import { SEARCH_FROM, searchDreams } from '$lib/dreams/search';
+	import { boardStats, byStatus, type StatusFilter } from '$lib/dreams/stats';
 	import { connection } from '$lib/offline/status.svelte';
 	import { cannot, writes } from '$lib/offline/writes.svelte';
 	import DreamForm from '$lib/ui/DreamForm.svelte';
@@ -75,11 +82,23 @@
 	/** Which line each dream is, counted down the whole list from the top. */
 	const place = $derived(new Map(rows.map((dream, i) => [dream.id, i + 1])));
 
-	const found = $derived(searchDreams(rows, query));
+	/** The board counted, and the one state the list is narrowed to, if any. */
+	const stats = $derived(boardStats(rows));
+	let only = $state<StatusFilter>(null);
+
+	const found = $derived(searchDreams(byStatus(rows, only), query));
 
 	/** Whether the field is worth having at all, and whether it is being used. */
 	const searchable = $derived(rows.length >= SEARCH_FROM);
 	const searching = $derived(searchable && query.trim().length > 0);
+
+	/** Whether the list is less than the whole of itself, for either reason. */
+	const narrowed = $derived(searching || only !== null);
+
+	function everything() {
+		query = '';
+		only = null;
+	}
 
 	const locked = $derived(cannot(connection.online, 'add'));
 
@@ -143,6 +162,34 @@
 		<p class="hint">Bez připojení. Seznam je z paměti a nový sen počká na signál.</p>
 	{/if}
 
+	{#if stats.total > 0}
+		<section class="card stats" aria-label="Nástěnka v číslech">
+			<button
+				type="button"
+				class="stats__item"
+				aria-pressed={only === null}
+				onclick={() => (only = null)}
+			>
+				<span class="stats__n">{stats.total}</span>
+				<span class="stats__label">celkem</span>
+			</button>
+			{#each DREAM_STATUSES as status (status)}
+				<button
+					type="button"
+					class="stats__item"
+					aria-pressed={only === status}
+					onclick={() => (only = only === status ? null : status)}
+				>
+					<span class="stats__n">{stats.by[status]}</span>
+					<span class="stats__label">{STATUS_BADGE[status]}</span>
+				</button>
+			{/each}
+		</section>
+		{#if stats.lastChange}
+			<p class="hint count">Naposledy upraveno {formatWhen(stats.lastChange)}</p>
+		{/if}
+	{/if}
+
 	{#if searchable}
 		<label class="search">
 			<Icon name="search" size={18} />
@@ -167,7 +214,7 @@
 		</label>
 	{/if}
 
-	{#if searching}
+	{#if narrowed}
 		<p class="hint count" aria-live="polite">{found.length} z {rows.length}</p>
 	{/if}
 
@@ -198,11 +245,11 @@
 				</a>
 			{/each}
 		</section>
-	{:else if searching}
+	{:else if narrowed}
 		<section class="card">
 			<p class="hint">Nic takového v seznamu není.</p>
 			<div class="actions actions--fill">
-				<button type="button" class="btn" onclick={() => (query = '')}>Zrušit hledání</button>
+				<button type="button" class="btn" onclick={everything}>Ukázat všechno</button>
 			</div>
 		</section>
 	{:else if asked}

@@ -40,7 +40,8 @@
 	import { UNDO_MS, deleting } from '$lib/dreams/deleting.svelte';
 	import { focusFull, focusFullSentence } from '$lib/dreams/focus';
 	import { shareText, shareUrl } from '$lib/dreams/share';
-	import { formatDate } from '$lib/dreams/format';
+	import { changedAt } from '$lib/dreams/stats';
+	import { formatDate, formatWhen } from '$lib/dreams/format';
 	import { photoOf, photosOf, reelUrl } from '$lib/dreams/photos';
 	import { CENTRED, sane, type Focal } from '$lib/images/focal';
 	import { photographDone, replacePhotograph } from '$lib/dreams/upload';
@@ -400,6 +401,10 @@
 				<div>
 					<dt>Na nástěnce od</dt>
 					<dd>{formatDate(dream.createdAt)}</dd>
+				</div>
+				<div>
+					<dt>Naposledy upraveno</dt>
+					<dd>{formatWhen(changedAt(dream))}</dd>
 				</div>
 			</dl>
 
