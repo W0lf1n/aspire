@@ -954,20 +954,19 @@ a {
 
 /**
  * The panel. The app's column on a desktop, the whole width on a phone, and
- * never taller than the screen less a glimpse of what it covers.
+ * never taller than the screen less a glimpse of what it covers. It does not
+ * scroll: the handle stays where a thumb can find it and the body under it
+ * is the scroll region (D76).
  */
 .sheet__panel {
 	position: relative;
 	z-index: 1;
 	display: flex;
 	flex-direction: column;
-	gap: var(--space-3);
 	width: 100%;
 	max-width: 34rem;
 	max-height: calc(100dvh - var(--space-8));
-	overflow-y: auto;
-	overscroll-behavior: contain;
-	padding: var(--space-3) var(--space-4) calc(var(--space-5) + env(safe-area-inset-bottom, 0px));
+	overflow: hidden;
 	background: var(--ground);
 	border-radius: var(--radius-xl) var(--radius-xl) 0 0;
 	box-shadow: var(--elev-sheet);
@@ -985,8 +984,51 @@ a {
 	}
 }
 
-/* The grab bar: what says which edge this came from. Not a control — the
-   sheet is not dragged. */
+/* Under a finger the panel is where the finger is, not easing towards it. */
+.sheet__panel--held {
+	transition: none;
+}
+
+/**
+ * The handle: the grab bar and the sheet's name, and the one part of a sheet
+ * that is pulled (`Sheet.svelte`). `touch-action: none` here and nowhere
+ * else in the sheet, so the browser hands this gesture over and keeps every
+ * other one — the body's scroll, a field's selection — for itself.
+ */
+.sheet__handle {
+	flex: none;
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-3);
+	padding: var(--space-3) var(--space-4);
+	touch-action: none;
+	cursor: grab;
+	-webkit-user-select: none;
+	user-select: none;
+}
+
+.sheet__panel--held .sheet__handle {
+	cursor: grabbing;
+}
+
+/* What the sheet holds, at the page's own 16 px inset, scrolling under the
+   handle when it is taller than the screen allows. */
+.sheet__body {
+	flex: 1;
+	min-height: 0;
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-3);
+	overflow-y: auto;
+	overscroll-behavior: contain;
+	padding: 0 var(--space-4) calc(var(--space-5) + env(safe-area-inset-bottom, 0px));
+}
+
+.sheet__body > * {
+	flex: none;
+}
+
+/* The grab bar: which edge this came from, and that it goes back there. */
 .sheet__grab {
 	flex: none;
 	align-self: center;
@@ -994,6 +1036,11 @@ a {
 	height: 4px;
 	border-radius: var(--radius-full);
 	background: var(--hairline-2);
+	transition: background var(--dur-fast) var(--ease-out);
+}
+
+.sheet__panel--held .sheet__grab {
+	background: var(--ink-3);
 }
 
 .sheet__title {
