@@ -42,6 +42,7 @@ function dream(id: string, images: DreamImage[], over: Partial<Dream> = {}): Dre
 		focusRank: null,
 		targetYear: null,
 		layout: 0,
+		photoView: 'collage',
 		likes: 0,
 		achievedAt: null,
 		lastShownAt: null,

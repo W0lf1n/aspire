@@ -171,6 +171,21 @@ public sealed class FivePhotographsTests : IDisposable
     }
 
     [Fact]
+    public async Task A_dream_starts_as_a_collage_and_choosing_a_view_is_a_change_to_the_dream()
+    {
+        var dream = await ADream();
+        Assert.Equal(PhotoView.Collage, dream.PhotoView);
+        var before = dream.UpdatedAt;
+        await Task.Delay(5);
+
+        var chosen = await _dreams.ViewAsync(Board, dream.Id, PhotoView.Carousel);
+
+        Assert.Equal(PhotoView.Carousel, chosen!.PhotoView);
+        Assert.True(chosen.UpdatedAt > before);
+        Assert.Null(await _dreams.ViewAsync("board-b", dream.Id, PhotoView.Collage));
+    }
+
+    [Fact]
     public async Task A_dream_starts_on_the_first_template()
     {
         Assert.Equal(0, (await ADream()).Layout);

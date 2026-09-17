@@ -375,6 +375,17 @@ public sealed class HttpEndpointTests : IAsyncLifetime
 
         var refused = await _client.PutAsync($"/api/v1/dreams/{id}/layout", Json("""{"layout":7}"""));
         Assert.Equal(HttpStatusCode.BadRequest, refused.StatusCode);
+
+        // The view travels as the word (D87), and a word that is not one is a 400.
+        Assert.Equal("collage", after.GetProperty("photoView").GetString());
+        var carousel = await _client.PutAsync($"/api/v1/dreams/{id}/view", Json("""{"view":"carousel"}"""));
+        Assert.Equal(HttpStatusCode.OK, carousel.StatusCode);
+        Assert.Equal(
+            "carousel",
+            (await carousel.Content.ReadFromJsonAsync<JsonElement>(Wire)).GetProperty("photoView").GetString());
+
+        var nonsense = await _client.PutAsync($"/api/v1/dreams/{id}/view", Json("""{"view":"grid"}"""));
+        Assert.Equal(HttpStatusCode.BadRequest, nonsense.StatusCode);
     }
 
     [Fact]

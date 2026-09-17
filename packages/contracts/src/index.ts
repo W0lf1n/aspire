@@ -79,6 +79,13 @@ export interface Dream {
 	 * themselves are `dreams/collage.ts`, and the server never draws one.
 	 */
 	layout: number;
+	/**
+	 * How a dream with two photographs or more is shown on the reel and on its
+	 * own tile (D87): the collage and then each photograph, swiped across, or
+	 * the photographs alone. A board remembered from before the field has none,
+	 * and is a collage.
+	 */
+	photoView: PhotoView;
 	/** Taps on the heart, counted. Within the board, never across. */
 	likes: number;
 	/** ISO datetime, or null while the dream is still a dream. */
@@ -126,7 +133,8 @@ export const PHOTO_FITS = ['fill', 'whole'] as const;
  * from the whole picture rather than from the fill.
  *
  * Only a surface with room for a mat reads it — the reel, a dream's own tile,
- * the editor. A circle and a collage cell always fill (`photoStyle`).
+ * a collage's cell (D88), the editors. A circle, the wallpaper and the shared
+ * card always fill (`photoStyle`).
  */
 export type PhotoFit = (typeof PHOTO_FITS)[number];
 
@@ -140,6 +148,14 @@ export const PHOTO_MATS = ['night', 'charcoal', 'umber', 'dusk', 'ember', 'blur'
  * because the words on a tile are white.
  */
 export type PhotoMat = (typeof PHOTO_MATS)[number];
+
+export const PHOTO_VIEWS = ['collage', 'carousel'] as const;
+
+/**
+ * A dream's several photographs as the collage and then each one, or as the
+ * photographs alone (D87). One photograph is the photograph either way.
+ */
+export type PhotoView = (typeof PHOTO_VIEWS)[number];
 
 /**
  * One photograph, as URLs under `/media/`. `ready` is false for the moment
@@ -310,6 +326,13 @@ export interface FocusInput {
 /** Which collage template a dream's tile uses, 0 to 2 (D82). */
 export interface LayoutInput {
 	layout: number;
+}
+
+// ── PUT /api/v1/dreams/{id}/view ────────────────────────────────────────────
+
+/** The collage and each photograph, or the photographs alone (D87). */
+export interface ViewInput {
+	view: PhotoView;
 }
 
 /**

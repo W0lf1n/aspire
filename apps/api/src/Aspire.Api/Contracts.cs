@@ -160,6 +160,12 @@ public sealed record FocusInput(IReadOnlyList<Guid>? DreamIds);
 public sealed record LayoutInput(int? Layout);
 
 /// <summary>
+/// Whether a dream's tile is the collage and then each photograph, or the
+/// photographs alone (D87): „collage“ or „carousel“.
+/// </summary>
+public sealed record ViewInput(string? View);
+
+/// <summary>
 /// A dream's dreamt photographs, in the order they stand in: the first is the
 /// cover every small surface shows, and the rest are the collage's cells in
 /// reading order (D82).
@@ -182,6 +188,7 @@ public sealed record DreamDto(
     int? FocusRank,
     int? TargetYear,
     int Layout,
+    PhotoView PhotoView,
     int Likes,
     DateTimeOffset? AchievedAt,
     DateTimeOffset? LastShownAt,
@@ -200,6 +207,7 @@ public sealed record DreamDto(
         dream.FocusRank,
         dream.TargetYear,
         dream.Layout,
+        dream.PhotoView,
         dream.Likes,
         dream.AchievedAt,
         dream.LastShownAt,

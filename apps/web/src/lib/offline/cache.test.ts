@@ -42,6 +42,7 @@ function dream(id: string, images: DreamImage[], over: Partial<Dream> = {}): Dre
 		focusRank: null,
 		targetYear: null,
 		layout: 0,
+		photoView: 'collage',
 		likes: 0,
 		achievedAt: null,
 		lastShownAt: null,
@@ -264,15 +265,42 @@ describe('aheadOf', () => {
 	});
 });
 
-describe('tileUrls, for a collage (D82)', () => {
-	it('keeps every cell at the rung a cell reads, and the cover for the list', () => {
+describe('tileUrls, for a collage (D82) and its slides (D87)', () => {
+	it('keeps the thumbs, every cell at the rung a cell reads, and each slide at the screen’s', () => {
 		const three = dream('house', [image('a', true), image('b', true), image('c', true)]);
 
 		expect(tileUrls([three], { dpr: 3, metered: false })).toEqual([
 			'/media/d/a/thumb.webp',
+			'/media/d/b/thumb.webp',
+			'/media/d/c/thumb.webp',
 			'/media/d/a/screen.webp',
 			'/media/d/b/screen.webp',
-			'/media/d/c/screen.webp'
+			'/media/d/c/screen.webp',
+			'/media/d/a/full.webp',
+			'/media/d/b/full.webp',
+			'/media/d/c/full.webp'
+		]);
+	});
+
+	it('asks once for a slide whose rung is the cell’s', () => {
+		const two = dream('house', [image('a', true), image('b', true)]);
+
+		expect(tileUrls([two], { dpr: 1, metered: false })).toEqual([
+			'/media/d/a/thumb.webp',
+			'/media/d/b/thumb.webp',
+			'/media/d/a/screen.webp',
+			'/media/d/b/screen.webp'
+		]);
+	});
+
+	it('keeps no cells for a carousel, which has no collage', () => {
+		const two = dream('trip', [image('a', true), image('b', true)], { photoView: 'carousel' });
+
+		expect(tileUrls([two], { dpr: 3, metered: false })).toEqual([
+			'/media/d/a/thumb.webp',
+			'/media/d/b/thumb.webp',
+			'/media/d/a/full.webp',
+			'/media/d/b/full.webp'
 		]);
 	});
 

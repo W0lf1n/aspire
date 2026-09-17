@@ -323,6 +323,28 @@ public static class DreamEndpoints
             return Results.Ok(DreamDto.From(dream, await images.OfDreamsAsync([dream.Id], ct)));
         });
 
+        // The collage and each photograph, or the photographs alone (D87).
+        app.MapPut("/api/v1/dreams/{id:guid}/view", async (
+            Guid id,
+            ViewInput input,
+            HttpContext http,
+            DeviceAuth auth,
+            DreamService dreams,
+            ImageService images,
+            CancellationToken ct) =>
+        {
+            var device = await auth.ResolveAsync(http.Request.Headers.Authorization, ct);
+            if (device is null) return Results.Unauthorized();
+
+            if (PhotoViewNames.TryParse(input.View) is not { } view)
+                return Results.Problem("Takové zobrazení není.", statusCode: 400);
+
+            var dream = await dreams.ViewAsync(device.BoardId, id, view, ct);
+            if (dream is null) return Results.NotFound();
+
+            return Results.Ok(DreamDto.From(dream, await images.OfDreamsAsync([dream.Id], ct)));
+        });
+
         // Where an existing photograph is looked at (D54). The files on disk
         // are untouched — the crop is metadata, so this is instant and costs
         // no resize.

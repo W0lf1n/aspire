@@ -95,6 +95,14 @@ public sealed class Dream
     public int Layout { get; set; }
 
     /// <summary>
+    /// How a dream with two photographs or more is shown on the reel and on
+    /// its own tile (D87): the collage and then each photograph, swiped
+    /// across — or the photographs alone. Like <see cref="Layout"/> it is the
+    /// client's to draw and the server's only to keep.
+    /// </summary>
+    public PhotoView PhotoView { get; set; } = PhotoView.Collage;
+
+    /// <summary>
     /// The key in this dream's share link, or null when it has never been
     /// shared (D61). The same thirty-two bytes the board's lock-screen link
     /// uses, against one dream instead of a whole board: what it opens is a
@@ -150,5 +158,37 @@ public static class DreamStatusNames
         "in-progress" => DreamStatus.InProgress,
         "achieved" => DreamStatus.Achieved,
         _ => throw new ArgumentOutOfRangeException(nameof(value), value, null)
+    };
+}
+
+/// <summary>
+/// The collage first and each photograph after it, or the photographs alone
+/// (D87). One photograph is the photograph whichever this says.
+/// </summary>
+public enum PhotoView
+{
+    Collage,
+    Carousel
+}
+
+/// <summary>The view as it travels and as it is stored.</summary>
+public static class PhotoViewNames
+{
+    public static string ToWire(PhotoView view) => view switch
+    {
+        PhotoView.Collage => "collage",
+        PhotoView.Carousel => "carousel",
+        _ => throw new ArgumentOutOfRangeException(nameof(view), view, null)
+    };
+
+    public static PhotoView Parse(string value) =>
+        TryParse(value) ?? throw new ArgumentOutOfRangeException(nameof(value), value, null);
+
+    /// <summary>The view a request named, or null when it named nothing valid.</summary>
+    public static PhotoView? TryParse(string? value) => value switch
+    {
+        "collage" => PhotoView.Collage,
+        "carousel" => PhotoView.Carousel,
+        _ => null
     };
 }

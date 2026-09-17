@@ -49,6 +49,14 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
             // The first template, which is what a dream with one photograph
             // has whether it says so or not (D82).
             entity.Property(d => d.Layout).HasDefaultValue(0);
+            // The collage and then each photograph, which is what every dream
+            // with several photographs showed before the choice existed (D87).
+            // The word itself as the default, not EF's empty string, which
+            // `Parse` would throw on at the first read.
+            entity.Property(d => d.PhotoView)
+                .HasConversion(v => PhotoViewNames.ToWire(v), v => PhotoViewNames.Parse(v))
+                .HasMaxLength(16)
+                .HasDefaultValue(PhotoView.Collage);
             // The share link arrives with no board and no dream on it, so the
             // key is how the dream is found — unique, and null for the dreams
             // nobody has shared, which is nearly all of them (D61).

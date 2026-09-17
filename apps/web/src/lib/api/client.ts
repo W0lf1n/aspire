@@ -23,7 +23,9 @@ import type {
 	PushKeyResponse,
 	PairRequest,
 	PairResponse,
-	ResetResponse
+	PhotoView,
+	ResetResponse,
+	ViewInput
 } from '@aspire/contracts';
 import { connection } from '$lib/offline/status.svelte';
 import { readToken } from './token';
@@ -246,6 +248,14 @@ export function saveLayout(dreamId: string, layout: number): Promise<Dream> {
 	return call<Dream>(`/dreams/${dreamId}/layout`, {
 		method: 'PUT',
 		body: JSON.stringify({ layout })
+	});
+}
+
+/** The collage and each photograph, or the photographs alone (D87). */
+export function saveView(dreamId: string, view: PhotoView): Promise<Dream> {
+	return call<Dream>(`/dreams/${dreamId}/view`, {
+		method: 'PUT',
+		body: JSON.stringify({ view } satisfies ViewInput)
 	});
 }
 

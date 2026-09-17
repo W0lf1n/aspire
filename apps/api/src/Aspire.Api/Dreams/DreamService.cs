@@ -124,6 +124,23 @@ public sealed class DreamService(AppDbContext db, MediaStore media)
     }
 
     /// <summary>
+    /// The collage and each photograph, or the photographs alone (D87). Like
+    /// the template it is how the dream looks, so it moves <c>UpdatedAt</c>.
+    /// Null is no such dream.
+    /// </summary>
+    public async Task<Dream?> ViewAsync(
+        string boardId, Guid id, PhotoView view, CancellationToken ct = default)
+    {
+        var dream = await FindAsync(boardId, id, ct);
+        if (dream is null) return null;
+
+        dream.PhotoView = view;
+        dream.UpdatedAt = DateTimeOffset.UtcNow;
+        await db.SaveChangesAsync(ct);
+        return dream;
+    }
+
+    /// <summary>
     /// Every dream on the board, and every photograph with them: starting
     /// over (D80). How many dreams went comes back, for the sentence that says
     /// so.
