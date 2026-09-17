@@ -17,7 +17,15 @@
 	 */
 	import { resolve } from '$app/paths';
 	import type { Dream } from '@aspire/contracts';
-	import { photoComing, photoOf, photoStyle, reelUrl } from '$lib/dreams/photos';
+	import {
+		matIsBlur,
+		matStyle,
+		photoComing,
+		photoOf,
+		photoStyle,
+		reelUrl,
+		tileStyle
+	} from '$lib/dreams/photos';
 	import { tileLine } from '$lib/dreams/board';
 	import { CATEGORY_LABEL, STATUS_BADGE } from '$lib/dreams/rules';
 	import { writes } from '$lib/offline/writes.svelte';
@@ -66,11 +74,21 @@
 	const src = $derived(preview ?? reelUrl(photo));
 
 	const loading = $derived<'eager' | 'lazy'>(eager ? 'eager' : 'lazy');
+
+	/**
+	 * A photograph shown whole stands on a mat (D81): one of the five colours,
+	 * painted by the tile, or the thumb blurred under it. Filling, the thumb is
+	 * under the picture for another reason — the shape of the photograph before
+	 * its pixels (D63) — and it would show through the mat around a picture
+	 * that does not cover it, so on a colour it is left out.
+	 */
+	const mat = $derived(busy ? '' : matStyle(photo));
+	const under = $derived(photo !== null && (photo.fit !== 'whole' || matIsBlur(photo)));
 </script>
 
-<article class="dream reel__tile" class:dream--sky={!src}>
+<article class="dream reel__tile" class:dream--sky={!src} style={mat}>
 	{#if src}
-		{#if photo && !busy}
+		{#if photo && under && !busy}
 			<!-- The thumb, blurred, under the picture: the shape of the
 			     photograph arrives with its first kilobytes while the rest is
 			     on its way (D63). Absolute in the same frame, so it adds no
@@ -89,7 +107,7 @@
 			class="dream__img"
 			{src}
 			alt=""
-			style={busy ? '' : photoStyle(photo)}
+			style={busy ? '' : tileStyle(photo)}
 			{loading}
 			decoding="async"
 		/>

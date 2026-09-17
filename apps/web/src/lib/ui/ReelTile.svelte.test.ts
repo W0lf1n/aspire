@@ -22,6 +22,8 @@ function image(id: string, ready: boolean, kind: DreamImage['kind'] = 'dreamt'):
 		focusX: 0.5,
 		focusY: 0.5,
 		zoom: 1,
+		fit: 'fill',
+		mat: 'night',
 		thumbUrl: `/media/d/${id}/thumb.webp`,
 		screenUrl: `/media/d/${id}/screen.webp`,
 		largeUrl: `/media/d/${id}/full.webp`
@@ -100,6 +102,25 @@ describe('ReelTile', () => {
 		expect(el.querySelector('.dream__under')?.getAttribute('src')).toBe('/media/d/i1/thumb.webp');
 		// The photograph is there, so nothing asks for one.
 		expect(el.querySelector('.reel__pick')).toBeNull();
+	});
+
+	it('stands a photograph shown whole on its mat, with no thumb to show through it (D81)', () => {
+		const whole: DreamImage = { ...image('i1', true), fit: 'whole', mat: 'dusk' };
+		const el = render({ dream: dream({ images: [whole] }) });
+
+		expect(el.querySelector('.reel__tile')?.getAttribute('style')).toContain('var(--mat-dusk)');
+		// happy-dom reads the style back with a space after the colon.
+		expect(el.querySelector<HTMLElement>('.dream__img')?.style.objectFit).toBe('contain');
+		// The thumb covers the frame and the picture no longer does.
+		expect(el.querySelector('.dream__under')).toBeNull();
+	});
+
+	it('puts the blurred thumb back under it when that is the mat', () => {
+		const whole: DreamImage = { ...image('i1', true), fit: 'whole', mat: 'blur' };
+		const el = render({ dream: dream({ images: [whole] }) });
+
+		expect(el.querySelector('.dream__under')?.getAttribute('src')).toBe('/media/d/i1/thumb.webp');
+		expect(el.querySelector('.reel__tile')?.getAttribute('style') ?? '').not.toContain('--mat-');
 	});
 
 	it('shows the picked file before the server has it, and hides the blur under it', () => {

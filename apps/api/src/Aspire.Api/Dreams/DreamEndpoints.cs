@@ -231,6 +231,8 @@ public static class DreamEndpoints
             double? focusX,
             double? focusY,
             double? zoom,
+            string? fit,
+            string? mat,
             HttpContext http,
             DeviceAuth auth,
             DreamService dreams,
@@ -245,12 +247,21 @@ public static class DreamEndpoints
                 return Results.Problem("Fotka je buď vysněná, nebo skutečná.", statusCode: 400);
             }
 
+            // Left out is fine — filling, on the first mat. Named and wrong is
+            // a sentence, the way a kind that is neither of the two is (D81).
+            var fits = PhotoFitNames.TryParse(fit);
+            var mats = PhotoMatNames.TryParse(mat);
+            if ((fit is not null && fits is null) || (mat is not null && mats is null))
+            {
+                return Results.Problem("Takhle se fotka na dlaždici umístit nedá.", statusCode: 400);
+            }
+
             var dream = await dreams.FindAsync(device.BoardId, id, ct);
             if (dream is null) return Results.NotFound();
 
             await using var upload = file.OpenReadStream();
             var (image, problem) = await images.AddAsync(
-                dream, upload, file.Length, asked, new FocalInput(focusX, focusY, zoom), ct);
+                dream, upload, file.Length, asked, new FocalInput(focusX, focusY, zoom, fits, mats), ct);
             // A board at its ceiling is a 409, as a full Teď is: not a bad
             // request, a board that has to lose something first (D64).
             if (image is null)

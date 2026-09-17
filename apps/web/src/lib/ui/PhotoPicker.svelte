@@ -14,9 +14,9 @@
 	 */
 	import { fetchImageFromUrl } from '$lib/api/client';
 	import { describeError } from '$lib/api/errors';
-	import { photoStyle } from '$lib/dreams/photos';
+	import { matIsBlur, matStyle, photoStyle, tileStyle } from '$lib/dreams/photos';
 	import { downscale } from '$lib/images/downscale';
-	import { CENTRED, type Focal } from '$lib/images/focal';
+	import { CENTRED, toInput, type Focal } from '$lib/images/focal';
 	import CropEditor from './CropEditor.svelte';
 	import Icon from './Icon.svelte';
 	import Sheet from './Sheet.svelte';
@@ -102,7 +102,15 @@
 		if (!preview) at = { ...focal };
 	});
 
-	const style = $derived(photoStyle({ focusX: at.x, focusY: at.y, zoom: at.zoom }));
+	/** The picture as a tile shows it: filling, or whole on its mat (D81). */
+	const style = $derived(tileStyle(toInput(at)));
+	const mat = $derived(shown ? matStyle(at) : '');
+
+	/**
+	 * Whether the editor is up on a picture nobody has placed yet, which is
+	 * when it may open a landscape one whole (`startsWhole`).
+	 */
+	let fresh = $state(false);
 
 	async function pick(event: Event) {
 		const input = event.currentTarget as HTMLInputElement;
@@ -119,6 +127,7 @@
 			// will really be seen in straight away.
 			at = { ...CENTRED };
 			onpick(photo, at);
+			fresh = true;
 			placing = true;
 		} catch {
 			onproblem('Tohle se nepodařilo přečíst jako fotku.');
@@ -130,6 +139,7 @@
 	function placed(chosen: Focal) {
 		at = chosen;
 		placing = false;
+		fresh = false;
 		onmove?.(chosen);
 	}
 
@@ -153,6 +163,7 @@
 			onpick(photo, at);
 			asking = false;
 			link = '';
+			fresh = true;
 			placing = true;
 		} catch (e) {
 			problem = describeError(e);
@@ -166,8 +177,17 @@
 	});
 </script>
 
-<article class="dream picker" class:dream--sky={!shown} class:dream--wide={wide}>
+<article class="dream picker" class:dream--sky={!shown} class:dream--wide={wide} style={mat}>
 	{#if shown}
+		{#if matIsBlur(at)}
+			<img
+				class="dream__under"
+				src={shown}
+				alt=""
+				aria-hidden="true"
+				style={photoStyle(toInput(at))}
+			/>
+		{/if}
 		<img class="dream__img" src={shown} alt="" {style} />
 	{/if}
 	<div class="dream__body">
@@ -194,11 +214,14 @@
 				<button
 					type="button"
 					class="btn btn--photo"
-					onclick={() => (placing = true)}
+					onclick={() => {
+						fresh = false;
+						placing = true;
+					}}
 					disabled={busy || reading}
 				>
 					<Icon name="image" size={18} stroke={1.8} />
-					Posunout
+					Umístit
 				</button>
 			{/if}
 
@@ -224,11 +247,15 @@
 		open={placing}
 		src={shown}
 		focal={at}
+		{fresh}
 		{title}
 		line={why}
 		{busy}
 		onsave={placed}
-		oncancel={() => (placing = false)}
+		oncancel={() => {
+			placing = false;
+			fresh = false;
+		}}
 	/>
 {/if}
 

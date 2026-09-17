@@ -90,7 +90,13 @@ public sealed record LinkResponse(string? Path);
 /// Where a photograph is looked at, and how close (D54). Everything optional,
 /// so a field left out keeps what the photograph already has.
 /// </summary>
-public sealed record FocalInput(double? FocusX, double? FocusY, double? Zoom);
+public sealed record FocalInput(
+    double? FocusX,
+    double? FocusY,
+    double? Zoom,
+    /// <summary>Filling the frame or whole inside it, and on what (D81).</summary>
+    PhotoFit? Fit = null,
+    PhotoMat? Mat = null);
 
 public sealed record DreamImageDto(
     Guid Id,
@@ -102,6 +108,8 @@ public sealed record DreamImageDto(
     double FocusX,
     double FocusY,
     double Zoom,
+    PhotoFit Fit,
+    PhotoMat Mat,
     string ThumbUrl,
     string ScreenUrl,
     string LargeUrl)
@@ -116,6 +124,8 @@ public sealed record DreamImageDto(
         image.FocusX,
         image.FocusY,
         image.Zoom,
+        image.Fit,
+        image.Mat,
         MediaStore.UrlOf(image.DreamId, image.Id, "thumb"),
         MediaStore.UrlOf(image.DreamId, image.Id, "screen"),
         // The 2048 file, named for what it is to a phone rather than for

@@ -127,7 +127,9 @@ public static class SharePage
     {
         var x = Percent(photo.FocusX);
         var y = Percent(photo.FocusY);
-        var zoom = double.IsFinite(photo.Zoom) ? Math.Max(1, photo.Zoom) : 1;
+        // The card always fills its frame, so a photograph shown whole is its
+        // point alone here (`CropZoom`, D81).
+        var zoom = double.IsFinite(photo.CropZoom) ? Math.Max(1, photo.CropZoom) : 1;
 
         var style = new StringBuilder();
         if (x != 50 || y != 50) style.Append($"object-position:{Number(x)}% {Number(y)}%;");

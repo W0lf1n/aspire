@@ -38,7 +38,7 @@
 	import { changedAt } from '$lib/dreams/stats';
 	import { formatDate, formatWhen } from '$lib/dreams/format';
 	import { photoOf, photosOf, reelUrl } from '$lib/dreams/photos';
-	import { CENTRED, sane, type Focal } from '$lib/images/focal';
+	import { focalOf as cropOf, toInput, type Focal } from '$lib/images/focal';
 	import { photographDone, replacePhotograph } from '$lib/dreams/upload';
 	import { CATEGORY_LABEL, STATUS_BADGE, STATUS_CLASS } from '$lib/dreams/rules';
 	import AppBar from '$lib/ui/AppBar.svelte';
@@ -175,7 +175,7 @@
 				picked,
 				kind,
 				{ deleteImage, uploadImage, getDream },
-				{ focusX: at.x, focusY: at.y, zoom: at.zoom }
+				toInput(at)
 			);
 			toast.show(photographDone(kind));
 		} catch (e) {
@@ -195,11 +195,7 @@
 		if (!dream || !image) return;
 
 		try {
-			const moved = await moveImage(dream.id, image.id, {
-				focusX: at.x,
-				focusY: at.y,
-				zoom: at.zoom
-			});
+			const moved = await moveImage(dream.id, image.id, toInput(at));
 			dream = {
 				...dream,
 				images: dream.images.map((one) => (one.id === moved.id ? moved : one))
@@ -213,7 +209,7 @@
 	/** Where each of the two photographs is looked at, for the pickers. */
 	function focalOf(kind: DreamImageKind): Focal {
 		const image = dream ? photoOf(dream, kind) : null;
-		return image ? sane({ x: image.focusX, y: image.focusY, zoom: image.zoom }) : { ...CENTRED };
+		return cropOf(image);
 	}
 
 	/**

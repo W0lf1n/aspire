@@ -96,6 +96,20 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
             entity.Property(i => i.FocusY).HasDefaultValue(DreamImage.Centre);
             entity.Property(i => i.Zoom).HasDefaultValue(DreamImage.NoZoom);
 
+            // Filling, on the first mat: what every photograph before D81 did,
+            // so the migration gives the rows already there what they had. The
+            // defaults are the words themselves rather than EF's empty string,
+            // which `Parse` would throw on at the first read (D28's lesson).
+            entity.Property(i => i.Fit)
+                .HasConversion(f => PhotoFitNames.ToWire(f), f => PhotoFitNames.Parse(f))
+                .HasMaxLength(16)
+                .HasDefaultValue(PhotoFit.Fill);
+            entity.Property(i => i.Mat)
+                .HasConversion(m => PhotoMatNames.ToWire(m), m => PhotoMatNames.Parse(m))
+                .HasMaxLength(16)
+                .HasDefaultValue(PhotoMat.Night);
+            entity.Ignore(i => i.CropZoom);
+
             // Zero until the worker's sweep has weighed the files a row made
             // before there was a column to keep it in (D64).
             entity.Property(i => i.Bytes).HasDefaultValue(0L);

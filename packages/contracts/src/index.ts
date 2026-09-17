@@ -104,6 +104,31 @@ export const DREAM_IMAGE_KINDS = ['dreamt', 'achieved'] as const;
  */
 export type DreamImageKind = (typeof DREAM_IMAGE_KINDS)[number];
 
+export const PHOTO_FITS = ['fill', 'whole'] as const;
+
+/**
+ * Whether a photograph fills its frame or is shown whole inside it (D81).
+ * Filling crops to the frame's shape, which on the reel is a phone screen: a
+ * landscape picture loses most of itself there and is stretched to twice its
+ * pixels. Whole shows all of it, smaller, on a mat, and `zoom` then scales up
+ * from the whole picture rather than from the fill.
+ *
+ * Only a surface with room for a mat reads it — the reel, a dream's own tile,
+ * the editor. A circle and a collage cell always fill (`photoStyle`).
+ */
+export type PhotoFit = (typeof PHOTO_FITS)[number];
+
+export const PHOTO_MATS = ['night', 'charcoal', 'umber', 'dusk', 'ember', 'blur'] as const;
+
+/**
+ * What is around a photograph shown whole: five colours that exist in
+ * `tokens.css` as `--mat-*`, and `blur`, the photograph's own thumb blurred
+ * (D63's, put to a second use). A fixed few rather than a colour picker,
+ * because a colour in this app exists in one file — and all of them dark,
+ * because the words on a tile are white.
+ */
+export type PhotoMat = (typeof PHOTO_MATS)[number];
+
 /**
  * One photograph, as URLs under `/media/`. `ready` is false for the moment
  * between the upload and the resize; the board shows the sky and asks again.
@@ -128,6 +153,9 @@ export interface DreamImage {
 	focusX: number;
 	focusY: number;
 	zoom: number;
+	/** Filling the frame, or whole inside it on `mat` (D81). */
+	fit: PhotoFit;
+	mat: PhotoMat;
 	thumbUrl: string;
 	screenUrl: string;
 	/**
@@ -147,6 +175,8 @@ export interface FocalInput {
 	focusX?: number;
 	focusY?: number;
 	zoom?: number;
+	fit?: PhotoFit;
+	mat?: PhotoMat;
 }
 
 // ── GET/PUT /api/v1/nudge ─────────────────────────────────────

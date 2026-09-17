@@ -17,7 +17,25 @@
  * meaning, so the client sets two custom properties and does no arithmetic at
  * render time, and `FocalCrop` on the server computes the same window from
  * the same two numbers.
+ *
+ * **And whether it fills the frame at all** (D81). A photograph shown whole
+ * is scaled to fit inside the frame rather than to cover it, stands on a mat,
+ * and its zoom scales up from there. The point means the same thing in both:
+ * along each axis the picture is placed at `p × (frame − picture)` — which is
+ * `object-position`'s own rule, and is as true of room to spare as it is of
+ * overhang. So one line of arithmetic moves a picture that hangs over its
+ * frame and a picture that floats inside it; only the sign of the room
+ * differs, and with it which way the point runs under a finger.
  */
+
+import {
+	PHOTO_FITS,
+	PHOTO_MATS,
+	type DreamImage,
+	type FocalInput,
+	type PhotoFit,
+	type PhotoMat
+} from '@aspire/contracts';
 
 /** The frame something is shown in, or the picture being shown in it. */
 export interface Size {
@@ -30,8 +48,15 @@ export interface Focal {
 	x: number;
 	/** 0 is the top edge, 1 the bottom. */
 	y: number;
-	/** 1 is as much of the picture as the frame can hold. */
+	/**
+	 * 1 is as much of the picture as the frame can hold when it fills it, and
+	 * all of the picture when it is shown whole.
+	 */
 	zoom: number;
+	/** Filling the frame, or whole inside it (D81). */
+	fit: PhotoFit;
+	/** What is around it when it is whole. Kept while it fills, for next time. */
+	mat: PhotoMat;
 }
 
 export const MIN_ZOOM = 1;
@@ -44,11 +69,16 @@ export const MIN_ZOOM = 1;
 export const MAX_ZOOM = 3;
 
 /** What every photograph is until somebody moves it: the middle, all of it. */
-export const CENTRED: Focal = { x: 0.5, y: 0.5, zoom: MIN_ZOOM };
+export const CENTRED: Focal = { x: 0.5, y: 0.5, zoom: MIN_ZOOM, fit: 'fill', mat: 'night' };
 
 /** Whether this is the crop a photograph has when nobody has touched it. */
 export function isCentred(focal: Focal): boolean {
-	return focal.x === CENTRED.x && focal.y === CENTRED.y && focal.zoom === CENTRED.zoom;
+	return (
+		focal.x === CENTRED.x &&
+		focal.y === CENTRED.y &&
+		focal.zoom === CENTRED.zoom &&
+		focal.fit === CENTRED.fit
+	);
 }
 
 /** Anything that arrived from anywhere, made into a focal point that works. */
@@ -56,8 +86,55 @@ export function sane(focal: Partial<Focal> | null | undefined): Focal {
 	return {
 		x: unit(focal?.x),
 		y: unit(focal?.y),
-		zoom: clamp(number(focal?.zoom, MIN_ZOOM), MIN_ZOOM, MAX_ZOOM)
+		zoom: clamp(number(focal?.zoom, MIN_ZOOM), MIN_ZOOM, MAX_ZOOM),
+		fit: oneOf(PHOTO_FITS, focal?.fit, CENTRED.fit),
+		mat: oneOf(PHOTO_MATS, focal?.mat, CENTRED.mat)
 	};
+}
+
+/** A saved photograph's crop, as the editor holds one. */
+export function focalOf(
+	image: Pick<DreamImage, 'focusX' | 'focusY' | 'zoom' | 'fit' | 'mat'> | null
+): Focal {
+	if (!image) return { ...CENTRED };
+	return sane({
+		x: image.focusX,
+		y: image.focusY,
+		zoom: image.zoom,
+		fit: image.fit,
+		mat: image.mat
+	});
+}
+
+/** A crop as it is sent: all five, so the server never has to guess at one. */
+export function toInput(focal: Focal): Required<FocalInput> {
+	return { focusX: focal.x, focusY: focal.y, zoom: focal.zoom, fit: focal.fit, mat: focal.mat };
+}
+
+/**
+ * How much room the frame has left over on each axis once the picture is in
+ * it, in frame pixels — and it is signed. Filling, it is never above nought:
+ * the picture hangs over, and this is `overflow` with a minus in front.
+ * Whole, it is never below nought until the zoom makes it so: the picture
+ * floats, and the room is the mat showing either side of it.
+ */
+export function room(frame: Size, picture: Size, zoom: number, fit: PhotoFit): Size {
+	if (picture.width <= 0 || picture.height <= 0) return { width: 0, height: 0 };
+
+	const across = frame.width / picture.width;
+	const down = frame.height / picture.height;
+	const base = fit === 'whole' ? Math.min(across, down) : Math.max(across, down);
+	const scale = base * Math.max(MIN_ZOOM, zoom);
+
+	return {
+		width: tidy(frame.width - picture.width * scale),
+		height: tidy(frame.height - picture.height * scale)
+	};
+}
+
+/** A length that floating point left a hair off nought is nought. */
+function tidy(value: number): number {
+	return Math.abs(value) < 1e-6 ? 0 : value;
 }
 
 /**
@@ -89,12 +166,38 @@ export function overflow(frame: Size, picture: Size, zoom: number): Size {
  * and comes back ends where it should.
  */
 export function dragged(from: Focal, dx: number, dy: number, frame: Size, picture: Size): Focal {
-	const room = overflow(frame, picture, from.zoom);
+	// The picture sits at `p × room`, so a finger that moves it `d` pixels has
+	// moved the point by `d / room`. Hanging over, the room is negative and
+	// the point runs against the finger, as described above; floating on its
+	// mat, the room is positive and the point runs with it. Nought is the
+	// axis there is nothing to do along.
+	const left = room(frame, picture, from.zoom, from.fit);
 	return {
 		...from,
-		x: room.width === 0 ? from.x : unit(from.x - dx / room.width),
-		y: room.height === 0 ? from.y : unit(from.y - dy / room.height)
+		x: left.width === 0 ? from.x : unit(from.x + dx / left.width),
+		y: left.height === 0 ? from.y : unit(from.y + dy / left.height)
 	};
+}
+
+/**
+ * Filling or whole, from the other. The point goes back to the middle and the
+ * zoom back to one: both were chosen against a picture scaled some other way,
+ * and a point that framed a face in the crop is nowhere in particular once
+ * all of the picture is showing.
+ */
+export function fitted(from: Focal, fit: PhotoFit): Focal {
+	return from.fit === fit ? from : { ...from, x: CENTRED.x, y: CENTRED.y, zoom: MIN_ZOOM, fit };
+}
+
+/**
+ * Whether a photograph picked a moment ago should start out whole: when it is
+ * wider than it is tall. Filling the reel — a phone screen — with a landscape
+ * picture keeps a third of it and draws that at twice its pixels, which is
+ * the soft, zoomed-in tile D81 exists to stop. A portrait fills well enough
+ * to stay the default, and either can be turned over in the editor.
+ */
+export function startsWhole(picture: Size): boolean {
+	return picture.height > 0 && picture.width / picture.height > 1.05;
 }
 
 /** Closer or further out, within the range, around the point already chosen. */
@@ -106,6 +209,10 @@ export function zoomed(from: Focal, by: number): Focal {
 /** The distance between two fingers, which is the whole of a pinch. */
 export function spread(a: { x: number; y: number }, b: { x: number; y: number }): number {
 	return Math.hypot(a.x - b.x, a.y - b.y);
+}
+
+function oneOf<T extends string>(all: readonly T[], value: unknown, fallback: T): T {
+	return all.includes(value as T) ? (value as T) : fallback;
 }
 
 function unit(value: unknown): number {

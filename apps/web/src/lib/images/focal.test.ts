@@ -4,10 +4,13 @@ import {
 	MAX_ZOOM,
 	MIN_ZOOM,
 	dragged,
+	fitted,
 	isCentred,
 	overflow,
+	room,
 	sane,
 	spread,
+	startsWhole,
 	zoomed
 } from './focal';
 
@@ -62,13 +65,13 @@ describe('dragged', () => {
 	});
 
 	it('keeps the zoom it was given', () => {
-		expect(dragged({ x: 0.5, y: 0.5, zoom: 2.5 }, 10, 10, FRAME, WIDE).zoom).toBe(2.5);
+		expect(dragged({ ...CENTRED, zoom: 2.5 }, 10, 10, FRAME, WIDE).zoom).toBe(2.5);
 	});
 });
 
 describe('zoomed', () => {
 	it('multiplies, and holds the point it was looking at', () => {
-		const closer = zoomed({ x: 0.2, y: 0.8, zoom: 1 }, 1.5);
+		const closer = zoomed({ ...CENTRED, x: 0.2, y: 0.8 }, 1.5);
 
 		expect(closer.zoom).toBe(1.5);
 		expect(closer.x).toBe(0.2);
@@ -88,7 +91,7 @@ describe('zoomed', () => {
 
 describe('sane', () => {
 	it('takes what arrived and makes a crop that works', () => {
-		expect(sane({ x: -3, y: 9, zoom: 100 })).toEqual({ x: 0, y: 1, zoom: MAX_ZOOM });
+		expect(sane({ x: -3, y: 9, zoom: 100 })).toEqual({ ...CENTRED, x: 0, y: 1, zoom: MAX_ZOOM });
 	});
 
 	it('is the middle and all of it when there is nothing to go on', () => {
@@ -101,8 +104,11 @@ describe('sane', () => {
 describe('isCentred', () => {
 	it('knows the crop a photograph has when nobody has touched it', () => {
 		expect(isCentred(CENTRED)).toBe(true);
-		expect(isCentred({ x: 0.5, y: 0.5, zoom: 1.2 })).toBe(false);
-		expect(isCentred({ x: 0.51, y: 0.5, zoom: 1 })).toBe(false);
+		expect(isCentred({ ...CENTRED, zoom: 1.2 })).toBe(false);
+		expect(isCentred({ ...CENTRED, x: 0.51 })).toBe(false);
+		expect(isCentred({ ...CENTRED, fit: 'whole' })).toBe(false);
+		// The mat is kept while a photograph fills, and changes nothing there.
+		expect(isCentred({ ...CENTRED, mat: 'dusk' })).toBe(true);
 	});
 });
 
@@ -110,5 +116,68 @@ describe('spread', () => {
 	it('is the distance between two fingers', () => {
 		expect(spread({ x: 0, y: 0 }, { x: 3, y: 4 })).toBe(5);
 		expect(spread({ x: 10, y: 10 }, { x: 10, y: 10 })).toBe(0);
+	});
+});
+
+describe('a photograph shown whole (D81)', () => {
+	const WHOLE = { ...CENTRED, fit: 'whole' as const };
+
+	it('has room to spare down the frame, and none across it', () => {
+		// Contain scales 2000x1000 to 400x200: flush sideways, 600 of mat down.
+		expect(room(FRAME, WIDE, 1, 'whole')).toEqual({ width: 0, height: 600 });
+	});
+
+	it('is the overhang with a minus in front when it fills', () => {
+		expect(room(FRAME, WIDE, 1, 'fill')).toEqual({ width: -1200, height: 0 });
+	});
+
+	it('moves with the finger, because it floats rather than hangs over', () => {
+		// 150 px down is a quarter of the 600 px of room.
+		const moved = dragged(WHOLE, 0, 150, FRAME, WIDE);
+
+		expect(moved.y).toBeCloseTo(0.75);
+		expect(moved.x).toBe(0.5);
+	});
+
+	it('runs against the finger again once the zoom has made it hang over', () => {
+		// At 3× the picture is 1200x600: it overhangs sideways by 800 and still
+		// floats in 200 px of room down the frame.
+		const close = { ...WHOLE, zoom: 3 };
+		const moved = dragged(close, 200, 50, FRAME, WIDE);
+
+		expect(moved.x).toBeCloseTo(0.25);
+		expect(moved.y).toBeCloseTo(0.75);
+	});
+
+	it('starts again from the middle when it is turned over', () => {
+		const chosen = { ...CENTRED, x: 0.1, y: 0.9, zoom: 2.4, mat: 'umber' as const };
+
+		expect(fitted(chosen, 'whole')).toEqual({ ...CENTRED, fit: 'whole', mat: 'umber' });
+		expect(fitted(chosen, 'fill')).toBe(chosen);
+	});
+
+	it('keeps the fit and the mat through a pinch', () => {
+		expect(zoomed({ ...WHOLE, mat: 'dusk' }, 2)).toEqual({ ...WHOLE, mat: 'dusk', zoom: 2 });
+	});
+
+	it('reads a fit and a mat that arrived from anywhere', () => {
+		expect(sane({ fit: 'whole', mat: 'ember' })).toEqual({
+			...CENTRED,
+			fit: 'whole',
+			mat: 'ember'
+		});
+		expect(sane({ fit: 'sideways' as never, mat: '#ff00aa' as never })).toEqual(CENTRED);
+	});
+});
+
+describe('startsWhole', () => {
+	it('is a picture wider than it is tall', () => {
+		expect(startsWhole({ width: 2048, height: 1365 })).toBe(true);
+		expect(startsWhole({ width: 1365, height: 2048 })).toBe(false);
+	});
+
+	it('leaves a square, and a picture with no size, filling', () => {
+		expect(startsWhole({ width: 1000, height: 1000 })).toBe(false);
+		expect(startsWhole({ width: 0, height: 0 })).toBe(false);
 	});
 });

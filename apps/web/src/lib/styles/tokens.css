@@ -92,6 +92,20 @@
 		rgb(0 0 0 / 64%) 100%
 	);
 
+	/* ── the mats ── what a photograph shown whole stands on (D81). Part of the
+	   print and not of the interface, so they do not move with the theme any
+	   more than the sky does, and all five are dark enough for `--photo-ink`
+	   to be read on with no scrim under it. Night and charcoal are the dark
+	   theme's own ground and surface a shade down; umber is their warm;
+	   dusk and ember are the two accents with the light taken out — a mat is
+	   a wall colour, never a third accent. The names are the wire's
+	   (`PHOTO_MATS`), and `blur` has no colour because it is the photograph. */
+	--mat-night: #0f0d0c;
+	--mat-charcoal: #2b2623;
+	--mat-umber: #4a382c;
+	--mat-dusk: #2a2663;
+	--mat-ember: #6e2a12;
+
 	/* The toggle knob: white in both themes, like the glyph on a circle. */
 	--knob: #ffffff;
 

@@ -3,10 +3,13 @@ import type { Dream, DreamImage, DreamImageKind } from '@aspire/contracts';
 import {
 	photoComing,
 	photoOf,
+	matIsBlur,
+	matStyle,
 	photoStyle,
 	photosOf,
 	photosToReplace,
 	reelUrl,
+	tileStyle,
 	rungFor
 } from './photos';
 
@@ -21,6 +24,8 @@ function image(id: string, kind: DreamImageKind, ready = true): DreamImage {
 		focusX: 0.5,
 		focusY: 0.5,
 		zoom: 1,
+		fit: 'fill',
+		mat: 'night',
 		thumbUrl: `/media/d/${id}/thumb.webp`,
 		screenUrl: `/media/d/${id}/screen.webp`,
 		largeUrl: `/media/d/${id}/full.webp`
@@ -77,7 +82,13 @@ describe('photosToReplace', () => {
 });
 
 describe('photoStyle', () => {
-	const at = (focusX: number, focusY: number, zoom: number) => ({ focusX, focusY, zoom });
+	const at = (focusX: number, focusY: number, zoom: number) => ({
+		focusX,
+		focusY,
+		zoom,
+		fit: 'fill' as const,
+		mat: 'night' as const
+	});
 
 	it('says nothing at all for a photograph nobody has moved', () => {
 		// The default is what `object-fit: cover` already does, and an identity
@@ -159,5 +170,56 @@ describe('photoComing', () => {
 
 		expect(photoComing(rows, 'dreamt')).toBe(false);
 		expect(photoComing(rows, 'achieved')).toBe(true);
+	});
+});
+
+describe('a photograph shown whole (D81)', () => {
+	const whole = (focusX: number, focusY: number, zoom: number, mat: 'night' | 'dusk' | 'blur') => ({
+		focusX,
+		focusY,
+		zoom,
+		fit: 'whole' as const,
+		mat
+	});
+
+	it('is contained on a tile, placed and scaled by the same two properties', () => {
+		expect(tileStyle(whole(0.5, 0.5, 1, 'night'))).toBe('object-fit:contain;');
+		expect(tileStyle(whole(0.5, 0.2, 1.5, 'night'))).toBe(
+			'object-fit:contain;object-position:50% 20%;transform:scale(1.5);transform-origin:50% 20%;'
+		);
+	});
+
+	it('is its point alone wherever a photograph always fills its frame', () => {
+		// Twice the whole picture is not twice the crop: a circle ignores it.
+		expect(photoStyle(whole(0.5, 0.2, 2, 'night'))).toBe('object-position:50% 20%;');
+	});
+
+	it('fills a tile exactly as it always did when it is not whole', () => {
+		const filled = {
+			focusX: 0.2,
+			focusY: 0.4,
+			zoom: 1.5,
+			fit: 'fill' as const,
+			mat: 'dusk' as const
+		};
+		expect(tileStyle(filled)).toBe(photoStyle(filled));
+	});
+
+	it('names its mat by the token and never by a colour', () => {
+		expect(matStyle(whole(0.5, 0.5, 1, 'dusk'))).toBe('background:var(--mat-dusk);');
+		expect(matStyle(whole(0.5, 0.5, 1, 'night'))).toBe('background:var(--mat-night);');
+	});
+
+	it('has no mat colour when it fills, and none when the mat is the photograph', () => {
+		expect(matStyle({ fit: 'fill', mat: 'dusk' })).toBe('');
+		expect(matStyle(whole(0.5, 0.5, 1, 'blur'))).toBe('');
+		expect(matStyle(null)).toBe('');
+	});
+
+	it('knows when the mat is the blurred thumb', () => {
+		expect(matIsBlur(whole(0.5, 0.5, 1, 'blur'))).toBe(true);
+		expect(matIsBlur(whole(0.5, 0.5, 1, 'night'))).toBe(false);
+		expect(matIsBlur({ fit: 'fill', mat: 'blur' })).toBe(false);
+		expect(matIsBlur(null)).toBe(false);
 	});
 });

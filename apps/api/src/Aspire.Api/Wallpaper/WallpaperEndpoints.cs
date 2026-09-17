@@ -161,7 +161,7 @@ public static class WallpaperEndpoints
             var path = media.PathOf(id, image.Id, "full");
             if (File.Exists(path))
             {
-                files.Add(new CollageRenderer.Photograph(path, image.FocusX, image.FocusY, image.Zoom));
+                files.Add(new CollageRenderer.Photograph(path, image.FocusX, image.FocusY, image.CropZoom));
             }
         }
 

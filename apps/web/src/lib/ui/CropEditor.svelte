@@ -17,9 +17,38 @@
 	 * and the arrow keys nudge it for anybody who has no pointer at all. The
 	 * arithmetic is `images/focal.ts`, which has the tests; what is here is
 	 * the gestures and the frame.
+	 *
+	 * **Vyplnit or Celá** (D81). A photograph either fills the frame, cropped
+	 * to its shape, or stands whole inside it on a mat — which is the answer to
+	 * a landscape picture on a phone-shaped reel, where filling keeps a third
+	 * of it at twice its pixels. Whole, the same finger moves it within the
+	 * room it has and the same pinch brings it closer; the row of swatches is
+	 * the five mats in `tokens.css` and the photograph's own blur.
 	 */
-	import { CENTRED, MIN_ZOOM, dragged, spread, zoomed, type Focal } from '$lib/images/focal';
+	import { PHOTO_MATS, type PhotoMat } from '@aspire/contracts';
+	import { matIsBlur, matStyle, photoStyle, tileStyle } from '$lib/dreams/photos';
+	import {
+		CENTRED,
+		MIN_ZOOM,
+		dragged,
+		fitted,
+		spread,
+		startsWhole,
+		toInput,
+		zoomed,
+		type Focal
+	} from '$lib/images/focal';
 	import Icon from './Icon.svelte';
+
+	/** What each mat is called when it is read out; on the screen it is a colour. */
+	const MAT_LABEL: Record<PhotoMat, string> = {
+		night: 'Noc',
+		charcoal: 'Uhel',
+		umber: 'Umbra',
+		dusk: 'Soumrak',
+		ember: 'Žár',
+		blur: 'Rozmazaná fotka'
+	};
 
 	interface Props {
 		open: boolean;
@@ -27,6 +56,12 @@
 		src: string;
 		/** Where it is looked at now. */
 		focal: Focal;
+		/**
+		 * Whether this is a picture picked a moment ago and never placed. A
+		 * landscape one then opens whole rather than filling (`startsWhole`);
+		 * a photograph somebody has already placed opens as they left it.
+		 */
+		fresh?: boolean;
 		/** What the tile will say over it, so nothing is hidden behind words. */
 		title?: string;
 		line?: string;
@@ -36,7 +71,17 @@
 		oncancel: () => void;
 	}
 
-	let { open, src, focal, title = '', line = '', busy = false, onsave, oncancel }: Props = $props();
+	let {
+		open,
+		src,
+		focal,
+		fresh = false,
+		title = '',
+		line = '',
+		busy = false,
+		onsave,
+		oncancel
+	}: Props = $props();
 
 	let el: HTMLDialogElement | null = $state(null);
 	let frame = $state<HTMLElement | null>(null);
@@ -60,6 +105,23 @@
 	function measure() {
 		if (img?.complete && img.naturalWidth > 0) {
 			picture = { width: img.naturalWidth, height: img.naturalHeight };
+			suggest();
+		}
+	}
+
+	/** Which picture the suggestion below has already been made for. */
+	let suggested = '';
+
+	/**
+	 * A landscape picture nobody has placed yet opens whole. Once per picture,
+	 * and only while it is untouched — turning it back to Vyplnit must not be
+	 * undone by the next `load`.
+	 */
+	function suggest() {
+		if (!fresh || !open || suggested === src) return;
+		suggested = src;
+		if (now.fit === 'fill' && now.zoom === MIN_ZOOM && startsWhole(picture)) {
+			now = fitted(now, 'whole');
 		}
 	}
 
@@ -94,14 +156,11 @@
 	});
 
 	/** What the picture wears, which is what a tile will wear (`photos.ts`). */
-	const style = $derived(
-		`object-position:${pc(now.x)}% ${pc(now.y)}%;` +
-			`transform:scale(${round(now.zoom)});transform-origin:${pc(now.x)}% ${pc(now.y)}%;`
-	);
+	const style = $derived(tileStyle(toInput(now)));
 
-	function pc(unit: number): number {
-		return Math.round(unit * 10000) / 100;
-	}
+	/** The mat behind it, and the blur under it when that is the mat. */
+	const mat = $derived(matStyle(now));
+	const blurred = $derived(matIsBlur(now));
 
 	function round(value: number): number {
 		return Math.round(value * 100) / 100;
@@ -210,7 +269,11 @@
 	}}
 	onkeydown={keys}
 >
-	<div class="crop__frame" bind:this={frame}>
+	<div class="crop__frame" bind:this={frame} style={mat}>
+		{#if blurred}
+			<img class="dream__under" {src} alt="" aria-hidden="true" style={photoStyle(toInput(now))} />
+		{/if}
+
 		<!--
 			The picture, wearing exactly what a tile will wear. `touch-action:
 			none` only here, so the browser hands over the gesture instead of
@@ -240,10 +303,59 @@
 			</div>
 		{/if}
 
-		<p class="hint glass crop__how" aria-live="polite">
-			Posuň fotku prstem, dvěma ji přiblížíš. Šipkami taky.
-			{#if now.zoom > MIN_ZOOM}<span class="crop__zoom">{round(now.zoom)}×</span>{/if}
-		</p>
+		<div class="crop__top">
+			<p class="hint glass crop__how" aria-live="polite">
+				Posuň fotku prstem, dvěma ji přiblížíš. Šipkami taky.
+				{#if now.zoom > MIN_ZOOM}<span class="crop__zoom">{round(now.zoom)}×</span>{/if}
+			</p>
+
+			<div
+				class="seg seg--glass crop__fit"
+				style:--slot={now.fit === 'fill' ? 0 : 1}
+				role="group"
+				aria-label="Jak fotka vyplní dlaždici"
+			>
+				<!-- The lens, as the board's segment has one (D74). -->
+				<span class="seg__lens" aria-hidden="true"></span>
+				<button
+					type="button"
+					class="seg__item"
+					aria-pressed={now.fit === 'fill'}
+					onclick={() => (now = fitted(now, 'fill'))}
+					disabled={busy}
+				>
+					Vyplnit
+				</button>
+				<button
+					type="button"
+					class="seg__item"
+					aria-pressed={now.fit === 'whole'}
+					onclick={() => (now = fitted(now, 'whole'))}
+					disabled={busy}
+				>
+					Celá
+				</button>
+			</div>
+
+			{#if now.fit === 'whole'}
+				<div class="crop__mats glass" role="group" aria-label="Pozadí kolem fotky">
+					{#each PHOTO_MATS as one (one)}
+						<button
+							type="button"
+							class="crop__mat"
+							class:crop__mat--blur={one === 'blur'}
+							style={one === 'blur'
+								? `background-image:url("${src}")`
+								: `background:var(--mat-${one})`}
+							aria-pressed={now.mat === one}
+							aria-label={MAT_LABEL[one]}
+							onclick={() => (now = { ...now, mat: one })}
+							disabled={busy}
+						></button>
+					{/each}
+				</div>
+			{/if}
+		</div>
 
 		<div class="crop__acts">
 			<button type="button" class="btn btn--photo" onclick={oncancel} disabled={busy}>Zrušit</button
@@ -251,7 +363,7 @@
 			<button
 				type="button"
 				class="btn btn--photo"
-				onclick={() => (now = { ...CENTRED })}
+				onclick={() => (now = { ...now, x: CENTRED.x, y: CENTRED.y, zoom: MIN_ZOOM })}
 				disabled={busy}>Na střed</button
 			>
 			<button
@@ -338,14 +450,60 @@
 		pointer-events: none;
 	}
 
-	.crop__how {
+	/* Everything above the picture, in one column: what to do, which of the
+	   two fits, and — whole — what it stands on. Only the controls take a
+	   tap; the gaps between them are still the picture's to be dragged by. */
+	.crop__top {
 		position: absolute;
 		top: calc(var(--space-3) + env(safe-area-inset-top, 0px));
 		left: var(--space-4);
 		right: var(--space-4);
+		z-index: 1;
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
+		gap: var(--space-2);
+		pointer-events: none;
+	}
+
+	.crop__how {
+		align-self: stretch;
 		padding: var(--space-2) var(--space-3);
 		border-radius: var(--radius-lg);
-		pointer-events: none;
+	}
+
+	.crop__fit,
+	.crop__mats {
+		pointer-events: auto;
+	}
+
+	/* The mats: a swatch each, the colour being the label. The chosen one
+	   wears a ring in the photograph's own ink — white in both themes, because
+	   this is type on a photograph (rule 4) and not the interface's accent. */
+	.crop__mats {
+		display: flex;
+		gap: var(--space-2);
+		padding: var(--space-2);
+		border-radius: var(--radius-full);
+	}
+
+	.crop__mat {
+		width: 32px;
+		height: 32px;
+		border-radius: var(--radius-full);
+		box-shadow: inset 0 0 0 1px var(--glass-edge);
+		transition: box-shadow var(--dur-fast) var(--ease-out);
+	}
+
+	.crop__mat--blur {
+		background-size: cover;
+		background-position: center;
+	}
+
+	.crop__mat[aria-pressed='true'] {
+		box-shadow:
+			inset 0 0 0 2px var(--mat-night),
+			0 0 0 2px var(--photo-ink);
 	}
 
 	.crop__zoom {

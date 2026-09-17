@@ -80,6 +80,8 @@ public sealed class ImageService(AppDbContext db, MediaStore media, ImageQueue q
             FocusX = focal?.FocusX ?? DreamImage.Centre,
             FocusY = focal?.FocusY ?? DreamImage.Centre,
             Zoom = focal?.Zoom ?? DreamImage.NoZoom,
+            Fit = focal?.Fit ?? PhotoFit.Fill,
+            Mat = focal?.Mat ?? PhotoMat.Night,
             CreatedAt = DateTimeOffset.UtcNow
         };
 
@@ -144,6 +146,8 @@ public sealed class ImageService(AppDbContext db, MediaStore media, ImageQueue q
         image.FocusX = input.FocusX ?? image.FocusX;
         image.FocusY = input.FocusY ?? image.FocusY;
         image.Zoom = input.Zoom ?? image.Zoom;
+        image.Fit = input.Fit ?? image.Fit;
+        image.Mat = input.Mat ?? image.Mat;
         Touch(dream);
         await db.SaveChangesAsync(ct);
         return (image, null);

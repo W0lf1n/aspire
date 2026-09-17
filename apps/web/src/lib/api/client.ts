@@ -197,6 +197,8 @@ export function uploadImage(
 	if (focal?.focusX !== undefined) query.set('focusX', String(focal.focusX));
 	if (focal?.focusY !== undefined) query.set('focusY', String(focal.focusY));
 	if (focal?.zoom !== undefined) query.set('zoom', String(focal.zoom));
+	if (focal?.fit !== undefined) query.set('fit', focal.fit);
+	if (focal?.mat !== undefined) query.set('mat', focal.mat);
 
 	return call<DreamImage>(`/dreams/${dreamId}/images?${query}`, { method: 'POST', body });
 }

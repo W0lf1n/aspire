@@ -22,6 +22,8 @@ function image(id: string, ready: boolean, kind: DreamImageKind = 'dreamt'): Dre
 		focusX: 0.5,
 		focusY: 0.5,
 		zoom: 1,
+		fit: 'fill',
+		mat: 'night',
 		thumbUrl: `/media/d/${id}/thumb.webp`,
 		screenUrl: `/media/d/${id}/screen.webp`,
 		largeUrl: `/media/d/${id}/full.webp`

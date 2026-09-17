@@ -126,7 +126,7 @@ public static class DreamLinkEndpoints
             // put it (D54).
             var jpeg = new MemoryStream();
             await CollageRenderer.RenderAsync(
-                [new CollageRenderer.Photograph(path, photo.FocusX, photo.FocusY, photo.Zoom)],
+                [new CollageRenderer.Photograph(path, photo.FocusX, photo.FocusY, photo.CropZoom)],
                 CardWidth,
                 CardHeight,
                 jpeg,

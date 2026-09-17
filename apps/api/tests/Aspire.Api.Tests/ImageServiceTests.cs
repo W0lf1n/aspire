@@ -409,4 +409,38 @@ public sealed class ImageServiceTests : IDisposable
         Assert.Equal(stamps.OrderBy(s => s).ToList(), stamps);
         Assert.Equal(stamps.Count, stamps.Distinct().Count());
     }
+
+    [Fact]
+    public async Task A_surface_that_always_fills_ignores_a_zoom_chosen_against_the_whole_picture()
+    {
+        var dream = await ADream();
+        using var png = Png(1600, 1000);
+
+        var (image, _) = await _images.AddAsync(
+            dream, png, png.Length, focal: new FocalInput(0.5, 0.3, 2.0, PhotoFit.Whole, PhotoMat.Umber));
+
+        // Twice the whole picture is not twice the crop: a circle and a collage
+        // cell read the point alone (D81).
+        Assert.Equal(2.0, image!.Zoom);
+        Assert.Equal(DreamImage.NoZoom, image.CropZoom);
+
+        var (filled, _) = await _images.MoveAsync(dream, image.Id, new FocalInput(null, null, null, PhotoFit.Fill));
+        Assert.Equal(2.0, filled!.CropZoom);
+        // The mat is kept for the next time it is shown whole.
+        Assert.Equal(PhotoMat.Umber, filled.Mat);
+    }
+
+    [Fact]
+    public void Every_fit_and_every_mat_survives_the_round_trip_through_its_column()
+    {
+        foreach (var fit in Enum.GetValues<PhotoFit>())
+        {
+            Assert.Equal(fit, PhotoFitNames.Parse(PhotoFitNames.ToWire(fit)));
+        }
+
+        foreach (var mat in Enum.GetValues<PhotoMat>())
+        {
+            Assert.Equal(mat, PhotoMatNames.Parse(PhotoMatNames.ToWire(mat)));
+        }
+    }
 }

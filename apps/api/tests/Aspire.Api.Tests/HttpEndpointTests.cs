@@ -280,6 +280,69 @@ public sealed class HttpEndpointTests : IAsyncLifetime
     }
 
     [Fact]
+    public async Task A_photograph_shown_whole_says_so_in_kebab_case_and_can_change_its_mat()
+    {
+        var dream = await ADreamAsync();
+        var id = dream.GetProperty("id").GetString();
+
+        using var form = new MultipartFormDataContent();
+        var file = new ByteArrayContent(Png(1600, 1000));
+        file.Headers.ContentType = new MediaTypeHeaderValue("image/png");
+        form.Add(file, "file", "dream.png");
+
+        var response = await _client.PostAsync($"/api/v1/dreams/{id}/images?fit=whole&mat=dusk", form);
+
+        Assert.Equal(HttpStatusCode.Accepted, response.StatusCode);
+        var image = await response.Content.ReadFromJsonAsync<JsonElement>(Wire);
+        Assert.Equal("whole", image.GetProperty("fit").GetString());
+        Assert.Equal("dusk", image.GetProperty("mat").GetString());
+
+        // The mat alone: the fit and the crop are left as they were (D81).
+        var moved = await _client.PutAsync(
+            $"/api/v1/dreams/{id}/images/{image.GetProperty("id").GetString()}", Json("""{"mat":"blur"}"""));
+        Assert.Equal(HttpStatusCode.OK, moved.StatusCode);
+        var after = await moved.Content.ReadFromJsonAsync<JsonElement>(Wire);
+        Assert.Equal("whole", after.GetProperty("fit").GetString());
+        Assert.Equal("blur", after.GetProperty("mat").GetString());
+    }
+
+    [Fact]
+    public async Task A_photograph_that_says_nothing_fills_its_frame_as_every_one_before_it_did()
+    {
+        var dream = await ADreamAsync();
+
+        using var form = new MultipartFormDataContent();
+        var file = new ByteArrayContent(Png(64, 64));
+        file.Headers.ContentType = new MediaTypeHeaderValue("image/png");
+        form.Add(file, "file", "dream.png");
+
+        var response = await _client.PostAsync(
+            $"/api/v1/dreams/{dream.GetProperty("id").GetString()}/images", form);
+
+        var image = await response.Content.ReadFromJsonAsync<JsonElement>(Wire);
+        Assert.Equal("fill", image.GetProperty("fit").GetString());
+        Assert.Equal("night", image.GetProperty("mat").GetString());
+    }
+
+    [Fact]
+    public async Task A_mat_that_is_not_one_of_the_six_is_refused_with_a_sentence()
+    {
+        var dream = await ADreamAsync();
+
+        using var form = new MultipartFormDataContent();
+        var file = new ByteArrayContent(Png(64, 64));
+        file.Headers.ContentType = new MediaTypeHeaderValue("image/png");
+        form.Add(file, "file", "dream.png");
+
+        var response = await _client.PostAsync(
+            $"/api/v1/dreams/{dream.GetProperty("id").GetString()}/images?fit=whole&mat=ff00aa", form);
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        var problem = await response.Content.ReadFromJsonAsync<JsonElement>(Wire);
+        Assert.Equal("Takhle se fotka na dlaždici umístit nedá.", problem.GetProperty("detail").GetString());
+    }
+
+    [Fact]
     public async Task A_crop_outside_the_photograph_is_refused_before_anything_is_stored()
     {
         var dream = await ADreamAsync();
