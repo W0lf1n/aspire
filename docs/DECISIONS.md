@@ -2401,3 +2401,209 @@ paint.
 
 That retires D70's sibling fix from the day before: there is no pill left to
 be the wrong colour on.
+
+---
+
+## After §28 · 2026-09-17 — nine from using it
+
+Nine things Petr asked for after living with the finished app (PLAN.md §29).
+Four of them overturn something written above, and he was asked about those
+before a migration was written: the order he drags is the Seznam's and not the
+reel's, a collage shows on the reel and on the dream's own tile, a mat is one
+of a palette chosen per photograph, and starting over takes the dreams and
+leaves the pairing.
+
+### D75 — The frame is pinned to the viewport, not measured from it
+
+An installed app launched cold on Android sometimes came up with the tab bar
+below the bottom edge of the screen, and a reload put it back. The frame was
+`height: 100dvh` on `.app`, with `html` and `body` the same: a length worked
+out from the viewport once. At a cold start that viewport can still be the
+splash's — system bars not yet taken out of it — and a `dvh` length is not
+always worked out again when the real size arrives.
+
+`.app` is `position: fixed; inset: 0` now and `html, body` are `height: 100%`.
+`inset: 0` is the viewport itself rather than a length measured from it, so
+there is nothing to go stale. It is still positioned, so it is still the
+containing block the bar and the toast are placed against, and the two insets
+with `margin-inline: auto` are what centre a 34rem column in a wider window.
+
+**Not reproduced on the laptop**, where a viewport never starts the wrong
+size. The layout is unchanged there at phone and desktop widths; the phone is
+the test of the fix.
+
+### D76 — A sheet is pulled down to put it away
+
+Prosper's sheets are; Aspire's had a grab bar that was „not a control“. Where
+Prosper does X, Aspire does X.
+
+- **The handle takes the gesture and the body is its sibling.** The grab bar
+  and the title are `touch-action: none`; what the sheet holds scrolls in
+  `.sheet__body` under them. So there is nothing to arbitrate: a pull cannot
+  start inside the form and a scroll cannot be stolen by the sheet. The panel
+  itself no longer scrolls, which also keeps the handle where a thumb can find
+  it in a long sheet.
+- **Prosper's numbers**: a third of the panel's own height and never under
+  72 px, or a flick past 0.5 px/ms that has gone at least 12 px. Upward it
+  gives a sixth. `ui/pull.ts` holds them, with the test Prosper never wrote.
+- **The screen still decides.** A pull asks to close exactly as escape and the
+  dim do, so a sheet in the middle of saving stays up and springs back.
+- **A hidden „Zavřít“** is the last thing in the panel: a pull is not
+  something every assistive technology can produce, and a touch screen reader
+  has no escape key.
+
+### D77 — The board is counted, and a dream says when it was last changed
+
+`UpdatedAt` had been on the row since M0 and nothing read it. It is on the
+wire as `updatedAt`, on the dream's screen as „Naposledy upraveno“, and the
+latest of them is under the Seznam's new stats bar.
+
+- **What moves it is the dream being changed**: its words, its state, its
+  area, its year, a photograph put on it, moved or taken off, its collage's
+  template. **What does not** is anything about the board: a heart, the day's
+  „shown“ stamp, a place in the Seznam, and — changed here — being put on Teď
+  or reordered there, which used to stamp all ten. The date has to mean „I
+  last worked on this one then“ or it means nothing.
+- **Four numbers and a date**: celkem · sním · plním · splněno. No share
+  done, no streak, no pace. A count says what is on the board; a percentage
+  starts saying how he is doing, and §2 says this is not a tracker.
+- **A number is a button.** It narrows the list to the dreams it counted, the
+  way the search narrows it to the ones it found, and the two stack. The line
+  numbers stay each dream's place in the whole list (D48).
+- **„dnes“ and „včera“** for the two days that have a name, by the device's
+  own calendar, and the long date after that.
+
+### D78 — A line of the Seznam slides aside
+
+Swiped to the left, a line shows a tray: the hearts with their count, Sdílet,
+Smazat.
+
+- **D58 is amended, not broken.** It took the count off the _reel's tile_
+  because a number on a photograph is a score. A line in an inventory is where
+  a count belongs — and even here it is behind a swipe rather than in the
+  column. The heart in the tray is a heart: a tap adds one.
+- **Across has to win clearly.** A thumb scrolling a list drifts sideways all
+  the time, so a gesture is a swipe only when it has gone past 8 px _and_
+  further across than down, and the first answer stands for the rest of the
+  gesture. `touch-action: pan-y` leaves the scroll the browser's.
+- **One tray at a time**, shut by a tap anywhere else or by the list
+  scrolling, and `inert` while it is shut — a tray nobody can see must not be
+  something a keyboard can land on. The swipe is a shortcut: all three are on
+  the dream's own screen, which is where a keyboard reaches them.
+- **Smazat here is D65's**, the same six seconds and the same „Vrátit“.
+  `dreams/letgo.ts` is the one function both screens call, and `ShareSheet`
+  the one sheet, because two screens doing the same thing is one thing.
+
+### D79 — The Seznam's order is his own (D30, D44 and D48 amended)
+
+D30 dropped drag to reorder, D44 made the Seznam newest-first, D48 numbered it
+on that basis. Petr asked for both ways of moving a line: drag it, and type
+over its number — „it is number 3, I rewrite it to 1, what was 1 is 2 and what
+was 2 is 3“.
+
+- **Both are one move**: this dream, to that line. `PUT /dreams/{id}/place`
+  takes one number, the server counts the whole board off again from nought,
+  and `dreams/order.ts` does the same on the device so the row moves under the
+  finger rather than after a round trip. A refusal puts the board back.
+- **`sortOrder` finally means what its comment always said.** Lowest first. A
+  new dream goes in front of the lowest, so it is still line one, which is
+  D44's reason and still true. The migration turns every `sort_order` over —
+  no column changes — so the list reads exactly as it did the day before.
+- **D30 stands for the reel.** Vše is still the day's pick and a shuffle
+  (rule 22): a fixed route through a hundred dreams is still the wrong idea
+  for the _queue_. The Seznam is the inventory, and an inventory is allowed a
+  shelf order. Petr was asked, and chose this over the reel following it.
+- **A narrowed list cannot be reordered.** Between the lines numbered 4 and 17
+  there are twelve nobody can see, and „above 17“ does not say which.
+- **The server is asked for a neighbour's line, not a count.** A dream inside
+  its undo window (D65) is off the screen and still on the server, so the
+  screen's third line can be the server's fourth; `serverPlace` finds the
+  dream that will be under the moved one and asks for _its_ line.
+- **Dragging is by the grip, or by the line after a long press.** The grip is
+  `touch-action: none` and starts at once; the long press is 420 ms, and a
+  `touchmove` listener that was on the list before the touch began is what
+  stops the browser scrolling under a held line. Every row is exactly as tall
+  as the next — the hairline is drawn on the face, not a border between two —
+  because a drag is arithmetic on that one number (`ui/reorder.ts`), and near
+  either edge the list scrolls under the line.
+- **The number is the accessible way.** A grip does nothing when it is
+  pressed, so it is hidden from a screen reader and out of the tab order, and
+  the number beside it is the same move said in a way a keyboard can say.
+
+### D80 — Začít znovu takes a sentence
+
+A button that deletes every dream and every photograph on the board.
+
+- **D65 does not scale to it.** Smazat waits six seconds because it is one
+  dream and the request can be held. A hundred dreams and their files cannot
+  be held in a toast: they are gone from the disk the moment the server says
+  yes. So this is the one place in the app where friction is the point.
+- **Prosper's friction, word for word**: „začínám znovu“ typed out, case,
+  accents and stray spaces forgiven. A confirm is dismissed by the same tap
+  that opened it; thirteen characters cannot be muscle memory. The server
+  checks the phrase again (`ResetPhrase`), so emptying a board takes the
+  sentence as well as the URL.
+- **What goes**: dreams, photographs, Teď, share links. **What stays**:
+  pairing, devices, nudges, the lock-screen link, appearance — everything
+  about the board rather than about a dream. Petr chose this over unpairing.
+- **It says how many** before it takes them, and that it is every device
+  paired to the board. Prosper offers a backup first; Aspire has no export to
+  offer, and the VPS's nightly `backup.sh` is the only way back.
+
+### D81 — A photograph can be shown whole, on a mat (D54 extended, rule 16)
+
+Photographs that looked right on the dream's tile and in the Seznam were
+„zoomed, in bad quality“ on the reel. The reel's frame is a phone screen,
+about 9:19. A landscape photograph filling it keeps a third of itself and is
+drawn at about 1.7× its pixels even from the 2048 file.
+
+- **`fit` on the photograph: `fill`, as every one was, or `whole`.** Whole is
+  all of it, contained, on a mat, and `zoom` then scales up from there.
+- **The point means the same in both.** Along each axis the picture sits at
+  `p × (frame − picture)`, which is `object-position`'s own rule and is as
+  true of room to spare as of overhang. So one line of arithmetic moves a
+  picture that hangs over its frame and one that floats in it (`room`,
+  `dragged`); only the sign differs, and with it which way the point runs
+  under a finger. The client still sets `object-position` and a `transform`
+  and does no arithmetic at render time.
+- **The mat is one of six**, per photograph: `--mat-night`, `charcoal`,
+  `umber`, `dusk`, `ember` in `tokens.css`, and `blur` — the photograph's own
+  thumb, D63's, put to a second use. A palette rather than a colour picker
+  because a colour exists in one file (rule 1); all dark, because the words on
+  a tile are white; theme-independent, because a mat belongs to the print.
+  Dusk and ember are the two accents with the light taken out, not a third.
+  Petr chose this over one colour for the app and over a free picker.
+- **Surfaces with no room for a mat still fill**: the Seznam's circle, the
+  wall's pair, a collage's cell, the wallpaper, the shared card. They read the
+  point alone (`DreamImage.CropZoom`, `photoStyle`), because twice the whole
+  picture is not twice the crop.
+- **A landscape picture picked a moment ago opens whole** in the editor, and
+  can be turned over. Photographs already on the board are left as they are.
+
+### D82 — Up to five photographs, cut into a collage (rule 12 extended)
+
+- **The five are all dreamt.** Rule 12's two kinds stand: the achieved
+  photograph is its own picker and is not a sixth cell (D28). The sixth dreamt
+  one is a 409 with a sentence.
+- **A template is a CSS grid and nothing else** — tracks, and one `grid-area`
+  per photograph — so one set fits a phone screen and a 4:5 print alike. Three
+  for every count from two to five (`dreams/collage.ts`), and a test that each
+  tiles its grid with no hole and no overlap. Every cell crops to its
+  photograph's own point (D54).
+- **A dream stores a variant, 0 to 2, not a name**, because what it picks
+  among depends on the count, and a number survives a photograph being added
+  or taken away. The server never draws one.
+- **The first photograph matters twice**: it is the cover everything small
+  shows — circle, wallpaper, shared card, notification, the wall's pair — and
+  in every template with a big cell it is the big cell. So „Jako první“ is the
+  only reordering there is. Petr chose the reel and the dream's tile for the
+  collage over the dream's tile alone.
+- **A new photograph stands behind the last**, not at „how many there are“:
+  with one taken out of the middle that was a number two rows shared, and the
+  tie fell to the id, which is random.
+- **The shelf** on the dream's screen adds (a file or a link), places, puts
+  first, takes away, and offers the three templates as diagrams drawn with the
+  collage's own grid, so the diagram cannot drift from the collage. With one
+  photograph the tile is the `PhotoPicker` it always was.
+- **Offline keeps every cell** at the one rung a cell reads — the 1280 — so
+  the prefetch still asks for the file the tile will show (D62).

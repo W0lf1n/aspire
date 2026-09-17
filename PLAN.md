@@ -33,6 +33,10 @@ Yager: "Dream building" is step one of everything. Dream must be visual, specifi
 - Image upload: phone camera, library, paste URL. Server resizes to 3 sizes (thumb / screen / full), WebP.
 - ~~Reorder dreams by drag (board order = priority).~~ Dropped 2026-09-10: the
   reel is shuffled on every open instead, so no order is a route you learn (D30).
+  Back on 2026-09-17 **for the Seznam only**, by drag and by typing over a
+  line's number (D79); the reel is still shuffled.
+- „1–5 images“ above was one until 2026-09-17: up to five dreamt photographs,
+  cut into a collage on the reel and on the dream's tile (D82, §29).
 
 ### 3.2 Board view (MVP)
 
@@ -1458,3 +1462,45 @@ rather than only the bar. It already worked on iPhone, Android and the web —
 same way everywhere too.
 
 **Took** one session. **Decides** D74, amends D70.
+
+## 29. Nine from using it · 2026-09-17 — done
+
+Nine things Petr asked for after living with the finished app. Not a
+milestone. Four of them overturn something the plan or a decision had
+settled, so he was asked about those four before a migration was written; the
+answers are in the decisions they became.
+
+1. **A line of the Seznam slides aside** (D78): swiped left it shows the
+   hearts and their count, Sdílet and Smazat. D58 took the count off the
+   reel's tile, not off an inventory's line; Smazat is D65's six seconds.
+2. **Začít znovu** (D80): every dream and photograph, behind Prosper's typed
+   phrase, under Nastavení. Pairing, nudges, the lock-screen link and
+   appearance stay.
+3. **The tab bar hung below the screen on a cold start** (D75). The frame is
+   pinned to the viewport's edges instead of being `100dvh` tall. Not
+   reproducible on a laptop; the phone is the test.
+4. **The Seznam's order is his own** (D79, amending D30, D44 and D48): a line
+   is dragged, or its number is typed over, and both are one move. The reel is
+   not told — Vše is still shuffled.
+5. **A sheet is pulled down to put it away** (D76), with Prosper's numbers.
+6. **A stats bar on the Seznam** (D77): celkem · sním · plním · splněno, each
+   a button that narrows the list.
+7. **„Naposledy upraveno“** (D77), for the board under the stats and for each
+   dream on its own screen. Teď stopped stamping it.
+8. **Up to five photographs, and collages** (D82): three templates for every
+   count from two to five, on the reel and on the dream's tile; the first
+   photograph is the cover everywhere small. §3.1 had said „1–5 images“ since
+   the first draft, so this one closes a line of the plan rather than adding
+   to it.
+9. **A photograph can be shown whole, on a mat** (D81): `fit` and `mat` on the
+   photograph, six mats, and a landscape picture opens whole. This is the
+   answer to „zoomed, in bad quality on the board“.
+
+Three migrations, none of which edits another: `SeznamOrder` (data only — it
+turns `sort_order` over), `PhotoFit` (`fit`, `mat` on `dream_images`) and
+`DreamLayout` (`layout` on `dreams`). Three new endpoints under a dream —
+`place`, `layout`, `images/order` — and `POST /board/reset`. No dependency
+was added; the entry route is 33.6 kB brotli of 150.
+
+**Took** one session. **Decides** D75–D82; amends D30, D44, D48 and D58, and
+extends D54 and rule 12.

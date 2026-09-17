@@ -2,7 +2,7 @@
 
 Guidance for Claude Code working in this repository.
 
-**Last revised:** 2026-09-13 · §27 and §28 closed, D51–D74 · 324 web tests · 397 API tests
+**Last revised:** 2026-09-17 · §29 closed, D51–D82 · 423 web tests · 438 API tests
 
 ---
 
@@ -73,7 +73,16 @@ which reel it is (D71). §28 is two more: the notification wears the mark as
 a white outline rather than the colour icon (D70 amended), and the reel
 segment wears the tab bar's glass — rim, sheen and a sliding lens — off the
 back of making glass one decision in `tokens.css` instead of eight literals
-(D74). Nothing is left in the plan.
+(D74). §29 is nine things asked for after living with it: a line of the
+Seznam slides aside to its hearts, Sdílet and Smazat (D78), is dragged or has
+its number typed over because the Seznam's order is his own now — and the
+reel's is still a shuffle (D79) — the board is counted above it and a dream
+says when it was last changed (D77), a sheet is pulled down as Prosper's is
+(D76), the frame is pinned to the viewport rather than `100dvh` tall (D75),
+Začít znovu empties the board behind a typed sentence (D80), a photograph can
+be shown whole on a mat instead of filling its frame (D81), and a dream has
+up to five of them, cut into a collage (D82) — which is §3.1's „1–5 images“,
+finally. Nothing is left in the plan.
 
 ---
 
@@ -143,13 +152,22 @@ cd apps/api && dotnet ef migrations add Name --project src/Aspire.Infrastructure
 apps/web/src/
 ├─ lib/styles/     tokens.css — the only place a colour exists — and app.css,
 │                  which owns the primitives: page, card, row, circle, badge,
-│                  seg, chip, toggle, facts, well, field, btn, dream.
+│                  seg, chip, toggle, facts, stats, well, field, btn, dream,
+│                  swipe — and the five mats a photograph shown whole
+│                  stands on, `--mat-*`, which are the print's and not a
+│                  third accent (D81).
 ├─ lib/ui/         Hand-rolled components. No component library;
 │                  pager.ts — one dream per swipe, however long the swipe —
 │                  sideways.ts, across the reel to change which reel it is
 │                  (D71) — ReelTile.svelte, one page of the reel and every
-│                  style that makes it exactly one scrollport tall — and
-│                  Sheet.svelte, the `<dialog>` a form rises in (D44).
+│                  style that makes it exactly one scrollport tall —
+│                  Sheet.svelte, the `<dialog>` a form rises in (D44), and
+│                  pull.ts, how far down it is pulled before it goes (D76) —
+│                  DreamRow.svelte, a line of the Seznam, with swipe.ts for
+│                  the tray behind it (D78) and reorder.ts for dragging it
+│                  (D79) — Collage.svelte, PhotoShelf.svelte and
+│                  PhotoLinkSheet.svelte, a dream's five photographs (D82) —
+│                  and ShareSheet.svelte, which two screens open (D78).
 ├─ lib/api/        client.ts (fetch + bearer), token.ts (localStorage),
 │                  pairing.ts (the flow) and errors.ts (the sentences).
 ├─ lib/dreams/     rules.ts — what a dream may be, and how it reads in a
@@ -164,7 +182,12 @@ apps/web/src/
 │                  and how Czech is folded before it does (D49) —
 │                  duplicates.ts — whether a dream being written is one
 │                  already written down (D50) — deleting.svelte.ts, the few
-│                  seconds a deleted dream is not gone yet (D65) — upload.ts — the order a
+│                  seconds a deleted dream is not gone yet (D65), and
+│                  letgo.ts, the one Smazat every screen calls (D78) —
+│                  order.ts, a dream moved to a line of the Seznam (D79) —
+│                  stats.ts, the board counted (D77) — collage.ts, the
+│                  templates for two to five photographs (D82) — reset.ts,
+│                  the sentence that empties a board (D80) — upload.ts — the order a
 │                  photograph replaces another in, which two screens do
 │                  (D52) — wallpaper.ts — who can be on a collage and how
 │                  big it is — and format.ts.
@@ -184,7 +207,7 @@ apps/web/src/
 │                  · /sen/[id]/upravit · /sin-slavy
 │                  · /nastaveni · /nastaveni/vzhled · /nastaveni/upozorneni
 │                  · /nastaveni/tapeta · /nastaveni/stahovani
-│                  · /nastaveni/parovani
+│                  · /nastaveni/parovani · /nastaveni/zacit-znovu
 │                  · /styleguide (unlinked, for review)
 └─ service-worker.ts  three caches: the shell per build, the photographs
                       cache-first, the board network-first (D24).
@@ -192,8 +215,9 @@ apps/web/src/
 apps/api/src/
 ├─ Aspire.Api/             Program.cs (minimal APIs), Auth/ (pairing, devices,
 │                          and ShareKey — the 32 bytes both links are),
-│                          Boards/ (the board commands and the lock-screen
-│                          link — D60), Dreams/ (and the one page this server
+│                          Boards/ (the board commands, the lock-screen
+│                          link — D60 — and starting over, with the phrase
+│                          that guards it — D80), Dreams/ (and the one page this server
 │                          writes, for a dream somebody else opens — D61),
 │                          Images/ (the queue and the worker), Wallpaper/
 │                          (the lock-screen collage), Nudges/ (the morning
@@ -254,7 +278,11 @@ scripts/             check-bundle.mjs, and invite.sh — a board and its code
 12. **A photograph has two kinds**, `dreamt` and `achieved`, and no screen
     picks one by hand. `dreams/photos.ts` says which one a screen shows and
     which ones a replacement takes with it, so changing the dreamt
-    photograph never takes the proof with it (D28).
+    photograph never takes the proof with it (D28). **Up to five are dreamt**
+    (D82): the first is the cover every small surface shows — `photoOf` —
+    and `dreamtPhotos` is all of them, which two or more of makes a collage
+    on the reel and on the dream's own tile (`dreams/collage.ts`). The
+    achieved photograph is never a sixth cell.
 13. **A duplicate is told, never stopped.** `dreams/duplicates.ts` says when
     a title is already on the board and the form shows a `.note` under the
     field; the pill stays live and keeps its word. It is his list (D50), and
@@ -271,7 +299,13 @@ scripts/             check-bundle.mjs, and invite.sh — a board and its code
 16. **A photograph is cropped by a point and a zoom, never by a file.**
     `focus_x` · `focus_y` · `zoom` on the row, `photoStyle` on the client and
     `FocalCrop` on the server, and every surface that shows a photograph
-    reads them (D54). The three files on disk are never re-cut.
+    reads them (D54). The three files on disk are never re-cut. **And it
+    either fills its frame or stands whole on a mat** — `fit` · `mat` (D81).
+    A surface with room for a mat reads `tileStyle` and `matStyle`; one
+    without — a circle, a collage's cell, the wallpaper, the shared card —
+    reads `photoStyle` and `CropZoom`, which are the point alone for a
+    photograph shown whole, because its zoom was chosen against a different
+    scale. A mat is a token's name on the wire, never a colour (rule 1).
 17. **A key that is its own permission is made in one place and fenced the
     same way.** `Auth/ShareKey` is those 32 bytes; `/api/v1/w/{key}` is one
     board's collage (D60) and `/s/{key}` is one dream's page (D61), and they
@@ -284,7 +318,9 @@ scripts/             check-bundle.mjs, and invite.sh — a board and its code
 (1 + min(likes, 10) / 10)` picks the day's dream and orders the automatic
     wallpaper, in `dreams/board.ts` and in `DailyPick.cs`, counting whole days
     so two phones cannot disagree (D58). Nothing else reads the count, the
-    reel's tile shows no number, and the cap is not negotiable: without it the
+    reel's tile shows no number — the Seznam shows it behind a swipe, where a
+    count is a fact about a line and not a score on a photograph (D78) — and
+    the cap is not negotiable: without it the
     loved dreams take every morning and the board stops turning over.
 19. **A morning is one notification, and the anniversary outranks it.**
     `Aspire.Domain/Anniversary.cs` is asked before `DailyPick`, and when it
@@ -305,7 +341,25 @@ scripts/             check-bundle.mjs, and invite.sh — a board and its code
     dreams in the person's own order, `focusRank` on the dream and
     `dreams/focus.ts` on the client (D53). The day's pick and its `shown`
     stamp belong to Vše alone: a board opened on Teď has put no dream in
-    front of anybody, and „shown“ is what the word means (D25, D36).
+    front of anybody, and „shown“ is what the word means (D25, D36). **The
+    Seznam's order is a third thing and the reel never reads it** (D79):
+    `sortOrder`, lowest first, moved one dream at a time by
+    `PUT /dreams/{id}/place` and by `dreams/order.ts`, which number the board
+    the same way — whole numbers from nought, every time.
+23. **Every line of the Seznam is exactly as tall as the next.** Dragging one
+    is arithmetic on that one number (`ui/reorder.ts`), so the hairline is
+    drawn on the row's face rather than being a border between two, and
+    nothing in a row wraps. Anything that makes one row taller than another
+    puts every drop below it on the wrong line.
+24. **`updatedAt` moves when the dream is changed and never when the board
+    is** (D77): its words, its state, a photograph, its template — not a
+    heart, a „shown“ stamp, a place in the Seznam or a place on Teď. A new
+    write decides which of the two it is before it touches the stamp.
+25. **Emptying a board takes the sentence as well as the URL** (D80).
+    `ResetPhrase` on the server and `dreams/reset.ts` on the client say the
+    same thirteen characters, and `POST /board/reset` is the only write that
+    cannot be undone or held. Nothing else gets to delete more than one
+    dream at a time.
 
 ---
 
@@ -320,7 +374,21 @@ as the model stands and then leaves it alone, so after a model change the
 old file answers "no such column". Delete it and start the API again.
 
 **A Bash heredoc over about 8 kB is cut short on this machine** and fails
-with an unmatched quote. Write large files with the Write tool.
+with an unmatched quote. Write large files with the Write tool. A heredoc
+also cannot carry a C# raw string: the `"""` inside a Python `'''…'''` or
+`"""…"""` patch script ends the script's own string, so a test with a raw
+JSON body goes in with the Edit tool.
+
+**`dotnet test` and `dotnet build` fail with MSB3027 while the API is
+running**, because the running process holds `Aspire.Domain.dll` and
+`Aspire.Infrastructure.dll` open — ten retries, then an error that reads like
+a broken build. Stop the `aspire-api` preview (or `pnpm api`) first.
+
+**The laptop's `aspire.db` is behind by three columns after 2026-09-17**:
+`dream_images.fit` and `.mat` (text, `'fill'` and `'night'`) and
+`dreams.layout` (integer, 0). An `ALTER TABLE … ADD COLUMN … NOT NULL DEFAULT`
+from python's `sqlite3` brings an old file up without losing its dreams;
+deleting it, as above, still works.
 
 **Czech in a `curl -d` argument does not survive this machine's shell.**
 `-d '{"why":"Chci vidět…"}'` reaches the API as broken UTF-8 and comes back

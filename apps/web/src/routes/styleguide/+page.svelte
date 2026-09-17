@@ -34,7 +34,14 @@
 		'--pill',
 		'--signal',
 		'--dusk',
-		'--danger'
+		'--danger',
+		// The mats a photograph shown whole stands on (D81): the print's, so
+		// they read the same in both themes.
+		'--mat-night',
+		'--mat-charcoal',
+		'--mat-umber',
+		'--mat-dusk',
+		'--mat-ember'
 	] as const;
 
 	let values = $state<Record<string, string>>({});

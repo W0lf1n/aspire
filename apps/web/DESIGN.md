@@ -654,15 +654,21 @@ layer carries it over the floating bar without a z-index, and the escape key,
 the focus trap and the inert screen behind it come free. The panel is the
 app's column (34 rem) at most, 28 px on its top corners, `--ground` so what
 sits in it is a card on the ground exactly as on a page, capped at the screen
-less 56 px and scrolling inside itself; a 36×4 `--hairline-2` grab bar says
-which edge it came from and is not a control. It rises 100 % of its own
+less 56 px. **It is pulled down to put it away, as Prosper's is** (D76): the
+handle — a 36×4 `--hairline-2` grab bar over the title — is `touch-action:
+none` and takes the gesture, and `.sheet__body` under it is a sibling with its
+own scroll, so a pull cannot start inside the form and a scroll cannot be
+stolen. Past a third of the panel, never under 72 px, or on a flick, it goes;
+short of that it eases home, and under the finger it does not ease at all. The
+bar darkens to ink-3 while it is held. It rises 100 % of its own
 height in 220 ms on `--ease-out` while the screen dims to `--overlay`, both
 with `allow-discrete` so it leaves the way it came. The dim is a plain
 element, not `::backdrop`: a backdrop does not inherit the tokens everywhere,
 and a colour outside `tokens.css` is not a colour this app owns.
 
 ### The list (Seznam)
-The board as one column (D44): `.card--list` of `.row`s, newest first, each a
+The board as one column (D44), in the person's own order (D79): a
+`.card--list` of `.swipe` rows, each a
 number, a 40 px photograph cropped into the circle's place — or the sky where
 there is none — the title, and a line of state · area · year. The number is
 13 px 500 in ink-3, tabular, in a 2ch right-aligned column, and it is the
@@ -670,6 +676,28 @@ dream's place in the whole list, so a searched list reads 4, 17, 38 (D48).
 The search field sits between the title row and the card from six lines up,
 with `n z m` under it in ink-2 while it is being used, and the empty answer is
 a card saying so with a quiet pill that empties the field.
+
+**`.stats`** sits above the search (D77): one card, four equal columns, a
+22 px 600 tabular figure over a 12 px ink-2 word — celkem · sním · plním ·
+splněno. Each is a button pressed by luminance, `--surface-3` on the one the
+list is narrowed to; ink and surface only, because a count is a fact and
+neither accent has anything to say about it. „Naposledy upraveno“ is a `.hint`
+under it.
+
+**A row is a lid** (D78). `.swipe` clips, `.swipe__face` is the row on an
+opaque `--surface` and slides left over `.swipe__tray`: three 64 px columns,
+icon over an 11 px 600 label — the hearts on `--signal-wash` in `--signal`,
+Sdílet on `--surface-3`, Smazat on `--danger-wash` in `--danger`. It follows
+the finger, gives a quarter past either end, and settles open past halfway or
+on a flick. The hairline between two rows is drawn on the face, not a border,
+so every row is exactly 64 px — dragging one is arithmetic on that number.
+
+**In the hand** (D79) a row is `.swipe--lifted`: above its neighbours, a step
+darker on `--surface-2`, under `--elev-glass` — the one shadow in a list,
+because this row genuinely floats — and it does not ease, because it is where
+the finger is. The rows it passes step aside by one row in 150 ms. The grip is
+six dots in ink-3 where the chevron was, and the number becomes a field on
+`--surface-3` with the ember focus ring.
 
 ### The reel (Nástěnka)
 A pager, not a list (D40). The scroll region is the reel alone —
@@ -741,11 +769,45 @@ sit. Its picture is the only element in the app with `touch-action: none`.
 Three `.btn--photo` pills sit at the foot — Zrušit · Na střed · Hotovo, the
 last one ember — and the hint rides at the top in `.glass`.
 
+**Vyplnit · Celá** (D81) is a `.seg--glass` under the hint, with the board's
+own lens. Celá shows all of the photograph, contained, and brings out a glass
+pill of six 32 px swatches: the five mats and the photograph's own blur. The
+chosen one wears a ring in `--photo-ink` — white in both themes, because this
+is a control on a photograph and the interface's accent stays off one.
+
+### The mats (D81)
+`--mat-night` · `--mat-charcoal` · `--mat-umber` · `--mat-dusk` · `--mat-ember`:
+what a photograph shown whole stands on. They belong to the print and not to
+the interface, so they do not move with the theme any more than the sky does,
+and all five are dark enough to carry `--photo-ink` with no scrim. Dusk and
+ember are the two accents with the light taken out — a wall colour, never a
+third accent. `blur` is not a colour: it is `.dream__under`, the thumb D63
+already puts under the reel's picture. `--mat-night` is also the 2 px seam of
+a collage.
+
+### The collage (D82)
+`.dream__collage` fills its tile edge to edge like `.dream__img` — absolute, no
+height of its own, so it is a page of the reel and a 4:5 print with one set of
+templates. A template is `grid-template-columns`, `grid-template-rows` and one
+`grid-area` per photograph; `.dream__cell` clips, and its picture is `cover`
+at the photograph's own point. The first photograph is the lead and takes the
+big cell wherever there is one.
+
+### The shelf (D82)
+A card under the dream's tile: „Fotky“ and `n z 5`, a row of 52 px thumbs at
+`--radius-sm` — five across and never six — with a `.badge--photo` „hlavní“ on
+the first and a ＋ tile on `--surface-3` while there is room. The chosen thumb
+wears a 2 px ember ring stood off by 2 px of surface, and a row of `.btn--sm`
+follows it: Umístit · Jako první · Smazat. The three templates are 32×44
+diagrams drawn with the collage's own grid, ink-3 cells on `--surface-3`, ink
+and an ember ring on the chosen one.
+
 ### The photo picker
 The dream's tile with the picture in it, and a wrapping row of `.btn--photo`
 pills under the words: *Vybrat fotku* (a `<label>` over a hidden file input),
-*Posunout* once there is a picture (D54), and *Z odkazu* always (D56). The
-link opens a `Sheet` with one `.field`, a `.hint` saying what the server does
+*Umístit* once there is a picture (D54, D81), and *Z odkazu* always (D56). A
+photograph shown whole paints its mat on the tile itself. The
+link opens a `Sheet` (`PhotoLinkSheet`, which the shelf opens too) with one `.field`, a `.hint` saying what the server does
 with it, and Zrušit · Vzít — the button reading „Stahuju…“ while it waits. A
 link that gives nothing replaces the hint with a `.note` in the sheet itself,
 because a sentence handed to the screen underneath is a sentence the sheet is
