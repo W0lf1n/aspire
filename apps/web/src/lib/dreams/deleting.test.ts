@@ -54,6 +54,21 @@ describe('deleting', () => {
 		expect(deleting.has('a')).toBe(true);
 	});
 
+	it('knows which hidden dream the server still has', async () => {
+		const remove = remover();
+		deleting.hold('a', remove.for('a'));
+
+		// Inside the window the server still counts it among the others (D79).
+		expect(deleting.holds('a')).toBe(true);
+		expect(deleting.holds('b')).toBe(false);
+
+		await vi.advanceTimersByTimeAsync(UNDO_MS);
+
+		// Sent: still hidden, and no longer anything the server has.
+		expect(deleting.has('a')).toBe(true);
+		expect(deleting.holds('a')).toBe(false);
+	});
+
 	it('sends nothing when it is put back inside the window', async () => {
 		const remove = remover();
 		deleting.hold('a', remove.for('a'));

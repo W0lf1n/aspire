@@ -24,22 +24,17 @@
 	import type { Dream, DreamImageKind } from '@aspire/contracts';
 	import {
 		addToFocus,
-		deleteDream,
 		deleteImage,
-		dreamLink,
 		getDream,
 		likeDream,
 		listBoard,
-		makeDreamLink,
 		moveImage,
 		removeFromFocus,
-		revokeDreamLink,
 		uploadImage
 	} from '$lib/api/client';
 	import { describeError } from '$lib/api/errors';
-	import { UNDO_MS, deleting } from '$lib/dreams/deleting.svelte';
 	import { focusFull, focusFullSentence } from '$lib/dreams/focus';
-	import { shareText, shareUrl } from '$lib/dreams/share';
+	import { letGo } from '$lib/dreams/letgo';
 	import { changedAt } from '$lib/dreams/stats';
 	import { formatDate, formatWhen } from '$lib/dreams/format';
 	import { photoOf, photosOf, reelUrl } from '$lib/dreams/photos';
@@ -49,7 +44,7 @@
 	import AppBar from '$lib/ui/AppBar.svelte';
 	import Icon from '$lib/ui/Icon.svelte';
 	import PhotoPicker from '$lib/ui/PhotoPicker.svelte';
-	import Sheet from '$lib/ui/Sheet.svelte';
+	import ShareSheet from '$lib/ui/ShareSheet.svelte';
 	import TabBar from '$lib/ui/TabBar.svelte';
 	import { toast } from '$lib/ui/toast.svelte';
 	import { connection } from '$lib/offline/status.svelte';
@@ -59,14 +54,8 @@
 	let liking = $state(false);
 	let focusing = $state(false);
 
-	/** The share sheet, and the link inside it (D61). */
+	/** Whether the share sheet is up; the link inside it is the sheet's (D61). */
 	let sharing = $state(false);
-	let linking = $state(false);
-
-	/** Undefined until the sheet has asked; null when the dream is not shared. */
-	let path = $state<string | null | undefined>(undefined);
-
-	const link = $derived(path ? shareUrl(location.origin, path) : '');
 
 	/**
 	 * The board, fetched alongside, only so the Teď pill knows whether the ten
@@ -159,80 +148,6 @@
 		}
 	}
 
-	/**
-	 * The sheet, and the dream's link fetched the first time it is opened —
-	 * not on every visit to the screen, because nearly every dream is never
-	 * shared and a request nobody asked for is a request nobody should make.
-	 */
-	async function openShare() {
-		if (!dream) return;
-		sharing = true;
-		if (path !== undefined) return;
-
-		try {
-			path = (await dreamLink(dream.id)).path;
-		} catch {
-			// A link that cannot be asked for is a dream that is not shared as
-			// far as this screen knows; the sheet offers to make one, which is
-			// what it would have offered anyway.
-			path = null;
-		}
-	}
-
-	/**
-	 * A link, or a new one in place of the old — which is the only way to
-	 * revoke a key that is its own permission. Said out loud, because from
-	 * here the new link looks exactly like the one it replaced.
-	 */
-	async function share() {
-		if (!dream || linking) return;
-		linking = true;
-		try {
-			const replacing = path !== null;
-			path = (await makeDreamLink(dream.id)).path;
-			toast.show(replacing ? 'Nový odkaz. Ten starý už nefunguje.' : 'Odkaz je hotový.');
-		} catch (e) {
-			toast.show(describeError(e));
-		} finally {
-			linking = false;
-		}
-	}
-
-	async function unshare() {
-		if (!dream || linking) return;
-		linking = true;
-		try {
-			await revokeDreamLink(dream.id);
-			path = null;
-			toast.show('Sen už nikdo nevidí.');
-		} catch (e) {
-			toast.show(describeError(e));
-		} finally {
-			linking = false;
-		}
-	}
-
-	/**
-	 * The phone's own share sheet where there is one, because that is where
-	 * the conversation this is going into already is; the clipboard where
-	 * there is not.
-	 */
-	async function send() {
-		if (!dream || !link) return;
-		try {
-			if (navigator.share) {
-				await navigator.share({ title: dream.title, text: shareText(dream.title), url: link });
-				return;
-			}
-			await navigator.clipboard.writeText(link);
-			toast.show('Odkaz je zkopírovaný.');
-		} catch (e) {
-			// Backing out of the share sheet is not a failure worth a sentence.
-			if (e instanceof DOMException && e.name === 'AbortError') return;
-			toast.show('Poslat to nešlo. Podrž na odkazu prst a zkopíruj ho ručně.');
-		}
-	}
-
 	async function like() {
 		if (!dream || liking) return;
 		liking = true;
@@ -302,38 +217,13 @@
 	}
 
 	/**
-	 * Let it go — in a few seconds (D65).
-	 *
-	 * Nothing is sent yet: every screen drops the dream at once, and the
-	 * request goes when the toast does. „Vrátit“ inside that window cancels
-	 * it, and the dream was never touched. A request that does go and comes
-	 * back a failure puts the dream back on the screens, because the server
-	 * still has it.
+	 * Let it go — in a few seconds (D65). Nothing is sent yet: every screen
+	 * drops the dream at once and the request goes when the toast does, which
+	 * is `dreams/letgo.ts`, because the Seznam's rows do the same (D78).
 	 */
 	async function remove() {
 		if (!dream) return;
-		const doomed = dream;
-
-		deleting.hold(doomed.id, async () => {
-			try {
-				await deleteDream(doomed.id, true);
-			} catch (e) {
-				deleting.keep(doomed.id);
-				toast.show(describeError(e));
-			}
-		});
-
-		toast.show(`„${doomed.title}“ je pryč`, {
-			ms: UNDO_MS,
-			action: {
-				label: 'Vrátit',
-				run: () => {
-					deleting.keep(doomed.id);
-					toast.show(`„${doomed.title}“ je zpátky`);
-				}
-			}
-		});
-
+		letGo(dream);
 		await goto(resolve('/'));
 	}
 </script>
@@ -459,7 +349,7 @@
 					decides who else can look at it (D61).
 				-->
 				<div class="actions">
-					<button type="button" class="btn btn--quiet" onclick={openShare}>
+					<button type="button" class="btn btn--quiet" onclick={() => (sharing = true)}>
 						<Icon name="link" size={18} stroke={1.8} />
 						Sdílet
 					</button>
@@ -473,51 +363,11 @@
 	{/if}
 </main>
 
-{#if dream}
-	<Sheet open={sharing} title="Sdílet sen" onclose={() => (sharing = false)}>
-		{#if path === undefined}
-			<p class="hint">Moment…</p>
-		{:else if path === null}
-			<p class="hint">
-				Odkaz ukáže tenhle jeden sen — fotku, název a afirmaci. Kdo ho dostane, nepotřebuje aplikaci
-				ani kód a na zbytek nástěnky se z něj nedostane.
-			</p>
-			<div class="actions actions--fill">
-				<button type="button" class="btn btn--accent" disabled={linking} onclick={share}>
-					<Icon name="link" size={18} stroke={1.8} />
-					Vyrobit odkaz
-				</button>
-			</div>
-		{:else}
-			<p class="well url">{link}</p>
-			<div class="actions actions--fill">
-				<button type="button" class="btn btn--accent" onclick={send}>Poslat</button>
-				<button type="button" class="btn btn--quiet" disabled={linking} onclick={share}>Nový</button
-				>
-				<button type="button" class="btn btn--danger" disabled={linking} onclick={unshare}>
-					Zrušit
-				</button>
-			</div>
-			<p class="hint">
-				Sen je vidět, dokud odkaz nezrušíš. „Nový“ ho vymění za jiný a ten starý přestane platit.
-			</p>
-		{/if}
-	</Sheet>
-{/if}
+<ShareSheet {dream} open={sharing} onclose={() => (sharing = false)} />
 
 <TabBar />
 
 <style>
-	/* The link itself: long, and never broken in the wrong place — it is
-	   going to be read back by somebody pasting it into another app. */
-	.url {
-		font-size: var(--text-sm);
-		line-height: var(--leading-base);
-		color: var(--ink-2);
-		overflow-wrap: anywhere;
-		user-select: all;
-	}
-
 	/* The second photograph and the two lines that say what it is for; the
 	   picker is a tile of its own, so this only stacks them. */
 	.proof {

@@ -71,6 +71,16 @@ export const deleting = {
 		return hidden.includes(id);
 	},
 
+	/**
+	 * Whether this dream is hidden and *not yet sent*: the server still has it,
+	 * and still counts it. A list only needs `has`; something that talks to
+	 * the server about where things stand among the others needs to know the
+	 * one dream the two of them disagree about (`dreams/order.ts`, D79).
+	 */
+	holds(id: string): boolean {
+		return held?.id === id;
+	},
+
 	/** Everything hidden right now; a screen usually wants `has`. */
 	get ids(): string[] {
 		return hidden;

@@ -3,10 +3,17 @@
 	 * Seznam — every dream as a line, and the fastest way to write a new one.
 	 *
 	 * The reel is for looking and this is for writing (D44). It is the whole
-	 * board in one column, the most recently written at the top, a dream that
-	 * is achieved standing in the same column as a dream that is not — the
-	 * reel keeps only what is ahead and the Síň slávy only what is behind, so
-	 * this is the one screen on which the board is all of itself.
+	 * board in one column, a dream that is achieved standing in the same column
+	 * as a dream that is not — the reel keeps only what is ahead and the Síň
+	 * slávy only what is behind, so this is the one screen on which the board
+	 * is all of itself.
+	 *
+	 * **The order is his** (D79). A new dream still lands on the first line,
+	 * where the person writing it is looking, and from there a line goes where
+	 * it is dragged — by its grip, or by the line itself after a long press —
+	 * or where its number says once that has been typed over. Both are one
+	 * move, `dreams/order.ts`, and the reel is not told: Vše is still shuffled
+	 * (D30), and this is the inventory, not the queue.
 	 *
 	 * ＋ opens a sheet rather than a screen: five fields, no photograph, and
 	 * the dream is saved as „sním“, which is the state a dream is in the
@@ -22,7 +29,9 @@
 	 * Every line is numbered and the number is the dream's place in the whole
 	 * list, so it holds while the list is being searched: three lines
 	 * numbered 4, 17 and 38 say where in the column they are, which is how
-	 * you get back to one after the field is empty again (D48).
+	 * you get back to one after the field is empty again (D48). A narrowed
+	 * list cannot be reordered for the same reason — between 4 and 17 there
+	 * are twelve lines nobody can see, and „above 17“ does not say which.
 	 *
 	 * The field above them appears from six lines up and narrows the list
 	 * against everything a dream says about itself — `dreams/search.ts`
@@ -34,22 +43,28 @@
 	 * state, and when any of them was last changed. A number is a button — it
 	 * narrows the list to the dreams it counted, the way the field narrows it
 	 * to the ones it found, and the two stack. `dreams/stats.ts`.
+	 *
+	 * A line swiped to the left shows its hearts, Sdílet and Smazat (D78),
+	 * `ui/DreamRow.svelte`.
 	 */
-	import { resolve } from '$app/paths';
 	import { DREAM_STATUSES, type Dream, type DreamInput } from '@aspire/contracts';
-	import { createDream, listBoard } from '$lib/api/client';
+	import { createDream, likeDream, listBoard, placeDream } from '$lib/api/client';
 	import { deleting } from '$lib/dreams/deleting.svelte';
 	import { describeError } from '$lib/api/errors';
 	import { listOrder } from '$lib/dreams/board';
 	import { formatWhen } from '$lib/dreams/format';
-	import { photoOf, photoStyle } from '$lib/dreams/photos';
-	import { STATUS_BADGE, listLine } from '$lib/dreams/rules';
+	import { letGo } from '$lib/dreams/letgo';
+	import { placed, serverPlace } from '$lib/dreams/order';
+	import { STATUS_BADGE } from '$lib/dreams/rules';
 	import { SEARCH_FROM, searchDreams } from '$lib/dreams/search';
 	import { boardStats, byStatus, type StatusFilter } from '$lib/dreams/stats';
 	import { connection } from '$lib/offline/status.svelte';
 	import { cannot, writes } from '$lib/offline/writes.svelte';
 	import DreamForm from '$lib/ui/DreamForm.svelte';
+	import DreamRow from '$lib/ui/DreamRow.svelte';
 	import Icon from '$lib/ui/Icon.svelte';
+	import { edgeScroll, heldTo, landsOn, stepsAside } from '$lib/ui/reorder';
+	import ShareSheet from '$lib/ui/ShareSheet.svelte';
 	import Sheet from '$lib/ui/Sheet.svelte';
 	import TabBar from '$lib/ui/TabBar.svelte';
 	import { toast } from '$lib/ui/toast.svelte';
@@ -94,6 +109,9 @@
 
 	/** Whether the list is less than the whole of itself, for either reason. */
 	const narrowed = $derived(searching || only !== null);
+
+	/** Whether a line can go anywhere: the whole list, a signal, and somewhere to go. */
+	const movable = $derived(!narrowed && connection.online && rows.length > 1);
 
 	function everything() {
 		query = '';
@@ -144,13 +162,163 @@
 			busy = false;
 		}
 	}
+
+	// ── behind a swipe (D78) ────────────────────────────────────────────────
+
+	/** The one line whose tray is open. Opening another shuts it. */
+	let opened = $state<string | null>(null);
+
+	/** The dream the share sheet is up for; it keeps it while it sinks. */
+	let shared = $state<Dream | null>(null);
+	let sharing = $state(false);
+
+	async function like(dream: Dream) {
+		try {
+			const liked = await likeDream(dream.id);
+			dreams = dreams.map((one) => (one.id === liked.id ? liked : one));
+			navigator.vibrate?.(10);
+		} catch (e) {
+			toast.show(describeError(e));
+		}
+	}
+
+	function share(dream: Dream) {
+		shared = dream;
+		sharing = true;
+	}
+
+	/** A tap anywhere but on the open line shuts its tray, as a scroll does. */
+	function elsewhere(event: PointerEvent) {
+		if (opened === null) return;
+		const row = (event.target as HTMLElement).closest('[data-row]');
+		if (row?.getAttribute('data-row') !== opened) opened = null;
+	}
+
+	// ── his own order (D79) ─────────────────────────────────────────────────
+
+	let scroller: HTMLElement | null = $state(null);
+	let list: HTMLElement | null = $state(null);
+
+	/** The line in the hand: which, from where, to where, and how far it has gone. */
+	let drag = $state<{ id: string; from: number; to: number; dy: number; row: number } | null>(null);
+
+	/** Where the finger went down and where it is, and how far the list has scrolled since. */
+	let startY = 0;
+	let lastY = 0;
+	let startScroll = 0;
+	let frame = 0;
+
+	/**
+	 * One move, from either of the two ways to ask for it. The list has moved
+	 * before the server is told — a row that waits for a round trip is a row
+	 * that feels stuck — so a refusal puts the board back as it was.
+	 */
+	async function moveTo(dream: Dream, to: number) {
+		if (!movable || place.get(dream.id) === to) return;
+
+		const before = dreams;
+		// Everything the server still has: a dream inside its undo window is
+		// off this screen and still in the server's count (`serverPlace`).
+		const held = dreams.filter((one) => !deleting.has(one.id) || deleting.holds(one.id));
+		const line = serverPlace(rows, held, dream.id, to);
+
+		dreams = placed(held, dream.id, line);
+		try {
+			await placeDream(dream.id, line);
+		} catch (e) {
+			dreams = before;
+			toast.show(describeError(e));
+		}
+	}
+
+	function grab(dream: Dream, at: { clientY: number }) {
+		if (!movable || drag) return;
+
+		const from = rows.findIndex((one) => one.id === dream.id);
+		const row = list?.querySelector(`[data-row="${dream.id}"]`)?.getBoundingClientRect().height;
+		if (from < 0 || !row) return;
+
+		opened = null;
+		startY = lastY = at.clientY;
+		startScroll = scroller?.scrollTop ?? 0;
+		drag = { id: dream.id, from, to: from, dy: 0, row };
+
+		window.addEventListener('pointermove', dragged);
+		window.addEventListener('pointerup', dropped);
+		window.addEventListener('pointercancel', dropped);
+		frame = requestAnimationFrame(tick);
+	}
+
+	/** Where the line is now: the finger's travel, plus what the list scrolled under it. */
+	function follow() {
+		if (!drag) return;
+		const travelled = lastY - startY + ((scroller?.scrollTop ?? 0) - startScroll);
+		const dy = heldTo(travelled, drag.from, drag.row, rows.length);
+		drag = { ...drag, dy, to: landsOn(drag.from, dy, drag.row, rows.length) };
+	}
+
+	function dragged(event: PointerEvent) {
+		lastY = event.clientY;
+		follow();
+	}
+
+	/** Near either edge of the list the list moves, so a line can go further than one screen. */
+	function tick() {
+		if (!drag || !scroller) return;
+		const box = scroller.getBoundingClientRect();
+		const by = edgeScroll(lastY, box.top, box.bottom);
+		if (by !== 0) {
+			scroller.scrollTop += by;
+			follow();
+		}
+		frame = requestAnimationFrame(tick);
+	}
+
+	function letGoOfRow() {
+		cancelAnimationFrame(frame);
+		window.removeEventListener('pointermove', dragged);
+		window.removeEventListener('pointerup', dropped);
+		window.removeEventListener('pointercancel', dropped);
+	}
+
+	function dropped(event: PointerEvent) {
+		const done = drag;
+		letGoOfRow();
+		drag = null;
+		if (!done || event.type === 'pointercancel' || done.to === done.from) return;
+
+		const dream = rows[done.from];
+		if (dream) void moveTo(dream, done.to + 1);
+	}
+
+	/**
+	 * A finger that is holding a line must not also scroll the list. The
+	 * browser decides that on `touchmove`, and only listens to a listener that
+	 * was there — and not passive — before the touch began, so this one is on
+	 * the list for as long as the list is, and does nothing until a line is in
+	 * the hand.
+	 */
+	$effect(() => {
+		const el = list;
+		if (!el) return;
+		const hold = (event: TouchEvent) => {
+			if (drag && event.cancelable) event.preventDefault();
+		};
+		el.addEventListener('touchmove', hold, { passive: false });
+		return () => el.removeEventListener('touchmove', hold);
+	});
+
+	// A screen left mid-drag takes its listeners with it.
+	$effect(() => letGoOfRow);
 </script>
 
 <svelte:head>
 	<title>Aspire — seznam</title>
 </svelte:head>
 
-<main class="page">
+<svelte:window onpointerdowncapture={elsewhere} />
+
+<main class="page" bind:this={scroller} onscroll={() => (opened = null)}>
 	<div class="head">
 		<h1 class="title">Seznam</h1>
 		<button type="button" class="round" onclick={open} use:writes aria-label="Nový sen">
@@ -159,7 +327,7 @@
 	</div>
 
 	{#if !connection.online}
-		<p class="hint">Bez připojení. Seznam je z paměti a nový sen počká na signál.</p>
+		<p class="hint">Bez připojení. Seznam je z paměti a nový sen i pořadí počkají na signál.</p>
 	{/if}
 
 	{#if stats.total > 0}
@@ -219,30 +387,27 @@
 	{/if}
 
 	{#if found.length > 0}
-		<section class="card card--list">
-			{#each found as dream (dream.id)}
-				{@const photo = photoOf(dream, 'dreamt')}
-				<a class="row row--press" href={resolve('/sen/[id]', { id: dream.id })}>
-					<span class="row__no">{place.get(dream.id)}</span>
-					{#if photo}
-						<img
-							class="circle shot"
-							src={photo.thumbUrl}
-							alt=""
-							style={photoStyle(photo)}
-							loading="lazy"
-							decoding="async"
-						/>
-					{:else}
-						<!-- No photograph yet: the sky stands in for it, as it does on a tile. -->
-						<span class="circle circle--sky" aria-hidden="true"></span>
-					{/if}
-					<span class="row__body">
-						<span class="row__title">{dream.title}</span>
-						<span class="row__sub">{listLine(dream)}</span>
-					</span>
-					<span class="card__go"><Icon name="chevron-right" size={18} /></span>
-				</a>
+		<section class="card card--list lines" class:lines--moving={drag !== null} bind:this={list}>
+			{#each found as dream, index (dream.id)}
+				<DreamRow
+					{dream}
+					place={place.get(dream.id) ?? index + 1}
+					count={rows.length}
+					{movable}
+					open={opened === dream.id}
+					lifted={drag?.id === dream.id}
+					aside={drag === null
+						? 0
+						: drag.id === dream.id
+							? drag.dy
+							: stepsAside(index, drag.from, drag.to, drag.row)}
+					onopen={(is) => (opened = is ? dream.id : null)}
+					onlike={like}
+					onshare={share}
+					onremove={letGo}
+					onplace={moveTo}
+					ongrab={grab}
+				/>
 			{/each}
 		</section>
 	{:else if narrowed}
@@ -284,6 +449,8 @@
 	{/key}
 </Sheet>
 
+<ShareSheet dream={shared} open={sharing} onclose={() => (sharing = false)} />
+
 <style>
 	/* The screen's name with the one control it has on its right, on the
 	   title's own line — the list below it is then a column of nothing but
@@ -295,14 +462,22 @@
 		gap: var(--space-3);
 	}
 
-	/* A photograph in the circle's place: the same 40 px disc, cropped. */
-	.shot {
-		object-fit: cover;
-	}
-
 	/* How much of the list the search left, over the list it left it of. */
 	.count {
 		margin-inline: var(--space-2);
 		font-variant-numeric: tabular-nums;
+	}
+
+	/* The card clips its lines, so a face that slides aside and a line's own
+	   opaque ground both stop at the card's corners. */
+	.lines {
+		overflow: hidden;
+	}
+
+	/* While a line is in the hand the others ease out of its way. Only then:
+	   the moment it lands the list is simply in its new order, and a line that
+	   eased back from where it had stepped to would be seen moving twice. */
+	.lines--moving :global(.swipe:not(.swipe--lifted)) {
+		transition: translate var(--dur-fast) var(--ease-out);
 	}
 </style>

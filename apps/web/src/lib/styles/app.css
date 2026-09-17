@@ -508,6 +508,177 @@ a {
 	color: var(--ink-3);
 }
 
+/* A number that can be typed over: the same figure in the same column, with
+   a touch target around it that the column does not have to make room for. */
+.row__no--press {
+	align-self: stretch;
+	margin: 0 calc(var(--space-2) * -1);
+	padding: 0 var(--space-2);
+	min-width: calc(2ch + 2 * var(--space-2));
+	border-radius: var(--radius-sm);
+	transition: color var(--dur-fast) var(--ease-out);
+}
+
+.row__no--press:active {
+	color: var(--ink);
+}
+
+.row__no--field {
+	width: calc(3ch + 2 * var(--space-2));
+	margin: 0 calc(var(--space-2) * -1);
+	padding: var(--space-2);
+	border: none;
+	border-radius: var(--radius-sm);
+	background: var(--surface-3);
+	color: var(--ink);
+	outline: none;
+}
+
+.row__no--field:focus-visible {
+	box-shadow: 0 0 0 2px var(--signal);
+}
+
+/* The dream, as the part of a row that is a link, when the row has controls
+   of its own beside it (`DreamRow`): a control inside an anchor is not valid,
+   so the anchor is a sibling that takes all the room the others leave. */
+.row__link {
+	flex: 1;
+	min-width: 0;
+	align-self: stretch;
+	display: flex;
+	align-items: center;
+	gap: var(--space-3);
+	color: inherit;
+	text-decoration: none;
+}
+
+.row__shot {
+	object-fit: cover;
+}
+
+/* The grip a row is dragged by (D79). `touch-action: none` on this and on
+   nothing else in the row, so a finger that lands here moves the row and a
+   finger that lands anywhere else still scrolls the list. */
+.row__grip {
+	flex: none;
+	display: grid;
+	place-items: center;
+	align-self: stretch;
+	width: var(--touch);
+	margin-right: calc(var(--space-3) * -1);
+	color: var(--ink-3);
+	touch-action: none;
+	cursor: grab;
+}
+
+/**
+ * A row that slides aside (D78): the face is the row, the tray is what is
+ * behind it. The face is opaque because it is a lid, and the row bleeds to
+ * the card's edges so the tray has an edge to come out of. Every row is
+ * exactly as tall as the next — the hairline is drawn on the face rather than
+ * being a border between two of them — because dragging one is arithmetic on
+ * that one number (`ui/reorder.ts`).
+ */
+.swipe {
+	position: relative;
+	margin-inline: calc(var(--space-4) * -1);
+	overflow: hidden;
+}
+
+.swipe__face {
+	position: relative;
+	padding-inline: var(--space-4);
+	background: var(--surface);
+	touch-action: pan-y;
+	-webkit-user-select: none;
+	user-select: none;
+	-webkit-touch-callout: none;
+	transition:
+		translate var(--dur-base) var(--ease-out),
+		background var(--dur-fast) var(--ease-out);
+}
+
+.swipe__face--held {
+	transition: none;
+}
+
+.swipe + .swipe .swipe__face::before {
+	content: '';
+	position: absolute;
+	top: 0;
+	left: var(--space-4);
+	right: var(--space-4);
+	height: 1px;
+	background: var(--hairline);
+}
+
+.swipe__face:has(.row__link:active) {
+	background: var(--surface-2);
+}
+
+@media (hover: hover) {
+	.swipe__face:has(.row__link:hover) {
+		background: var(--surface-2);
+	}
+}
+
+.swipe__tray {
+	position: absolute;
+	top: 0;
+	right: 0;
+	bottom: 0;
+	display: flex;
+}
+
+.swipe__act {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	gap: 4px;
+	width: 64px;
+	background: var(--surface-3);
+	color: var(--ink);
+	font-size: var(--text-2xs);
+	font-weight: 600;
+	font-variant-numeric: tabular-nums;
+	transition: opacity var(--dur-fast) var(--ease-out);
+}
+
+.swipe__act:active {
+	opacity: 0.7;
+}
+
+.swipe__act:disabled {
+	opacity: 0.4;
+}
+
+.swipe__act--fuel {
+	background: var(--signal-wash);
+	color: var(--signal);
+}
+
+.swipe__act--danger {
+	background: var(--danger-wash);
+	color: var(--danger);
+}
+
+/* The row in the hand: above its neighbours, a step darker, and the one row
+   in the list that does not ease — it is where the finger is. */
+.swipe--lifted {
+	z-index: 2;
+	overflow: visible;
+	box-shadow: var(--elev-glass);
+}
+
+.swipe--lifted .swipe__face {
+	background: var(--surface-2);
+}
+
+.swipe--lifted .swipe__face::before {
+	display: none;
+}
+
 .row__end {
 	flex: none;
 	display: flex;
