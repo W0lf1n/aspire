@@ -355,6 +355,14 @@ a {
 	object-fit: cover;
 }
 
+/* A photograph shown whole on its own blur (D88): the thumb bleeds past the
+   cell as it does past a tile, so the blur has no soft edge at the seam. */
+.dream__cell > .dream__under {
+	inset: -6%;
+	width: 112%;
+	height: 112%;
+}
+
 /* The scrim sits between the image and the words, and only at the bottom:
    the top of a photograph stays a photograph. */
 .dream::after {

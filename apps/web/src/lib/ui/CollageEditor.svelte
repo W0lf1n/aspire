@@ -18,24 +18,28 @@
 	 * and choosing one here shows it with the photographs in it rather than as
 	 * a diagram.
 	 *
+	 * A cell is not only a crop (D88). The cell in hand has Vyplnit · Celá and
+	 * the mats under the templates, exactly as a photograph on its own has in
+	 * `CropEditor`, so a landscape picture in a tall cell can be all of itself
+	 * on a mat instead of a sliver — and moved, and brought closer, from there.
+	 *
 	 * Nothing is sent until Hotovo: then the template if it changed, and every
-	 * photograph that was moved. A cell always fills, so a photograph shown
-	 * whole is taken in hand as its cell shows it — its point, filling — and
-	 * saved that way only if it is moved (`cellFocal`).
+	 * photograph whose crop did (`sameCrop`).
 	 */
 	import { untrack } from 'svelte';
 	import type { DreamImage } from '@aspire/contracts';
 	import { gridStyle, templateFor, templatesFor } from '$lib/dreams/collage';
-	import { cellUrl, photoStyle } from '$lib/dreams/photos';
+	import { cellUrl, matIsBlur, matStyle, photoStyle, tileStyle } from '$lib/dreams/photos';
 	import {
 		CENTRED,
 		MIN_ZOOM,
-		cellFocal,
-		samePlace,
+		focalOf,
+		sameCrop,
 		toInput,
 		type Focal,
 		type Size
 	} from '$lib/images/focal';
+	import FitControls from './FitControls.svelte';
 	import Icon from './Icon.svelte';
 	import { hands } from './placing';
 
@@ -85,6 +89,10 @@
 
 	const heldZoom = $derived(held ? (crops[held]?.zoom ?? MIN_ZOOM) : MIN_ZOOM);
 
+	/** The photograph in hand, and its crop, for the fit and the mats. */
+	const heldPhoto = $derived(shown.find((photo) => photo.id === held) ?? null);
+	const heldCrop = $derived(held ? (crops[held] ?? null) : null);
+
 	$effect(() => {
 		const dialog = el;
 		if (!dialog) return;
@@ -98,7 +106,7 @@
 		if (!open) return;
 		untrack(() => {
 			trying = layout;
-			crops = Object.fromEntries(photos.map((photo) => [photo.id, cellFocal(photo)]));
+			crops = Object.fromEntries(photos.map((photo) => [photo.id, focalOf(photo)]));
 			held = photos.some((photo) => photo.id === start) ? start : (photos[0]?.id ?? null);
 		});
 	});
@@ -145,7 +153,7 @@
 
 	function save() {
 		const moved = shown
-			.filter((photo) => crops[photo.id] && !samePlace(crops[photo.id], cellFocal(photo)))
+			.filter((photo) => crops[photo.id] && !sameCrop(crops[photo.id], focalOf(photo)))
 			.map((photo) => ({ image: photo, focal: { ...crops[photo.id] } }));
 		onsave(trying, moved);
 	}
@@ -177,7 +185,7 @@
 						type="button"
 						class="dream__cell collage__cell"
 						class:collage__cell--held={held === photo.id}
-						style="grid-area:{template.cells[index]}"
+						style="grid-area:{template.cells[index]};{matStyle(crops[photo.id] ?? null)}"
 						aria-pressed={held === photo.id}
 						aria-label={`Fotka ${index + 1}`}
 						bind:this={boxes[photo.id]}
@@ -185,11 +193,20 @@
 							if (!placed.holding()) held = photo.id;
 						}}
 					>
+						{#if crops[photo.id] && matIsBlur(crops[photo.id])}
+							<img
+								class="dream__under"
+								src={photo.thumbUrl}
+								alt=""
+								aria-hidden="true"
+								style={photoStyle(toInput(crops[photo.id]))}
+							/>
+						{/if}
 						<img
 							class="collage__img"
 							src={cellUrl(photo)}
 							alt=""
-							style={photoStyle(toInput(crops[photo.id] ?? cellFocal(photo)))}
+							style={tileStyle(toInput(crops[photo.id] ?? focalOf(photo)))}
 							draggable="false"
 							use:sized={photo.id}
 							onpointerdown={(event) => grab(photo.id, event)}
@@ -244,6 +261,17 @@
 						</button>
 					{/each}
 				</div>
+			{/if}
+
+			{#if heldPhoto && heldCrop}
+				<FitControls
+					focal={heldCrop}
+					src={cellUrl(heldPhoto)}
+					{busy}
+					onchange={(chosen) => {
+						if (held) crops[held] = chosen;
+					}}
+				/>
 			{/if}
 		</div>
 

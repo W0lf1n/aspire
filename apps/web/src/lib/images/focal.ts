@@ -107,22 +107,18 @@ export function focalOf(
 }
 
 /**
- * A saved photograph's crop as a collage's cell shows it, which is how the
- * collage editor holds one (D85). A cell always fills (D82), and a photograph
- * shown whole is its point alone there — its zoom was chosen against all of
- * the picture (D81) — so that is what the editor starts from: what is on the
- * tile, not what the photograph would be on its own.
+ * Whether two crops show a photograph the same way: the same point, zoom and
+ * fit, and — shown whole — the same mat, which a cell shows now as a tile
+ * does (D88). Filling, the mat is kept for later and is not on the screen.
  */
-export function cellFocal(
-	image: Pick<DreamImage, 'focusX' | 'focusY' | 'zoom' | 'fit' | 'mat'> | null
-): Focal {
-	const focal = focalOf(image);
-	return focal.fit === 'whole' ? { ...focal, fit: 'fill', zoom: MIN_ZOOM } : focal;
-}
-
-/** Whether two crops put the picture in the same place; the mat is not a place. */
-export function samePlace(a: Focal, b: Focal): boolean {
-	return a.x === b.x && a.y === b.y && a.zoom === b.zoom && a.fit === b.fit;
+export function sameCrop(a: Focal, b: Focal): boolean {
+	return (
+		a.x === b.x &&
+		a.y === b.y &&
+		a.zoom === b.zoom &&
+		a.fit === b.fit &&
+		(a.fit === 'fill' || a.mat === b.mat)
+	);
 }
 
 /** A crop as it is sent: all five, so the server never has to guess at one. */

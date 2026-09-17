@@ -23,23 +23,14 @@
 	 * a landscape picture on a phone-shaped reel, where filling keeps a third
 	 * of it at twice its pixels. Whole, the same finger moves it within the
 	 * room it has and the same pinch brings it closer; the row of swatches is
-	 * the five mats in `tokens.css` and the photograph's own blur.
+	 * the five mats in `tokens.css` and the photograph's own blur. Both are
+	 * `FitControls`, which a collage's cell has too (D88).
 	 */
-	import { PHOTO_MATS, type PhotoMat } from '@aspire/contracts';
 	import { matIsBlur, matStyle, photoStyle, tileStyle } from '$lib/dreams/photos';
 	import { CENTRED, MIN_ZOOM, fitted, startsWhole, toInput, type Focal } from '$lib/images/focal';
+	import FitControls from './FitControls.svelte';
 	import Icon from './Icon.svelte';
 	import { hands } from './placing';
-
-	/** What each mat is called when it is read out; on the screen it is a colour. */
-	const MAT_LABEL: Record<PhotoMat, string> = {
-		night: 'Noc',
-		charcoal: 'Uhel',
-		umber: 'Umbra',
-		dusk: 'Soumrak',
-		ember: 'Žár',
-		blur: 'Rozmazaná fotka'
-	};
 
 	interface Props {
 		open: boolean;
@@ -53,12 +44,6 @@
 		 * a photograph somebody has already placed opens as they left it.
 		 */
 		fresh?: boolean;
-		/**
-		 * Whether Vyplnit · Celá is offered at all. Not for a photograph that is
-		 * one cell of a collage (D82): a cell always fills, and a control that
-		 * changes nothing anybody can see is a control that looks broken.
-		 */
-		fits?: boolean;
 		/** What the tile will say over it, so nothing is hidden behind words. */
 		title?: string;
 		line?: string;
@@ -73,7 +58,6 @@
 		src,
 		focal,
 		fresh = false,
-		fits = true,
 		title = '',
 		line = '',
 		busy = false,
@@ -219,54 +203,7 @@
 				{#if now.zoom > MIN_ZOOM}<span class="crop__zoom">{round(now.zoom)}×</span>{/if}
 			</p>
 
-			{#if fits}
-				<div
-					class="seg seg--glass crop__fit"
-					style:--slot={now.fit === 'fill' ? 0 : 1}
-					role="group"
-					aria-label="Jak fotka vyplní dlaždici"
-				>
-					<!-- The lens, as the board's segment has one (D74). -->
-					<span class="seg__lens" aria-hidden="true"></span>
-					<button
-						type="button"
-						class="seg__item"
-						aria-pressed={now.fit === 'fill'}
-						onclick={() => (now = fitted(now, 'fill'))}
-						disabled={busy}
-					>
-						Vyplnit
-					</button>
-					<button
-						type="button"
-						class="seg__item"
-						aria-pressed={now.fit === 'whole'}
-						onclick={() => (now = fitted(now, 'whole'))}
-						disabled={busy}
-					>
-						Celá
-					</button>
-				</div>
-			{/if}
-
-			{#if fits && now.fit === 'whole'}
-				<div class="crop__mats glass" role="group" aria-label="Pozadí kolem fotky">
-					{#each PHOTO_MATS as one (one)}
-						<button
-							type="button"
-							class="crop__mat"
-							class:crop__mat--blur={one === 'blur'}
-							style={one === 'blur'
-								? `background-image:url("${src}")`
-								: `background:var(--mat-${one})`}
-							aria-pressed={now.mat === one}
-							aria-label={MAT_LABEL[one]}
-							onclick={() => (now = { ...now, mat: one })}
-							disabled={busy}
-						></button>
-					{/each}
-				</div>
-			{/if}
+			<FitControls focal={now} {src} {busy} onchange={(chosen) => (now = chosen)} />
 		</div>
 
 		<div class="crop__acts">
@@ -307,39 +244,5 @@
 
 	.crop__img:active {
 		cursor: grabbing;
-	}
-
-	.crop__fit,
-	.crop__mats {
-		pointer-events: auto;
-	}
-
-	/* The mats: a swatch each, the colour being the label. The chosen one
-	   wears a ring in the photograph's own ink — white in both themes, because
-	   this is type on a photograph (rule 4) and not the interface's accent. */
-	.crop__mats {
-		display: flex;
-		gap: var(--space-2);
-		padding: var(--space-2);
-		border-radius: var(--radius-full);
-	}
-
-	.crop__mat {
-		width: 32px;
-		height: 32px;
-		border-radius: var(--radius-full);
-		box-shadow: inset 0 0 0 1px var(--glass-edge);
-		transition: box-shadow var(--dur-fast) var(--ease-out);
-	}
-
-	.crop__mat--blur {
-		background-size: cover;
-		background-position: center;
-	}
-
-	.crop__mat[aria-pressed='true'] {
-		box-shadow:
-			inset 0 0 0 2px var(--mat-night),
-			0 0 0 2px var(--photo-ink);
 	}
 </style>
