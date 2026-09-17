@@ -266,13 +266,62 @@ public static class DreamEndpoints
             // request, a board that has to lose something first (D64).
             if (image is null)
             {
-                var status = problem == ImageService.BoardFull ? StatusCodes.Status409Conflict : 400;
+                var status = problem == ImageService.BoardFull || problem == ImageService.TooMany
+                    ? StatusCodes.Status409Conflict
+                    : 400;
                 return Results.Problem(problem, statusCode: status);
             }
 
             // 202: the row is there, the sizes follow. `Ready` says when.
             return Results.Accepted(null, DreamImageDto.From(image));
         }).DisableAntiforgery(); // A bearer token, not a cookie: there is nothing to forge.
+
+        // The dreamt photographs in a new order: the first is the cover (D82).
+        // Mapped before `{imageId:guid}` reads as nothing — „order“ is not a
+        // guid, so the two never compete — and it is the whole order at once,
+        // as Teď's is.
+        app.MapPut("/api/v1/dreams/{id:guid}/images/order", async (
+            Guid id,
+            ImageOrderInput input,
+            HttpContext http,
+            DeviceAuth auth,
+            DreamService dreams,
+            ImageService images,
+            CancellationToken ct) =>
+        {
+            var device = await auth.ResolveAsync(http.Request.Headers.Authorization, ct);
+            if (device is null) return Results.Unauthorized();
+
+            var dream = await dreams.FindAsync(device.BoardId, id, ct);
+            if (dream is null) return Results.NotFound();
+
+            if (await images.ReorderAsync(dream, input.ImageIds ?? [], ct) is { } problem)
+            {
+                return Results.Problem(problem, statusCode: 400);
+            }
+
+            return Results.Ok(DreamDto.From(dream, await images.OfDreamsAsync([dream.Id], ct)));
+        });
+
+        // Which collage template the tile uses, 0 to 2 (D82).
+        app.MapPut("/api/v1/dreams/{id:guid}/layout", async (
+            Guid id,
+            LayoutInput input,
+            HttpContext http,
+            DeviceAuth auth,
+            DreamService dreams,
+            ImageService images,
+            CancellationToken ct) =>
+        {
+            var device = await auth.ResolveAsync(http.Request.Headers.Authorization, ct);
+            if (device is null) return Results.Unauthorized();
+
+            var (dream, problem) = await dreams.LayoutAsync(device.BoardId, id, input.Layout ?? -1, ct);
+            if (problem is not null) return Results.Problem(problem, statusCode: 400);
+            if (dream is null) return Results.NotFound();
+
+            return Results.Ok(DreamDto.From(dream, await images.OfDreamsAsync([dream.Id], ct)));
+        });
 
         // Where an existing photograph is looked at (D54). The files on disk
         // are untouched — the crop is metadata, so this is instant and costs

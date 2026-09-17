@@ -20,6 +20,18 @@ public sealed class Dream
     /// </summary>
     public const int FocusMax = 10;
 
+    /// <summary>
+    /// How many dreamt photographs a dream can have (D82). One is a picture of
+    /// the thing; five is the thing from every side — the house, the garden,
+    /// the view, the kitchen, the door. Past that a tile stops being a collage
+    /// and starts being a contact sheet, and no cell on a phone is big enough
+    /// to be looked at.
+    /// </summary>
+    public const int PhotosMax = 5;
+
+    /// <summary>How many collage templates there are for any count of photographs.</summary>
+    public const int LayoutsMax = 3;
+
     public Guid Id { get; set; }
 
     /// <summary>The board this dream belongs to. Nothing crosses between boards.</summary>
@@ -70,6 +82,17 @@ public sealed class Dream
     public int? FocusRank { get; set; }
 
     public int? TargetYear { get; set; }
+
+    /// <summary>
+    /// Which of the collage templates the tile uses, for however many
+    /// photographs the dream has: 0, 1 or 2 (D82). A variant rather than a
+    /// template's name, because what it picks among depends on the count —
+    /// the second template for three photographs is not the second for five —
+    /// and a number survives a photograph being added or taken away where a
+    /// name would have to be translated. The templates themselves are the
+    /// client's (<c>dreams/collage.ts</c>): the server never draws one.
+    /// </summary>
+    public int Layout { get; set; }
 
     /// <summary>
     /// The key in this dream's share link, or null when it has never been

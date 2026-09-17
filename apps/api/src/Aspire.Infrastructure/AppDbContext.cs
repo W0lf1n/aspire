@@ -46,6 +46,9 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
             entity.Property(d => d.Why).HasMaxLength(Dream.WhyMaxLength);
             entity.Property(d => d.Affirmation).HasMaxLength(Dream.AffirmationMaxLength);
             entity.Property(d => d.LinkKey).HasMaxLength(Dream.LinkKeyMaxLength);
+            // The first template, which is what a dream with one photograph
+            // has whether it says so or not (D82).
+            entity.Property(d => d.Layout).HasDefaultValue(0);
             // The share link arrives with no board and no dream on it, so the
             // key is how the dream is found — unique, and null for the dreams
             // nobody has shared, which is nearly all of them (D61).

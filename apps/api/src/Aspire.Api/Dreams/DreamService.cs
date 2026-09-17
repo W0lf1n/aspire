@@ -104,6 +104,26 @@ public sealed class DreamService(AppDbContext db, MediaStore media)
     }
 
     /// <summary>
+    /// Which collage template the tile uses (D82). It changes what the dream
+    /// looks like, so it moves <c>UpdatedAt</c> the way a photograph does.
+    /// Null is no such dream; the sentence is a variant there is no such thing
+    /// as.
+    /// </summary>
+    public async Task<(Dream? Dream, string? Problem)> LayoutAsync(
+        string boardId, Guid id, int layout, CancellationToken ct = default)
+    {
+        if (layout < 0 || layout >= Dream.LayoutsMax) return (null, "Takové rozložení není.");
+
+        var dream = await FindAsync(boardId, id, ct);
+        if (dream is null) return (null, null);
+
+        dream.Layout = layout;
+        dream.UpdatedAt = DateTimeOffset.UtcNow;
+        await db.SaveChangesAsync(ct);
+        return (dream, null);
+    }
+
+    /// <summary>
     /// Every dream on the board, and every photograph with them: starting
     /// over (D80). How many dreams went comes back, for the sentence that says
     /// so.

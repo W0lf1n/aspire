@@ -343,6 +343,62 @@ public sealed class HttpEndpointTests : IAsyncLifetime
     }
 
     [Fact]
+    public async Task The_photographs_are_reordered_and_the_template_chosen_over_the_wire()
+    {
+        var dream = await ADreamAsync();
+        var id = dream.GetProperty("id").GetString();
+
+        var ids = new List<string>();
+        for (var i = 0; i < 2; i++)
+        {
+            using var form = new MultipartFormDataContent();
+            var file = new ByteArrayContent(Png(64, 64));
+            file.Headers.ContentType = new MediaTypeHeaderValue("image/png");
+            form.Add(file, "file", "dream.png");
+            var made = await _client.PostAsync($"/api/v1/dreams/{id}/images", form);
+            ids.Add((await made.Content.ReadFromJsonAsync<JsonElement>(Wire)).GetProperty("id").GetString()!);
+        }
+
+        // „order“ is not a guid, so it is never mistaken for a photograph's id.
+        var reordered = await _client.PutAsync(
+            $"/api/v1/dreams/{id}/images/order",
+            Json($$"""{"imageIds":["{{ids[1]}}","{{ids[0]}}"]}"""));
+        Assert.Equal(HttpStatusCode.OK, reordered.StatusCode);
+        var after = await reordered.Content.ReadFromJsonAsync<JsonElement>(Wire);
+        Assert.Equal(
+            [ids[1], ids[0]],
+            after.GetProperty("images").EnumerateArray().Select(i => i.GetProperty("id").GetString()));
+
+        var chosen = await _client.PutAsync($"/api/v1/dreams/{id}/layout", Json("""{"layout":1}"""));
+        Assert.Equal(HttpStatusCode.OK, chosen.StatusCode);
+        Assert.Equal(1, (await chosen.Content.ReadFromJsonAsync<JsonElement>(Wire)).GetProperty("layout").GetInt32());
+
+        var refused = await _client.PutAsync($"/api/v1/dreams/{id}/layout", Json("""{"layout":7}"""));
+        Assert.Equal(HttpStatusCode.BadRequest, refused.StatusCode);
+    }
+
+    [Fact]
+    public async Task The_sixth_photograph_is_a_409_as_a_full_board_is()
+    {
+        var dream = await ADreamAsync();
+        var id = dream.GetProperty("id").GetString();
+
+        HttpResponseMessage last = null!;
+        for (var i = 0; i <= Domain.Dream.PhotosMax; i++)
+        {
+            using var form = new MultipartFormDataContent();
+            var file = new ByteArrayContent(Png(64, 64));
+            file.Headers.ContentType = new MediaTypeHeaderValue("image/png");
+            form.Add(file, "file", "dream.png");
+            last = await _client.PostAsync($"/api/v1/dreams/{id}/images", form);
+        }
+
+        Assert.Equal(HttpStatusCode.Conflict, last.StatusCode);
+        var problem = await last.Content.ReadFromJsonAsync<JsonElement>(Wire);
+        Assert.Equal("Sen má nejvýš 5 fotek. Některou nejdřív smaž.", problem.GetProperty("detail").GetString());
+    }
+
+    [Fact]
     public async Task A_crop_outside_the_photograph_is_refused_before_anything_is_stored()
     {
         var dream = await ADreamAsync();

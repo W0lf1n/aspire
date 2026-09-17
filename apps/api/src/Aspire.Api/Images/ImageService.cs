@@ -27,6 +27,9 @@ public sealed class ImageService(AppDbContext db, MediaStore media, ImageQueue q
     /// </summary>
     public const long MaxBoardBytes = 2L * 1024 * 1024 * 1024;
 
+    /// <summary>The sentence for a sixth photograph; a 409, as a full board is.</summary>
+    public static readonly string TooMany = $"Sen má nejvýš {Dream.PhotosMax} fotek. Některou nejdřív smaž.";
+
     /// <summary>The sentence for a board at its ceiling; the endpoint answers it with a 409.</summary>
     public const string BoardFull = "Nástěnka je plná. Smaž pár fotek, které už nepotřebuješ.";
 
@@ -62,6 +65,14 @@ public sealed class ImageService(AppDbContext db, MediaStore media, ImageQueue q
         if (length > MaxUploadBytes) return (null, "Fotka je moc velká, nejvýš 10 MB.");
         if (focal is not null && Problem(focal) is { } wrong) return (null, wrong);
 
+        // Five dreamt photographs and no sixth (D82). Rows still being resized
+        // count: they are photographs the dream is about to have.
+        if (kind == DreamImageKind.Dreamt &&
+            await db.DreamImages.CountAsync(i => i.DreamId == dream.Id && i.Kind == kind, ct) >= Dream.PhotosMax)
+        {
+            return (null, TooMany);
+        }
+
         // The upload's own length stands in for the files it will become:
         // close enough for a ceiling two gigabytes away, and known before
         // anything is written.
@@ -72,7 +83,12 @@ public sealed class ImageService(AppDbContext db, MediaStore media, ImageQueue q
         {
             Id = Guid.NewGuid(),
             DreamId = dream.Id,
-            SortOrder = await db.DreamImages.CountAsync(i => i.DreamId == dream.Id, ct),
+            // Behind the last one, not „how many there are“: with a photograph
+            // taken out of the middle the count is a number two rows already
+            // have, and the tie would fall to the id — which is random (D82).
+            SortOrder = (await db.DreamImages
+                .Where(i => i.DreamId == dream.Id)
+                .MaxAsync(i => (int?)i.SortOrder, ct) ?? -1) + 1,
             Kind = kind,
             // The crop travels with the upload, because a photograph is
             // positioned before it is sent: on the add screen there is no
@@ -151,6 +167,37 @@ public sealed class ImageService(AppDbContext db, MediaStore media, ImageQueue q
         Touch(dream);
         await db.SaveChangesAsync(ct);
         return (image, null);
+    }
+
+    /// <summary>
+    /// The dreamt photographs in the order given: the first is the cover every
+    /// small surface shows, the rest the collage's cells (D82).
+    ///
+    /// The whole order in one request, as Teď's is, so the five are never
+    /// half-ordered. It has to name every dreamt photograph the dream has and
+    /// nothing else — a list that leaves one out would leave it with a number
+    /// somebody else now has. The achieved photograph is not in this order and
+    /// is not touched.
+    /// </summary>
+    public async Task<string?> ReorderAsync(Dream dream, IReadOnlyList<Guid> ids, CancellationToken ct = default)
+    {
+        var dreamt = await db.DreamImages
+            .Where(i => i.DreamId == dream.Id && i.Kind == DreamImageKind.Dreamt)
+            .ToListAsync(ct);
+
+        if (ids.Distinct().Count() != ids.Count ||
+            ids.Count != dreamt.Count ||
+            ids.Any(id => dreamt.All(i => i.Id != id)))
+        {
+            return "Tohle nejsou fotky tohohle snu.";
+        }
+
+        var byId = dreamt.ToDictionary(i => i.Id);
+        for (var i = 0; i < ids.Count; i++) byId[ids[i]].SortOrder = i;
+
+        Touch(dream);
+        await db.SaveChangesAsync(ct);
+        return null;
     }
 
     /// <summary>

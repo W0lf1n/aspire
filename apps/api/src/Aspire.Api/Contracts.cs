@@ -156,6 +156,16 @@ public sealed record ResetResponse(int Dreams);
 /// </summary>
 public sealed record FocusInput(IReadOnlyList<Guid>? DreamIds);
 
+/// <summary>Which of the collage templates a dream's tile uses (D82).</summary>
+public sealed record LayoutInput(int? Layout);
+
+/// <summary>
+/// A dream's dreamt photographs, in the order they stand in: the first is the
+/// cover every small surface shows, and the rest are the collage's cells in
+/// reading order (D82).
+/// </summary>
+public sealed record ImageOrderInput(IReadOnlyList<Guid>? ImageIds);
+
 /// <summary>
 /// Which line of the Seznam a dream is moved to, counted from one (D79).
 /// </summary>
@@ -171,6 +181,7 @@ public sealed record DreamDto(
     int SortOrder,
     int? FocusRank,
     int? TargetYear,
+    int Layout,
     int Likes,
     DateTimeOffset? AchievedAt,
     DateTimeOffset? LastShownAt,
@@ -188,6 +199,7 @@ public sealed record DreamDto(
         dream.SortOrder,
         dream.FocusRank,
         dream.TargetYear,
+        dream.Layout,
         dream.Likes,
         dream.AchievedAt,
         dream.LastShownAt,
