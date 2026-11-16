@@ -68,7 +68,7 @@
 						<div class="dream hall__half">
 							<img
 								class="dream__img"
-								src={photos.dreamt.screenUrl}
+								src={photos.dreamt.largeUrl}
 								alt=""
 								style={photoStyle(photos.dreamt)}
 								loading="lazy"
@@ -78,7 +78,7 @@
 						<div class="dream hall__half">
 							<img
 								class="dream__img"
-								src={photos.achieved.screenUrl}
+								src={photos.achieved.largeUrl}
 								alt=""
 								style={photoStyle(photos.achieved)}
 								loading="lazy"
@@ -102,7 +102,7 @@
 						{#if photo}
 							<img
 								class="dream__img"
-								src={photo.screenUrl}
+								src={photo.largeUrl}
 								alt=""
 								style={photoStyle(photo)}
 								loading="lazy"

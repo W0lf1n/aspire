@@ -25,7 +25,6 @@ function image(id: string, ready: boolean, kind: DreamImage['kind'] = 'dreamt'):
 		fit: 'fill',
 		mat: 'night',
 		thumbUrl: `/media/d/${id}/thumb.webp`,
-		screenUrl: `/media/d/${id}/screen.webp`,
 		largeUrl: `/media/d/${id}/full.webp`
 	};
 }
@@ -100,7 +99,7 @@ describe('ReelTile', () => {
 		const el = render({ dream: dream({ images: [image('i1', true)] }) });
 
 		expect(el.querySelector('.dream--sky')).toBeNull();
-		expect(el.querySelector('.dream__img')?.getAttribute('src')).toBe('/media/d/i1/screen.webp');
+		expect(el.querySelector('.dream__img')?.getAttribute('src')).toBe('/media/d/i1/full.webp');
 		expect(el.querySelector('.dream__under')?.getAttribute('src')).toBe('/media/d/i1/thumb.webp');
 		// The photograph is there, so nothing asks for one.
 		expect(el.querySelector('.reel__pick')).toBeNull();
@@ -135,9 +134,9 @@ describe('ReelTile', () => {
 
 		const cells = [...el.querySelectorAll('.dream__cell img')];
 		expect(cells.map((cell) => cell.getAttribute('src'))).toEqual([
-			'/media/d/i1/screen.webp',
-			'/media/d/i2/screen.webp',
-			'/media/d/i3/screen.webp'
+			'/media/d/i1/full.webp',
+			'/media/d/i2/full.webp',
+			'/media/d/i3/full.webp'
 		]);
 		// The second template for three: three bands.
 		expect(el.querySelector<HTMLElement>('.dream__collage')?.style.gridTemplateRows).toBe(
@@ -156,7 +155,7 @@ describe('ReelTile', () => {
 		expect(slides[0].querySelector('.dream__collage')).not.toBeNull();
 		expect(
 			slides.slice(1).map((slide) => slide.querySelector('.dream__img')?.getAttribute('src'))
-		).toEqual(['/media/d/i1/screen.webp', '/media/d/i2/screen.webp']);
+		).toEqual(['/media/d/i1/full.webp', '/media/d/i2/full.webp']);
 		expect(slides.every((slide) => slide.getAttribute('href')?.includes('house'))).toBe(true);
 		// One link announced, not three; and the dots count the slides.
 		expect(el.querySelectorAll('[aria-hidden="true"].reel__slide')).toHaveLength(2);

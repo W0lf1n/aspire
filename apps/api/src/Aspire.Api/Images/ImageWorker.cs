@@ -33,6 +33,7 @@ public sealed class ImageWorker(
         }
 
         await images.MeasureAsync(ct);
+        await images.DropScreenRungAsync(ct);
     }
 
     private async Task ProcessOneAsync(Guid imageId, CancellationToken ct)

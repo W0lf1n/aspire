@@ -137,9 +137,9 @@ cannot be offered here — browser, server, permission, in that order),
 `ui/sideways.test.ts` (what counts as a swipe across the reel, and the step
 that stops at either end),
 `images/downscale.test.ts`, `offline/cache.test.ts` (what is kept, in what
-order — the thumb before the picture — at which rung, a few at a time, the
+order — the thumb before the picture — a few at a time, the
 window ahead of the thumb and the ceiling), `dreams/photos.test.ts` (which
-photograph a screen shows, and which rung the reel reads on this screen, D62),
+photograph a screen shows, and the one file it is read from, D89),
 `offline/shell.test.ts` (which shell caches a new build may throw away, and
 which one it must keep) and `offline/policy.test.ts` (how much of the board a device keeps, and what an
 unreadable connection counts as), `dreams/deleting.test.ts` (the undo

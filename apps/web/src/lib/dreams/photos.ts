@@ -12,62 +12,15 @@
  */
 
 import type { Dream, DreamImage, DreamImageKind } from '@aspire/contracts';
-import { metered } from '$lib/offline/policy';
-
 /**
- * What this device is, as far as a photograph's rung cares (D62, D66): how
- * many device pixels a CSS pixel is, and whether the bytes are on somebody's
- * data plan.
+ * The URL a photograph is shown at, or nothing. There is one file besides the
+ * thumb — the 2048 — since the 1280 was dropped for the disk it took (D89),
+ * so this no longer asks what the screen is (D62, D66). It stays a function
+ * because the prefetch (`offline/cache`) has to ask for the same URL the tile
+ * will show, and one place that says which is what keeps that true.
  */
-export interface Screen {
-	dpr: number;
-	/**
-	 * True on mobile data or Save Data, false on wifi and ethernet, `null`
-	 * where the browser will not say — which on an iPhone is always
-	 * (`offline/policy.ts`).
-	 */
-	metered: boolean | null;
-}
-
-/** The screen this is running on; a laptop's worth of pixels where there is none. */
-export function thisScreen(): Screen {
-	return {
-		dpr: typeof window === 'undefined' ? 1 : window.devicePixelRatio || 1,
-		metered: metered()
-	};
-}
-
-/**
- * Which rung the reel reads on a screen (D62, D66). The reel is full-bleed on
- * a portrait phone: a 3:4 photograph at 1280 is 960×1280, and cover on a 3×
- * phone stretches it 2.2×, on a 2× phone 2.0×. The 2048 file is 1.4× and
- * 1.2× on the same screens, which is where Instagram's stories sit. So a
- * phone on wifi reads it — every phone is 2× or 3× — and a laptop at 1×
- * reads 1280, which is already more than its pixels.
- *
- * **A connection somebody pays for reads 1280 whatever the screen** (D66).
- * 350 kB a swipe against 200 is the compromise D62 struck, and it is only
- * worth striking where the bytes are free; `metered` folds Save Data in, so
- * asking the browser to spend less is the same answer. A browser that will
- * not say — Safari, so every iPhone — is not treated as metered, or the
- * device the app is built for would never see the rung that was built for it.
- *
- * One rule here rather than `srcset`, because the prefetch (`offline/cache`)
- * has to ask for the same URL the tile will show: a browser choosing per
- * image would put a file in the cache that nobody asked ahead for, and D39's
- * window is a promise about bytes.
- */
-export function rungFor(screen: Screen): 'screen' | 'large' {
-	return screen.dpr >= 2 && screen.metered !== true ? 'large' : 'screen';
-}
-
-/** The URL the reel shows for this photograph on this screen, or nothing. */
-export function reelUrl(
-	image: Pick<DreamImage, 'screenUrl' | 'largeUrl'> | null,
-	screen: Screen = thisScreen()
-): string | null {
-	if (!image) return null;
-	return rungFor(screen) === 'large' ? image.largeUrl : image.screenUrl;
+export function reelUrl(image: Pick<DreamImage, 'largeUrl'> | null): string | null {
+	return image?.largeUrl ?? null;
 }
 
 /** The first ready photograph of a kind, or nothing. */
@@ -93,14 +46,9 @@ export function dreamtCount(dream: Pick<Dream, 'images'>): number {
 	return dream.images.filter((image) => image.kind === 'dreamt').length;
 }
 
-/**
- * The URL a collage's cell shows. Always the 1280: the biggest cell there is
- * is a little over half a phone screen, which 1280 covers at 3× with room to
- * spare, and one rule for every cell is what lets the prefetch ask for the
- * file the tile will show (`offline/cache.ts`, D62).
- */
-export function cellUrl(image: Pick<DreamImage, 'screenUrl'>): string {
-	return image.screenUrl;
+/** The URL a collage's cell shows: the same one file (D89). */
+export function cellUrl(image: Pick<DreamImage, 'largeUrl'>): string {
+	return image.largeUrl;
 }
 
 /** Both of them at once, for a screen that shows the pair. */

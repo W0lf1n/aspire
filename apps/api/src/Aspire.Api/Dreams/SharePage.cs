@@ -32,7 +32,7 @@ public static class SharePage
         var card = dream.LinkKey is null || photo is null
             ? null
             : $"{origin}{CardPathOf(dream.LinkKey)}";
-        var picture = photo is null ? null : $"{origin}{MediaStore.UrlOf(photo.DreamId, photo.Id, "screen")}";
+        var picture = photo is null ? null : $"{origin}{MediaStore.UrlOf(photo.DreamId, photo.Id, "full")}";
 
         var head = new StringBuilder();
         head.Append($"<title>{title}</title>");

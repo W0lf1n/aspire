@@ -25,7 +25,6 @@ function image(id: string, ready: boolean, kind: DreamImageKind = 'dreamt'): Dre
 		fit: 'fill',
 		mat: 'night',
 		thumbUrl: `/media/d/${id}/thumb.webp`,
-		screenUrl: `/media/d/${id}/screen.webp`,
 		largeUrl: `/media/d/${id}/full.webp`
 	};
 }
@@ -62,9 +61,6 @@ function deferred() {
 	return { promise, settle };
 }
 
-const laptop = { dpr: 1, metered: false };
-const phone = { dpr: 3, metered: false };
-
 describe('tileUrls', () => {
 	it('takes the first ready photograph of each dream: the thumb, then the picture', () => {
 		const dreams = [
@@ -74,17 +70,12 @@ describe('tileUrls', () => {
 			dream('c', []),
 			dream('d', [image('d1', false)])
 		];
-		expect(tileUrls(dreams, laptop)).toEqual([
+		expect(tileUrls(dreams)).toEqual([
 			'/media/d/a2/thumb.webp',
-			'/media/d/a2/screen.webp',
+			'/media/d/a2/full.webp',
 			'/media/d/b1/thumb.webp',
-			'/media/d/b1/screen.webp'
+			'/media/d/b1/full.webp'
 		]);
-	});
-
-	it('asks for the rung the screen reads, so what is fetched ahead is what is shown', () => {
-		const dreams = [dream('a', [image('a1', true)])];
-		expect(tileUrls(dreams, phone)).toEqual(['/media/d/a1/thumb.webp', '/media/d/a1/full.webp']);
 	});
 
 	it('keeps both halves of a pair, so the wall is whole without a signal', () => {
@@ -95,11 +86,11 @@ describe('tileUrls', () => {
 			dream('b', [image('b1', true, 'achieved')])
 		];
 
-		expect(tileUrls(dreams, laptop)).toEqual([
+		expect(tileUrls(dreams)).toEqual([
 			'/media/d/a1/thumb.webp',
-			'/media/d/a1/screen.webp',
-			'/media/d/a2/screen.webp',
-			'/media/d/b1/screen.webp'
+			'/media/d/a1/full.webp',
+			'/media/d/a2/full.webp',
+			'/media/d/b1/full.webp'
 		]);
 	});
 });
@@ -266,37 +257,23 @@ describe('aheadOf', () => {
 });
 
 describe('tileUrls, for a collage (D82) and its slides (D87)', () => {
-	it('keeps the thumbs, every cell at the rung a cell reads, and each slide at the screen’s', () => {
+	it('keeps the thumbs and each photograph once, the cell and the slide being one file (D89)', () => {
 		const three = dream('house', [image('a', true), image('b', true), image('c', true)]);
 
-		expect(tileUrls([three], { dpr: 3, metered: false })).toEqual([
+		expect(tileUrls([three])).toEqual([
 			'/media/d/a/thumb.webp',
 			'/media/d/b/thumb.webp',
 			'/media/d/c/thumb.webp',
-			'/media/d/a/screen.webp',
-			'/media/d/b/screen.webp',
-			'/media/d/c/screen.webp',
 			'/media/d/a/full.webp',
 			'/media/d/b/full.webp',
 			'/media/d/c/full.webp'
 		]);
 	});
 
-	it('asks once for a slide whose rung is the cell’s', () => {
-		const two = dream('house', [image('a', true), image('b', true)]);
-
-		expect(tileUrls([two], { dpr: 1, metered: false })).toEqual([
-			'/media/d/a/thumb.webp',
-			'/media/d/b/thumb.webp',
-			'/media/d/a/screen.webp',
-			'/media/d/b/screen.webp'
-		]);
-	});
-
 	it('keeps no cells for a carousel, which has no collage', () => {
 		const two = dream('trip', [image('a', true), image('b', true)], { photoView: 'carousel' });
 
-		expect(tileUrls([two], { dpr: 3, metered: false })).toEqual([
+		expect(tileUrls([two])).toEqual([
 			'/media/d/a/thumb.webp',
 			'/media/d/b/thumb.webp',
 			'/media/d/a/full.webp',
@@ -308,9 +285,6 @@ describe('tileUrls, for a collage (D82) and its slides (D87)', () => {
 		// One ready and one on its way is still a single photograph on the tile.
 		const one = dream('house', [image('a', true), image('b', false)]);
 
-		expect(tileUrls([one], { dpr: 1, metered: false })).toEqual([
-			'/media/d/a/thumb.webp',
-			'/media/d/a/screen.webp'
-		]);
+		expect(tileUrls([one])).toEqual(['/media/d/a/thumb.webp', '/media/d/a/full.webp']);
 	});
 });

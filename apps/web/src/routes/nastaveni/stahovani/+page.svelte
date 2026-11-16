@@ -69,8 +69,6 @@
 		return `${count} fotek`;
 	}
 
-	const GIGABYTE = 1024 * 1024 * 1024;
-
 	$effect(() => {
 		let live = true;
 		void usage().then((bytes) => {
@@ -153,7 +151,7 @@
 				<dd>
 					{held === null
 						? '—'
-						: `${photographs(held.photographs)} · ${formatUsage(held.bytes)} z ${Math.round(held.bytesLimit / GIGABYTE)} GB`}
+						: `${photographs(held.photographs)} · ${formatUsage(held.bytes)} z ${formatUsage(held.bytesLimit)}`}
 				</dd>
 			</div>
 		</dl>

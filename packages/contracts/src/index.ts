@@ -185,12 +185,10 @@ export interface DreamImage {
 	fit: PhotoFit;
 	mat: PhotoMat;
 	thumbUrl: string;
-	screenUrl: string;
 	/**
-	 * The 2048 file, named for what it is to a phone: the rung a 2× or 3×
-	 * screen reads on the reel, where 1280 would be drawn at twice its
-	 * pixels (D62). `reelUrl` in `dreams/photos.ts` chooses; no screen
-	 * reads this field by hand.
+	 * The 2048 file, and since D89 the only one besides the thumb: every
+	 * surface that shows the photograph at size reads it, through `reelUrl`
+	 * and `cellUrl` in `dreams/photos.ts`.
 	 */
 	largeUrl: string;
 }

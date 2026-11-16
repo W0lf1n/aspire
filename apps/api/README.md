@@ -26,7 +26,7 @@ more than store rows.
 | `POST`   | `/api/v1/dreams/{id}/focus`            | Put it on Teď, last; the dream out. 409 when Teď is full or the dream is achieved (D53)                                                                                                                            |
 | `DELETE` | `/api/v1/dreams/{id}/focus`            | Take it off Teď; 204, and 204 again when it was not on it                                                                                                                                                          |
 | `PUT`    | `/api/v1/focus`                        | `{ dreamIds }` — the whole of Teď, in this order and nothing else on it; the ten out                                                                                                                               |
-| `POST`   | `/api/v1/dreams/{id}/images`           | Multipart `file`, `?kind=dreamt\|achieved`, optional `?focusX&focusY&zoom&fit&mat`; a sixth dreamt photograph is a 409 (D82); 202 with the image, `ready` once resized; 409 when the board is at its 2 GB (D64)    |
+| `POST`   | `/api/v1/dreams/{id}/images`           | Multipart `file`, `?kind=dreamt\|achieved`, optional `?focusX&focusY&zoom&fit&mat`; a sixth dreamt photograph is a 409 (D82); 202 with the image, `ready` once resized; 409 when the board is at its 300 MB (D64)    |
 | `GET`    | `/api/v1/board`                        | The board's name, how many photographs it holds, their bytes and the ceiling (D64)                                                                                                                                 |
 | `POST`   | `/api/v1/board/reset`                  | `{ phrase }` — „začínám znovu“, accents and case forgiven; every dream and photograph goes, `{ dreams }` out; 400 with a sentence otherwise (D80)                                                                  |
 | `PUT`    | `/api/v1/dreams/{id}/images/{imageId}` | `{ focusX, focusY, zoom, fit, mat }`, each optional — where the photograph is looked at, and whether it fills or stands whole on a mat; no file is touched (D54, D81)                                              |
@@ -212,17 +212,17 @@ browser subscribed through is the only one whose key can reach it again.
 
 An upload lands in the system's temp directory, gets a `dream_images` row,
 and goes into a channel; one worker (`ImageWorker`) reads it, applies the
-orientation, strips EXIF, XMP and IPTC, and writes three WebP files under
-`Media:Root` as `{dreamId}/{imageId}/{thumb|screen|full}.webp` at 400,
-1280 and 2048 px on the longest edge (D23) — quality 70 for the thumb and
-75 for the other two, libwebp's slowest method, Lanczos and a light sharpen
+orientation, strips EXIF, XMP and IPTC, and writes two WebP files under
+`Media:Root` as `{dreamId}/{imageId}/{thumb|full}.webp` at 400
+and 2048 px on the longest edge (D23, D89) — quality 70 for the thumb and
+75 for the other, libwebp's slowest method, Lanczos and a light sharpen
 after a downscale (D23 as amended). The row's `processed_at` says when;
 until then the wire says `ready: false` and the board shows the sky. The
-row also keeps `bytes`, what the three files weigh, and a board whose
-photographs pass `ImageService.MaxBoardBytes` — two gigabytes — refuses the
+row also keeps `bytes`, what the files weigh, and a board whose
+photographs pass `ImageService.MaxBoardBytes` — 300 MB — refuses the
 next upload with a 409 (D64); the worker's sweep weighs rows from before the
-column. On the wire `full` is `largeUrl`: the rung a 2× or 3× phone reads
-on the reel (D62).
+column and deletes the 1280 file of a photograph made while there was one
+(D89). On the wire `full` is `largeUrl`, the one file every screen reads.
 On a laptop the root is `media/` beside the project and the API serves it
 as `/media/`; on the VPS it is the volume and nginx serves it.
 

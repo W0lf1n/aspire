@@ -481,7 +481,7 @@
 			<section class="proof">
 				<p class="label">Jak to dopadlo</p>
 				<PhotoPicker
-					current={photos.achieved?.screenUrl ?? null}
+					current={photos.achieved?.largeUrl ?? null}
 					focal={focalOf('achieved')}
 					wide
 					busy={uploading !== null || !connection.online}

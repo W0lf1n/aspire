@@ -249,13 +249,13 @@ public sealed class ImageServiceTests : IDisposable
         // for every shape at once.
         var (dream, image) = await APhotograph();
         await _images.ProcessAsync(image.Id);
-        var screen = _media.PathOf(dream.Id, image.Id, "screen");
-        var written = File.GetLastWriteTimeUtc(screen);
+        var full = _media.PathOf(dream.Id, image.Id, "full");
+        var written = File.GetLastWriteTimeUtc(full);
 
         await _images.MoveAsync(dream, image.Id, new FocalInput(0, 1, 3));
 
-        Assert.True(File.Exists(screen));
-        Assert.Equal(written, File.GetLastWriteTimeUtc(screen));
+        Assert.True(File.Exists(full));
+        Assert.Equal(written, File.GetLastWriteTimeUtc(full));
     }
 
     [Theory]
@@ -331,6 +331,31 @@ public sealed class ImageServiceTests : IDisposable
         var (count, bytes) = await _images.UsageOfAsync("board-b");
         Assert.Equal(1, count);
         Assert.True(bytes > 0);
+    }
+
+    [Fact]
+    public async Task The_sweep_drops_the_1280_file_and_weighs_the_row_again()
+    {
+        // A photograph made while there were three rungs (D89).
+        var dream = await ADream();
+        using var upload = Png(600, 400);
+        var (image, _) = await _images.AddAsync(dream, upload, upload.Length);
+        await _images.ProcessAsync(image!.Id);
+        var two = (await _db.DreamImages.AsNoTracking().SingleAsync()).Bytes;
+        var screen = _media.PathOf(dream.Id, image.Id, "screen");
+        await File.WriteAllBytesAsync(screen, new byte[1000]);
+        var old = await _db.DreamImages.SingleAsync();
+        old.Bytes = two + 1000;
+        await _db.SaveChangesAsync();
+
+        await _images.DropScreenRungAsync();
+
+        Assert.False(File.Exists(screen));
+        Assert.Equal(two, (await _db.DreamImages.AsNoTracking().SingleAsync()).Bytes);
+        foreach (var size in MediaStore.Sizes)
+        {
+            Assert.True(File.Exists(_media.PathOf(dream.Id, image.Id, size)), size);
+        }
     }
 
     [Fact]

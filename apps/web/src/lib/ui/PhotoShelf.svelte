@@ -288,7 +288,7 @@
 {#if chosen}
 	<CropEditor
 		open={placing}
-		src={chosen.screenUrl}
+		src={chosen.largeUrl}
 		focal={focalOf(chosen)}
 		title={dream.title}
 		line={dream.why}

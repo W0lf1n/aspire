@@ -24,7 +24,6 @@ function image(id: string, kind: DreamImageKind, ready = true): DreamImage {
 		fit: 'fill',
 		mat: 'night',
 		thumbUrl: `/media/d/${id}/thumb.webp`,
-		screenUrl: `/media/d/${id}/screen.webp`,
 		largeUrl: `/media/d/${id}/full.webp`
 	};
 }

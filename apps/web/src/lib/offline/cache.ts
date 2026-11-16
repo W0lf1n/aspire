@@ -18,14 +18,7 @@
 
 import type { Dream } from '@aspire/contracts';
 import { REEL_WINDOW, achievedDreams, reelOrder } from '$lib/dreams/board';
-import {
-	cellUrl,
-	dreamtPhotos,
-	photosOf,
-	reelUrl,
-	thisScreen,
-	type Screen
-} from '$lib/dreams/photos';
+import { cellUrl, dreamtPhotos, photosOf, reelUrl } from '$lib/dreams/photos';
 import { viewOf } from '$lib/dreams/slides';
 
 /** The service worker's names for them; deleting both is forgetting the board. */
@@ -45,33 +38,31 @@ export const PREFETCH_AT_ONCE = 4;
 /**
  * Every URL a tile shows, in the order it is worth having: for the dreamt
  * photograph, which is the reel's, the thumb that goes under the picture and
- * then the picture at the rung this screen reads (D62, D63) — the thumb
+ * then the picture (D63, D89) — the thumb
  * first, so the shape of a tile arrives before its pixels do; and the
- * achieved one at screen size, because the Síň slávy stands the two side by
+ * achieved one, because the Síň slávy stands the two side by
  * side and half a pair is not proof of anything (D28).
  */
-export function tileUrls(dreams: Dream[], screen: Screen = thisScreen()): string[] {
+export function tileUrls(dreams: Dream[]): string[] {
 	const urls: string[] = [];
 	for (const dream of dreams) {
 		const { dreamt, achieved } = photosOf(dream);
 		const cells = dreamtPhotos(dream);
 		if (cells.length > 1) {
 			// Slides (D87): every photograph's thumb — the cover's is the
-			// Seznam's circle, and each goes under its own slide — then the
-			// collage's cells at the one rung a cell reads (D82), if it is one,
-			// then each photograph at the rung this screen reads, as a tile
-			// with one photograph keeps it. A rung that is also a cell's is
-			// asked for once.
+			// Seznam's circle, and each goes under its own slide — then each
+			// photograph. A collage's cell and a slide are the same file since
+			// D89, so it is asked for once.
 			const wanted = [
 				...cells.map((cell) => cell.thumbUrl),
 				...(viewOf(dream) === 'collage' ? cells.map(cellUrl) : []),
-				...cells.map((cell) => reelUrl(cell, screen)!)
+				...cells.map((cell) => reelUrl(cell)!)
 			];
 			urls.push(...wanted.filter((url, at) => wanted.indexOf(url) === at));
 		} else if (dreamt) {
-			urls.push(dreamt.thumbUrl, reelUrl(dreamt, screen)!);
+			urls.push(dreamt.thumbUrl, reelUrl(dreamt)!);
 		}
-		if (achieved) urls.push(achieved.screenUrl);
+		if (achieved) urls.push(reelUrl(achieved)!);
 	}
 	return urls;
 }
@@ -168,9 +159,8 @@ export async function rememberBoard(
 	if (typeof caches === 'undefined') return;
 	try {
 		const cache = await caches.open(MEDIA_CACHE);
-		const screen = thisScreen();
-		const wanted = tileUrls(ahead, screen);
-		const belongs = tileUrls(board, screen);
+		const wanted = tileUrls(ahead);
+		const belongs = tileUrls(board);
 		const paths = async () => (await cache.keys()).map((request) => new URL(request.url).pathname);
 		const have = new Set(await paths());
 

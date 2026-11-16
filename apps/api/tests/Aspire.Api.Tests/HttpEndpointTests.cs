@@ -236,7 +236,7 @@ public sealed class HttpEndpointTests : IAsyncLifetime
     }
 
     [Fact]
-    public async Task A_photograph_goes_up_as_multipart_and_comes_back_as_three_URLs()
+    public async Task A_photograph_goes_up_as_multipart_and_comes_back_as_two_URLs()
     {
         var dream = await ADreamAsync();
         var id = dream.GetProperty("id").GetString();
@@ -258,7 +258,6 @@ public sealed class HttpEndpointTests : IAsyncLifetime
         Assert.Equal(0.25, image.GetProperty("focusX").GetDouble(), 3);
         Assert.Equal(0.75, image.GetProperty("focusY").GetDouble(), 3);
         Assert.EndsWith("thumb.webp", image.GetProperty("thumbUrl").GetString());
-        Assert.EndsWith("screen.webp", image.GetProperty("screenUrl").GetString());
         // The 2048 rung is `largeUrl` on the wire and `full` on disk (D62).
         Assert.EndsWith("full.webp", image.GetProperty("largeUrl").GetString());
     }

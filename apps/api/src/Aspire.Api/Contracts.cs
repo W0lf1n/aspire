@@ -111,7 +111,6 @@ public sealed record DreamImageDto(
     PhotoFit Fit,
     PhotoMat Mat,
     string ThumbUrl,
-    string ScreenUrl,
     string LargeUrl)
 {
     public static DreamImageDto From(DreamImage image) => new(
@@ -127,7 +126,6 @@ public sealed record DreamImageDto(
         image.Fit,
         image.Mat,
         MediaStore.UrlOf(image.DreamId, image.Id, "thumb"),
-        MediaStore.UrlOf(image.DreamId, image.Id, "screen"),
         // The 2048 file, named for what it is to a phone rather than for
         // what it is on disk: the rung a 2× or 3× screen reads on the reel
         // (D62). The file keeps its name, because a year of cached URLs is a

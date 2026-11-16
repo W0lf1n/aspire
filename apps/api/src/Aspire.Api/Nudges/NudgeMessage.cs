@@ -69,7 +69,7 @@ public static class NudgeMessage
             heading,
             line,
             dream.Id,
-            photo is null ? null : MediaStore.UrlOf(dream.Id, photo.Id, "screen")));
+            photo is null ? null : MediaStore.UrlOf(dream.Id, photo.Id, "full")));
     }
 
     /// <summary>

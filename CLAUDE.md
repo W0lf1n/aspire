@@ -2,7 +2,7 @@
 
 Guidance for Claude Code working in this repository.
 
-**Last revised:** 2026-09-17 · §31 closed, D51–D88 · 472 web tests · 439 API tests
+**Last revised:** 2026-09-17 · §31 closed, D51–D89 · 466 web tests · 437 API tests
 
 ---
 
@@ -56,7 +56,7 @@ that was never a milestone: a dream shared as a page this server writes, behind
 the same key (D61). §24 is M8, done: the photographs at scale — the reel
 drawn at the rung the phone is (D62), the encoder tuned once (D23 amended),
 the thumb under the picture (D63), and a board that weighs what its
-photographs weigh, with two gigabytes as full and the rule for when the disk
+photographs weigh, with two gigabytes as full — 300 MB since D89 — and the rule for when the disk
 stops being enough decided rather than built (D64). §26 is what a walk
 through the finished app found, and is not a milestone: Smazat waits six
 seconds and „Vrátit“ cancels it rather than a dialog asking (D65), a
@@ -88,8 +88,9 @@ very first pick (D84), a collage is placed as a collage, every cell under a
 finger on the reel's page (D85), and the dream's tile swipes through its
 photographs (D86). §31 puts that carousel on the reel — photographs first, and
 past the last one the swipe is the other reel — lets a dream be a collage or
-a carousel (D87), and lets a photograph stand whole in its cell (D88). Nothing
-is left in the plan.
+a carousel (D87), and lets a photograph stand whole in its cell (D88). D89 is
+not a milestone: a photograph is two files rather than three and a board is
+full at 300 MB, so more people fit on the VPS. Nothing is left in the plan.
 
 ---
 
@@ -191,7 +192,7 @@ apps/web/src/
 │                  focus.ts — Teď: which ten are on the second reel, in
 │                  what order, and which reel this device opens on (D53) —
 │                  photos.ts — which of a dream's two photographs a screen
-│                  shows, and which rung the reel reads on this phone (D62)
+│                  shows, and the one file it is read from (D62, D89)
 │                  — search.ts — what typing in the Seznam looks in
 │                  and how Czech is folded before it does (D49) —
 │                  duplicates.ts — whether a dream being written is one

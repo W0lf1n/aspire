@@ -5,11 +5,11 @@ using SixLabors.ImageSharp.Processing;
 
 namespace Aspire.Infrastructure.Media;
 
-/// <summary>What the worker made: the full size's dimensions, and what the three files weigh together.</summary>
+/// <summary>What the worker made: the full size's dimensions, and what the files weigh together.</summary>
 public readonly record struct ProcessedImage(int Width, int Height, long Bytes);
 
 /// <summary>
-/// A photograph in, three WebP files out (PLAN.md §4). Turned the way the
+/// A photograph in, two WebP files out (PLAN.md §4, D89). Turned the way the
 /// phone meant it, then stripped of everything the phone wrote into it —
 /// where it was taken, on what, when — because the files are served to
 /// anyone who has the URL, and a dream's URL is not a secret worth keeping.
@@ -21,27 +21,26 @@ public readonly record struct ProcessedImage(int Width, int Height, long Bytes);
 /// of the bytes for no difference anyone can see; libwebp's slowest method,
 /// which is a few per cent smaller again for seconds a background worker
 /// has to spare; and Lanczos with a light sharpen after a downscale, which
-/// is what makes 1280 look like a photograph rather than a soft copy of one.
+/// is what makes a smaller file look like a photograph rather than a soft copy of one.
 /// Files already on disk are what they were — the URLs are immutable and
 /// re-encoding what is already served buys nothing.
 /// </summary>
 public static class ImageProcessor
 {
     /// <summary>
-    /// The longest edge per size. Screen is what a phone's board shows at
-    /// full width; full is the archive, the most the client sends, and the
-    /// rung a 2× or 3× phone reads on the reel (D62).
+    /// The longest edge per size. Full is the most the client sends and the
+    /// one file every screen reads (D62); the 1280 between the two was a
+    /// third of the disk for a laptop's sake, and is gone (D89).
     /// </summary>
     public static readonly IReadOnlyDictionary<string, int> LongestEdge = new Dictionary<string, int>
     {
         ["thumb"] = 400,
-        ["screen"] = 1280,
         ["full"] = 2048
     };
 
     /// <summary>
     /// The thumb is 40 px in a circle and a blur under the reel's picture; it
-    /// can afford to be rougher than the two that are looked at.
+    /// can afford to be rougher than the one that is looked at.
     /// </summary>
     public static int QualityOf(string size) => size == "thumb" ? 70 : 75;
 

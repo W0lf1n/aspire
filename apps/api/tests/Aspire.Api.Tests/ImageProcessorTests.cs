@@ -36,7 +36,7 @@ public sealed class ImageProcessorTests : IDisposable
     }
 
     [Fact]
-    public async Task Three_sizes_come_out_and_none_is_larger_than_its_edge()
+    public async Task Two_sizes_come_out_and_none_is_larger_than_its_edge()
     {
         using var source = Jpeg(3000, 2000);
 
@@ -122,28 +122,26 @@ public sealed class ImageProcessorTests : IDisposable
     }
 
     [Fact]
-    public async Task The_rungs_weigh_in_order_and_the_three_together_are_what_is_reported()
+    public async Task The_rungs_weigh_in_order_and_the_two_together_are_what_is_reported()
     {
         using var source = Textured(3000, 2000);
 
         var made = await ImageProcessor.ProcessAsync(source, PathFor);
 
         var thumb = new FileInfo(PathFor("thumb")).Length;
-        var screen = new FileInfo(PathFor("screen")).Length;
         var full = new FileInfo(PathFor("full")).Length;
-        Assert.True(thumb < screen && screen < full, $"{thumb} < {screen} < {full}");
-        Assert.Equal(thumb + screen + full, made.Bytes);
+        Assert.True(thumb < full, $"{thumb} < {full}");
+        Assert.Equal(thumb + full, made.Bytes);
 
         // The ceiling a setting that regressed — lossless, or quality back
-        // at 100 — would go through: a 1280×853 picture of this kind is a
-        // few tens of kilobytes at 75.
-        Assert.True(screen < 150 * 1024, $"screen is {screen / 1024} kB");
+        // at 100 — would go through: a 2048×1365 picture of this kind is a
+        // hundred-odd kilobytes at 75.
+        Assert.True(full < 400 * 1024, $"full is {full / 1024} kB");
         Assert.True(thumb < 20 * 1024, $"thumb is {thumb / 1024} kB");
     }
 
     [Theory]
     [InlineData("thumb", 70)]
-    [InlineData("screen", 75)]
     [InlineData("full", 75)]
     public void Each_rung_has_its_quality(string size, int quality)
     {

@@ -12,8 +12,7 @@ import {
 	photosOf,
 	photosToReplace,
 	reelUrl,
-	tileStyle,
-	rungFor
+	tileStyle
 } from './photos';
 
 function image(id: string, kind: DreamImageKind, ready = true): DreamImage {
@@ -30,7 +29,6 @@ function image(id: string, kind: DreamImageKind, ready = true): DreamImage {
 		fit: 'fill',
 		mat: 'night',
 		thumbUrl: `/media/d/${id}/thumb.webp`,
-		screenUrl: `/media/d/${id}/screen.webp`,
 		largeUrl: `/media/d/${id}/full.webp`
 	};
 }
@@ -119,39 +117,13 @@ describe('photoStyle', () => {
 	});
 });
 
-describe('rungFor', () => {
-	it('is the large rung on a phone on wifi, which is 2× or 3×', () => {
-		expect(rungFor({ dpr: 2, metered: false })).toBe('large');
-		expect(rungFor({ dpr: 3, metered: false })).toBe('large');
-	});
-
-	it('is the screen rung on a laptop at 1×, where 1280 is already more than the pixels', () => {
-		expect(rungFor({ dpr: 1, metered: false })).toBe('screen');
-		expect(rungFor({ dpr: 1.5, metered: false })).toBe('screen');
-	});
-
-	it('is the screen rung on mobile data, whatever the screen (D66)', () => {
-		expect(rungFor({ dpr: 3, metered: true })).toBe('screen');
-		expect(rungFor({ dpr: 2, metered: true })).toBe('screen');
-	});
-
-	it('is the large rung where the browser will not say, which is every iPhone', () => {
-		// Safari has no Network Information API, and the phone this app is
-		// built for must still get the rung that was built for it.
-		expect(rungFor({ dpr: 3, metered: null })).toBe('large');
-	});
-});
-
 describe('reelUrl', () => {
-	it('is the URL of the rung the screen reads', () => {
-		const photo = image('d', 'dreamt');
-		expect(reelUrl(photo, { dpr: 3, metered: false })).toBe('/media/d/d/full.webp');
-		expect(reelUrl(photo, { dpr: 1, metered: false })).toBe('/media/d/d/screen.webp');
-		expect(reelUrl(photo, { dpr: 3, metered: true })).toBe('/media/d/d/screen.webp');
+	it('is the one file there is besides the thumb (D89)', () => {
+		expect(reelUrl(image('d', 'dreamt'))).toBe('/media/d/d/full.webp');
 	});
 
 	it('is nothing for no photograph', () => {
-		expect(reelUrl(null, { dpr: 3, metered: false })).toBeNull();
+		expect(reelUrl(null)).toBeNull();
 	});
 });
 
@@ -257,7 +229,7 @@ describe('the five dreamt photographs (D82)', () => {
 		expect(dreamtCount(dream)).toBe(2);
 	});
 
-	it('read a cell at the 1280, on every screen', () => {
-		expect(cellUrl(image('a', 'dreamt'))).toBe(image('a', 'dreamt').screenUrl);
+	it('read a cell at the same file the reel reads (D89)', () => {
+		expect(cellUrl(image('a', 'dreamt'))).toBe('/media/d/a/full.webp');
 	});
 });

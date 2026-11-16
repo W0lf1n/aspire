@@ -2,14 +2,14 @@ namespace Aspire.Infrastructure.Media;
 
 /// <summary>
 /// Where the photographs are. One directory per dream, one per image inside
-/// it, three WebP files inside that (D7, D23). nginx serves the tree as
+/// it, two WebP files inside that (D7, D23, D89). nginx serves the tree as
 /// <c>/media/</c> in production; the API serves it on a laptop. Nothing else
 /// is ever written under the root, so deleting a dream's directory is
 /// deleting its photographs.
 /// </summary>
 public sealed class MediaStore(string root)
 {
-    public static readonly string[] Sizes = ["thumb", "screen", "full"];
+    public static readonly string[] Sizes = ["thumb", "full"];
 
     public string Root { get; } = Path.GetFullPath(root);
 

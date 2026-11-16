@@ -20,12 +20,12 @@ public sealed class ImageService(AppDbContext db, MediaStore media, ImageQueue q
     public const long MaxUploadBytes = 10 * 1024 * 1024;
 
     /// <summary>
-    /// How full a board can be (D64). A hundred dreams at two photographs is
-    /// about 150 MB, so two gigabytes is a ceiling on something other than
-    /// dreaming — and the number the settings screen shows the person before
-    /// the sentence ever does.
+    /// How full a board can be (D64, lowered by D89). A photograph is about
+    /// 0.4 MB, so 300 MB is some seven hundred of them — and the number the
+    /// disk is planned by, a board at a time, and the one the settings screen
+    /// shows the person before the sentence ever does.
     /// </summary>
-    public const long MaxBoardBytes = 2L * 1024 * 1024 * 1024;
+    public const long MaxBoardBytes = 300L * 1024 * 1024;
 
     /// <summary>The sentence for a sixth photograph; a 409, as a full board is.</summary>
     public static readonly string TooMany = $"Sen má nejvýš {Dream.PhotosMax} fotek. Některou nejdřív smaž.";
@@ -74,7 +74,7 @@ public sealed class ImageService(AppDbContext db, MediaStore media, ImageQueue q
         }
 
         // The upload's own length stands in for the files it will become:
-        // close enough for a ceiling two gigabytes away, and known before
+        // close enough for a ceiling hundreds of photographs away, and known before
         // anything is written.
         var (_, held) = await UsageOfAsync(dream.BoardId, ct);
         if (held + length > maxBoardBytes) return (null, BoardFull);
@@ -247,6 +247,24 @@ public sealed class ImageService(AppDbContext db, MediaStore media, ImageQueue q
 
         foreach (var image in unweighed)
         {
+            image.Bytes = media.BytesOf(image.DreamId, image.Id);
+        }
+
+        await db.SaveChangesAsync(ct);
+    }
+
+    /// <summary>
+    /// The 1280 rung is gone (D89): a photograph made while there was one
+    /// loses that file and is weighed again. The worker's sweep does this,
+    /// and a row it has done has no such file to find.
+    /// </summary>
+    public async Task DropScreenRungAsync(CancellationToken ct = default)
+    {
+        foreach (var image in await db.DreamImages.Where(i => i.ProcessedAt != null).ToListAsync(ct))
+        {
+            var screen = media.PathOf(image.DreamId, image.Id, "screen");
+            if (!File.Exists(screen)) continue;
+            File.Delete(screen);
             image.Bytes = media.BytesOf(image.DreamId, image.Id);
         }
 

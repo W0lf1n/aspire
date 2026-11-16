@@ -2761,3 +2761,37 @@ tall cell was a sliver of itself.
   wall's pair, the wallpaper and the shared card read the point alone.
 - A photograph set whole while it was alone is now whole in its cell too,
   because that is what was saved for it.
+
+### D89 — Two files a photograph, and 300 MB a board (D23, D62, D64 and D66 amended)
+
+Petr wants more people on the same VPS, each with 70–110 photographs, and
+asked how small a photograph can be kept without it looking worse. The
+encoder was already at the knee (D23 as amended), so the answer is not in
+the quality: it is in how many files there are and how much a board may hold.
+
+- **The 1280 rung is gone.** It was a third of every photograph's disk —
+  about 200 kB of 575 — kept for a laptop at 1× and for a metered connection
+  (D62, D66). A photograph is now `thumb` and `full`, about 0.4 MB, and a
+  hundred of them about 40 MB. `screenUrl` leaves the wire; `largeUrl` is
+  the one file every surface reads, through `reelUrl` and `cellUrl`, which
+  stay as the one place that says so. `rungFor` and the screen it asked
+  about are deleted.
+- **What it costs.** A laptop and a phone on mobile data read 350 kB a
+  photograph instead of 200, a collage's cells and the wall's pair read the
+  2048 as well, and the nudge and the shared card carry it. Quality is the
+  same or better everywhere; the bytes on a metered connection are what was
+  given up. D39's window still bounds how many are fetched.
+- **Photographs made before lose the file.** The worker's sweep deletes
+  `screen.webp` wherever it finds one and weighs the row again
+  (`ImageService.DropScreenRungAsync`), so `bytes` stays true. A client
+  still running the old build asks for a file that is gone until it takes
+  the new build (D42).
+- **300 MB a board**, down from two gigabytes: some seven hundred
+  photographs, several times what a board is meant to hold (D30), and the
+  number the disk is planned by — boards × 300 MB, never more. Nastavení →
+  Stahování shows the ceiling in megabytes, since it is no longer a round
+  number of gigabytes.
+- **Not AVIF.** A fifth to a third smaller again, for a native encoder
+  ImageSharp does not have, a slower worker and every file re-encoded
+  (rule 3). And not a lower quality: under 75 the first thing to band is a
+  sky, which is most of what this app shows.

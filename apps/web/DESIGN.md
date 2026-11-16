@@ -604,8 +604,8 @@ A photograph, portrait 4:5, 20 px corners, the one shadow on the ground.
 Its image covers; a bottom scrim sits between image and words; the body
 gathers at the foot with 24/16/16 px padding and 8 px gaps: title at 34 px
 600 balanced, one line under it at 14 px with `max-width: 32ch`, then a
-photo pill. On the reel the image is the 2048 rung on a phone and 1280 on a
-laptop (D62), and under it sits the thumb, blurred 14 px and bled 6 % past
+photo pill. On the reel the image is the 2048 file on every screen
+(D62, D89), and under it sits the thumb, blurred 14 px and bled 6 % past
 the frame, so the photograph's shape is there before its pixels are (D63);
 the picture covers it as it decodes. That line is the affirmation when the dream has one —
 `.dream__say`, 500 in full white, because it is meant to be said — and the
