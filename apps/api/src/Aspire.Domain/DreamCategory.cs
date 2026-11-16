@@ -20,32 +20,3 @@ public enum DreamCategory
     Be,
     Do
 }
-
-/// <summary>
-/// The category as it travels and as it is stored: one lower-case word in
-/// both places and in `packages/contracts`, the way the status and the image
-/// kind already are.
-/// </summary>
-public static class DreamCategoryNames
-{
-    public static string ToWire(DreamCategory category) => category switch
-    {
-        DreamCategory.Want => "want",
-        DreamCategory.Be => "be",
-        DreamCategory.Do => "do",
-        _ => throw new ArgumentOutOfRangeException(nameof(category), category, null)
-    };
-
-    /// <summary>
-    /// A stored word back into the set. The nine of D32 were cleared by the
-    /// <c>Areas</c> migration, so anything else in the column is a row this
-    /// build has never written and the 500 it earns is the truth.
-    /// </summary>
-    public static DreamCategory Parse(string value) => value switch
-    {
-        "want" => DreamCategory.Want,
-        "be" => DreamCategory.Be,
-        "do" => DreamCategory.Do,
-        _ => throw new ArgumentOutOfRangeException(nameof(value), value, null)
-    };
-}

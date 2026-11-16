@@ -17,18 +17,13 @@ public static class ImageFetchEndpoints
 {
     public static void MapImageFetch(this WebApplication app, string ratePolicy)
     {
-        app.MapGet("/api/v1/images/fetch", async (
+        var paired = app.MapPaired();
+
+        paired.MapGet("/api/v1/images/fetch", async (
             string? url,
-            HttpContext http,
-            DeviceAuth auth,
             ImageFetcher fetcher,
             CancellationToken ct) =>
         {
-            // Paired devices only. This makes the server fetch a URL, so it is
-            // not something the internet gets to ask for.
-            var device = await auth.ResolveAsync(http.Request.Headers.Authorization, ct);
-            if (device is null) return Results.Unauthorized();
-
             var got = await fetcher.FetchAsync(url, ct);
             if (got.Jpeg is null) return Results.Problem(got.Problem, statusCode: 400);
 

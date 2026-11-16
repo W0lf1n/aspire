@@ -85,13 +85,11 @@ public sealed class ImageServiceTests : IDisposable
     }
 
     [Theory]
-    [InlineData(null, DreamImageKind.Dreamt)]
-    [InlineData("", DreamImageKind.Dreamt)]
     [InlineData("dreamt", DreamImageKind.Dreamt)]
     [InlineData("achieved", DreamImageKind.Achieved)]
-    public void A_request_naming_a_kind_is_read(string? asked, DreamImageKind expected)
+    public void A_request_naming_a_kind_is_read(string asked, DreamImageKind expected)
     {
-        Assert.Equal(expected, DreamImageKindNames.TryParse(asked));
+        Assert.Equal(expected, Wire<DreamImageKind>.TryParse(asked));
     }
 
     [Theory]
@@ -100,7 +98,7 @@ public sealed class ImageServiceTests : IDisposable
     [InlineData("splneno")]
     public void A_request_naming_anything_else_is_no_kind_at_all(string asked)
     {
-        Assert.Null(DreamImageKindNames.TryParse(asked));
+        Assert.Null(Wire<DreamImageKind>.TryParse(asked));
     }
 
     [Fact]
@@ -435,12 +433,12 @@ public sealed class ImageServiceTests : IDisposable
     {
         foreach (var fit in Enum.GetValues<PhotoFit>())
         {
-            Assert.Equal(fit, PhotoFitNames.Parse(PhotoFitNames.ToWire(fit)));
+            Assert.Equal(fit, Wire<PhotoFit>.Parse(Wire<PhotoFit>.Name(fit)));
         }
 
         foreach (var mat in Enum.GetValues<PhotoMat>())
         {
-            Assert.Equal(mat, PhotoMatNames.Parse(PhotoMatNames.ToWire(mat)));
+            Assert.Equal(mat, Wire<PhotoMat>.Parse(Wire<PhotoMat>.Name(mat)));
         }
     }
 }

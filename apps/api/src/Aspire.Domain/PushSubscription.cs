@@ -93,26 +93,3 @@ public enum NudgeMode
     Daily,
     Weekdays
 }
-
-/// <summary>
-/// The mode as it travels and as it is stored, the way every other enum in
-/// this project does it.
-/// </summary>
-public static class NudgeModeNames
-{
-    public static string ToWire(NudgeMode mode) => mode switch
-    {
-        NudgeMode.Off => "off",
-        NudgeMode.Daily => "daily",
-        NudgeMode.Weekdays => "weekdays",
-        _ => throw new ArgumentOutOfRangeException(nameof(mode), mode, null)
-    };
-
-    public static NudgeMode Parse(string value) => value switch
-    {
-        "off" => NudgeMode.Off,
-        "daily" => NudgeMode.Daily,
-        "weekdays" => NudgeMode.Weekdays,
-        _ => throw new ArgumentOutOfRangeException(nameof(value), value, null)
-    };
-}

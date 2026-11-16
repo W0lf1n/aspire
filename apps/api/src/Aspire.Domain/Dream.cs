@@ -139,29 +139,6 @@ public enum DreamStatus
 }
 
 /// <summary>
-/// The status as it travels and as it is stored: the same three words in
-/// kebab-case on the wire, in the database and in `packages/contracts`.
-/// </summary>
-public static class DreamStatusNames
-{
-    public static string ToWire(DreamStatus status) => status switch
-    {
-        DreamStatus.Dreaming => "dreaming",
-        DreamStatus.InProgress => "in-progress",
-        DreamStatus.Achieved => "achieved",
-        _ => throw new ArgumentOutOfRangeException(nameof(status), status, null)
-    };
-
-    public static DreamStatus Parse(string value) => value switch
-    {
-        "dreaming" => DreamStatus.Dreaming,
-        "in-progress" => DreamStatus.InProgress,
-        "achieved" => DreamStatus.Achieved,
-        _ => throw new ArgumentOutOfRangeException(nameof(value), value, null)
-    };
-}
-
-/// <summary>
 /// The collage first and each photograph after it, or the photographs alone
 /// (D87). One photograph is the photograph whichever this says.
 /// </summary>
@@ -169,26 +146,4 @@ public enum PhotoView
 {
     Collage,
     Carousel
-}
-
-/// <summary>The view as it travels and as it is stored.</summary>
-public static class PhotoViewNames
-{
-    public static string ToWire(PhotoView view) => view switch
-    {
-        PhotoView.Collage => "collage",
-        PhotoView.Carousel => "carousel",
-        _ => throw new ArgumentOutOfRangeException(nameof(view), view, null)
-    };
-
-    public static PhotoView Parse(string value) =>
-        TryParse(value) ?? throw new ArgumentOutOfRangeException(nameof(value), value, null);
-
-    /// <summary>The view a request named, or null when it named nothing valid.</summary>
-    public static PhotoView? TryParse(string? value) => value switch
-    {
-        "collage" => PhotoView.Collage,
-        "carousel" => PhotoView.Carousel,
-        _ => null
-    };
 }

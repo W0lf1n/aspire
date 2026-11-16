@@ -231,7 +231,9 @@ apps/web/src/
 
 apps/api/src/
 ├─ Aspire.Api/             Program.cs (minimal APIs), Auth/ (pairing, devices,
-│                          and ShareKey — the 32 bytes both links are),
+│                          Paired — the group every token route is mapped on,
+│                          so the token is checked once — and ShareKey, the
+│                          32 bytes both links are),
 │                          Boards/ (the board commands, the lock-screen
 │                          link — D60 — and starting over, with the phrase
 │                          that guards it — D80), Dreams/ (and the one page this server
@@ -449,7 +451,7 @@ python's `uuid.uuid4()` gives one — makes a row that is there, that `sqlite3`
 finds, and that EF never joins to: the dream came back from `/api/v1/dreams`
 with `images: []` and nothing failed anywhere. `select id from dreams limit 1`
 shows the case the file actually uses. While staging, also note that
-`category` is nullable but `''` is not a category: `DreamCategoryNames.Parse`
+`category` is nullable but `''` is not a category: `Wire<DreamCategory>.Parse`
 throws `ArgumentOutOfRangeException` and the whole endpoint 500s.
 
 **The web batch in `docker build` runs from the repository root**, because

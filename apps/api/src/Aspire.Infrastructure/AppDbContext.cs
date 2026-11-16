@@ -54,7 +54,7 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
             // The word itself as the default, not EF's empty string, which
             // `Parse` would throw on at the first read.
             entity.Property(d => d.PhotoView)
-                .HasConversion(v => PhotoViewNames.ToWire(v), v => PhotoViewNames.Parse(v))
+                .HasConversion(v => Wire<PhotoView>.Name(v), v => Wire<PhotoView>.Parse(v))
                 .HasMaxLength(16)
                 .HasDefaultValue(PhotoView.Collage);
             // The share link arrives with no board and no dream on it, so the
@@ -62,13 +62,13 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
             // nobody has shared, which is nearly all of them (D61).
             entity.HasIndex(d => d.LinkKey).IsUnique();
             entity.Property(d => d.Status)
-                .HasConversion(s => DreamStatusNames.ToWire(s), s => DreamStatusNames.Parse(s))
+                .HasConversion(s => Wire<DreamStatus>.Name(s), s => Wire<DreamStatus>.Parse(s))
                 .HasMaxLength(16);
 
             entity.Property(d => d.Category)
                 .HasConversion(
-                    c => c == null ? null : DreamCategoryNames.ToWire(c.Value),
-                    c => c == null ? null : DreamCategoryNames.Parse(c))
+                    c => c == null ? null : Wire<DreamCategory>.Name(c.Value),
+                    c => c == null ? null : Wire<DreamCategory>.Parse(c))
                 .HasMaxLength(16);
 
             // The board asks for one area at a time (§3.2), inside its own board.
@@ -97,7 +97,7 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
             entity.HasIndex(i => new { i.DreamId, i.SortOrder });
 
             entity.Property(i => i.Kind)
-                .HasConversion(k => DreamImageKindNames.ToWire(k), k => DreamImageKindNames.Parse(k))
+                .HasConversion(k => Wire<DreamImageKind>.Name(k), k => Wire<DreamImageKind>.Parse(k))
                 .HasMaxLength(16);
 
             // The middle and all of it, which is what every photograph taken
@@ -112,11 +112,11 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
             // defaults are the words themselves rather than EF's empty string,
             // which `Parse` would throw on at the first read (D28's lesson).
             entity.Property(i => i.Fit)
-                .HasConversion(f => PhotoFitNames.ToWire(f), f => PhotoFitNames.Parse(f))
+                .HasConversion(f => Wire<PhotoFit>.Name(f), f => Wire<PhotoFit>.Parse(f))
                 .HasMaxLength(16)
                 .HasDefaultValue(PhotoFit.Fill);
             entity.Property(i => i.Mat)
-                .HasConversion(m => PhotoMatNames.ToWire(m), m => PhotoMatNames.Parse(m))
+                .HasConversion(m => Wire<PhotoMat>.Name(m), m => Wire<PhotoMat>.Parse(m))
                 .HasMaxLength(16)
                 .HasDefaultValue(PhotoMat.Night);
             entity.Ignore(i => i.CropZoom);
@@ -148,7 +148,7 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
             entity.Property(s => s.P256dh).HasMaxLength(PushSubscription.KeyMaxLength);
             entity.Property(s => s.Auth).HasMaxLength(PushSubscription.KeyMaxLength);
             entity.Property(s => s.Mode)
-                .HasConversion(m => NudgeModeNames.ToWire(m), m => NudgeModeNames.Parse(m))
+                .HasConversion(m => Wire<NudgeMode>.Name(m), m => Wire<NudgeMode>.Parse(m))
                 .HasMaxLength(16);
 
             // The reminders as one short string, „420,720,1200“ (D72). At most

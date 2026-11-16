@@ -26,20 +26,20 @@ public static class WallpaperEndpoints
 {
     public static void MapWallpaper(this WebApplication app, string linkPolicy)
     {
-        app.MapGet("/api/v1/wallpaper", async (
+        var paired = app.MapPaired();
+
+        paired.MapGet("/api/v1/wallpaper", async (
             string? dreams,
             int? width,
             int? height,
             int? offset,
             HttpContext http,
-            DeviceAuth auth,
             DreamService service,
             ImageService images,
             MediaStore media,
             CancellationToken ct) =>
         {
-            var device = await auth.ResolveAsync(http.Request.Headers.Authorization, ct);
-            if (device is null) return Results.Unauthorized();
+            var device = http.Device();
 
             return await CollageAsync(device.BoardId, dreams, width, height, offset, service, images, media, ct);
         });

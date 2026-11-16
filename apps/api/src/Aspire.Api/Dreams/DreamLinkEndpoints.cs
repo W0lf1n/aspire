@@ -23,16 +23,16 @@ public static class DreamLinkEndpoints
 
     public static void MapDreamLinks(this WebApplication app, string sharePolicy)
     {
-        app.MapGet("/api/v1/dreams/{id:guid}/link", async (
+        var paired = app.MapPaired();
+
+        paired.MapGet("/api/v1/dreams/{id:guid}/link", async (
             Guid id,
             HttpContext http,
-            DeviceAuth auth,
             DreamLinks links,
             DreamService dreams,
             CancellationToken ct) =>
         {
-            var device = await auth.ResolveAsync(http.Request.Headers.Authorization, ct);
-            if (device is null) return Results.Unauthorized();
+            var device = http.Device();
 
             if (await dreams.FindAsync(device.BoardId, id, ct) is null) return Results.NotFound();
 
@@ -40,15 +40,13 @@ public static class DreamLinkEndpoints
             return Results.Ok(new LinkResponse(key is null ? null : DreamLinks.PathOf(key)));
         });
 
-        app.MapPost("/api/v1/dreams/{id:guid}/link", async (
+        paired.MapPost("/api/v1/dreams/{id:guid}/link", async (
             Guid id,
             HttpContext http,
-            DeviceAuth auth,
             DreamLinks links,
             CancellationToken ct) =>
         {
-            var device = await auth.ResolveAsync(http.Request.Headers.Authorization, ct);
-            if (device is null) return Results.Unauthorized();
+            var device = http.Device();
 
             // A dream has one link. Asking again makes a new key and the old
             // one stops opening anything, which is what revoking looks like
@@ -59,15 +57,13 @@ public static class DreamLinkEndpoints
                 : Results.Ok(new LinkResponse(DreamLinks.PathOf(key)));
         });
 
-        app.MapDelete("/api/v1/dreams/{id:guid}/link", async (
+        paired.MapDelete("/api/v1/dreams/{id:guid}/link", async (
             Guid id,
             HttpContext http,
-            DeviceAuth auth,
             DreamLinks links,
             CancellationToken ct) =>
         {
-            var device = await auth.ResolveAsync(http.Request.Headers.Authorization, ct);
-            if (device is null) return Results.Unauthorized();
+            var device = http.Device();
 
             // Revoking a link that is not there is not a failure: the dream
             // ends up unshared either way, which is what was asked.

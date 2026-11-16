@@ -114,7 +114,7 @@ public sealed class DreamServiceTests : IDisposable
     {
         foreach (var category in Enum.GetValues<DreamCategory>())
         {
-            Assert.Equal(category, DreamCategoryNames.Parse(DreamCategoryNames.ToWire(category)));
+            Assert.Equal(category, Wire<DreamCategory>.Parse(Wire<DreamCategory>.Name(category)));
         }
 
         // The three of PLAN.md §3.1, and no fourth without a decision (D43).

@@ -111,91 +111,9 @@ public enum PhotoMat
     Blur
 }
 
-/// <summary>The fit as it travels and as it is stored, the way the kind is.</summary>
-public static class PhotoFitNames
-{
-    public static string ToWire(PhotoFit fit) => fit switch
-    {
-        PhotoFit.Fill => "fill",
-        PhotoFit.Whole => "whole",
-        _ => throw new ArgumentOutOfRangeException(nameof(fit), fit, null)
-    };
-
-    public static PhotoFit Parse(string value) =>
-        TryParse(value) ?? throw new ArgumentOutOfRangeException(nameof(value), value, null);
-
-    /// <summary>The fit a request named, or null when it named nothing valid.</summary>
-    public static PhotoFit? TryParse(string? value) => value switch
-    {
-        "fill" => PhotoFit.Fill,
-        "whole" => PhotoFit.Whole,
-        _ => null
-    };
-}
-
-/// <summary>The mat as it travels and as it is stored.</summary>
-public static class PhotoMatNames
-{
-    public static string ToWire(PhotoMat mat) => mat switch
-    {
-        PhotoMat.Night => "night",
-        PhotoMat.Charcoal => "charcoal",
-        PhotoMat.Umber => "umber",
-        PhotoMat.Dusk => "dusk",
-        PhotoMat.Ember => "ember",
-        PhotoMat.Blur => "blur",
-        _ => throw new ArgumentOutOfRangeException(nameof(mat), mat, null)
-    };
-
-    public static PhotoMat Parse(string value) =>
-        TryParse(value) ?? throw new ArgumentOutOfRangeException(nameof(value), value, null);
-
-    /// <summary>The mat a request named, or null when it named nothing valid.</summary>
-    public static PhotoMat? TryParse(string? value) => value switch
-    {
-        "night" => PhotoMat.Night,
-        "charcoal" => PhotoMat.Charcoal,
-        "umber" => PhotoMat.Umber,
-        "dusk" => PhotoMat.Dusk,
-        "ember" => PhotoMat.Ember,
-        "blur" => PhotoMat.Blur,
-        _ => null
-    };
-}
-
 /// <summary>What a photograph is of: the dream, or the dream come true.</summary>
 public enum DreamImageKind
 {
     Dreamt,
     Achieved
-}
-
-/// <summary>
-/// The kind as it travels and as it is stored, kebab-case in both places and
-/// in `packages/contracts`, the way <see cref="DreamStatusNames"/> does it.
-/// </summary>
-public static class DreamImageKindNames
-{
-    public static string ToWire(DreamImageKind kind) => kind switch
-    {
-        DreamImageKind.Dreamt => "dreamt",
-        DreamImageKind.Achieved => "achieved",
-        _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, null)
-    };
-
-    public static DreamImageKind Parse(string value) => value switch
-    {
-        "dreamt" => DreamImageKind.Dreamt,
-        "achieved" => DreamImageKind.Achieved,
-        _ => throw new ArgumentOutOfRangeException(nameof(value), value, null)
-    };
-
-    /// <summary>The kind a request asked for, or null when it named nothing valid.</summary>
-    public static DreamImageKind? TryParse(string? value) => value switch
-    {
-        null or "" => DreamImageKind.Dreamt,
-        "dreamt" => DreamImageKind.Dreamt,
-        "achieved" => DreamImageKind.Achieved,
-        _ => null
-    };
 }

@@ -14,6 +14,8 @@ public static class NudgeEndpoints
 {
     public static void MapNudges(this WebApplication app)
     {
+        var paired = app.MapPaired();
+
         // The key a browser needs before it can subscribe at all. No auth: it
         // is a public key, and a client that has not paired yet still has to
         // be able to find out whether this server does notifications.
@@ -22,15 +24,13 @@ public static class NudgeEndpoints
 
         // What this device's nudge is set to. The endpoint identifies the
         // device, so it comes in the query rather than being guessed.
-        app.MapGet("/api/v1/nudge", async (
+        paired.MapGet("/api/v1/nudge", async (
             string? endpoint,
             HttpContext http,
-            DeviceAuth auth,
             NudgeService nudges,
             CancellationToken ct) =>
         {
-            var device = await auth.ResolveAsync(http.Request.Headers.Authorization, ct);
-            if (device is null) return Results.Unauthorized();
+            var device = http.Device();
 
             if (string.IsNullOrWhiteSpace(endpoint)) return Results.Ok(NudgeDto.None);
 
@@ -38,16 +38,14 @@ public static class NudgeEndpoints
             return Results.Ok(found is null ? NudgeDto.None : NudgeDto.From(found));
         });
 
-        app.MapPut("/api/v1/nudge", async (
+        paired.MapPut("/api/v1/nudge", async (
             NudgeInput input,
             HttpContext http,
-            DeviceAuth auth,
             NudgeService nudges,
             VapidKeys keys,
             CancellationToken ct) =>
         {
-            var device = await auth.ResolveAsync(http.Request.Headers.Authorization, ct);
-            if (device is null) return Results.Unauthorized();
+            var device = http.Device();
 
             // A server with no key pair cannot send anything, and a
             // subscription it kept would be a promise it cannot keep.
@@ -70,15 +68,13 @@ public static class NudgeEndpoints
         // makes none: a device that has not asked to be nudged gets the same
         // 204 as one that has, because whether this phone wants a morning
         // dream is not something a request like this should be able to learn.
-        app.MapPost("/api/v1/nudge/offset", async (
+        paired.MapPost("/api/v1/nudge/offset", async (
             NudgeOffsetInput input,
             HttpContext http,
-            DeviceAuth auth,
             NudgeService nudges,
             CancellationToken ct) =>
         {
-            var device = await auth.ResolveAsync(http.Request.Headers.Authorization, ct);
-            if (device is null) return Results.Unauthorized();
+            var device = http.Device();
 
             if (NudgeService.Problem(input) is { } problem) return Results.Problem(problem, statusCode: 400);
 
@@ -87,15 +83,13 @@ public static class NudgeEndpoints
             return Results.NoContent();
         });
 
-        app.MapDelete("/api/v1/nudge", async (
+        paired.MapDelete("/api/v1/nudge", async (
             string? endpoint,
             HttpContext http,
-            DeviceAuth auth,
             NudgeService nudges,
             CancellationToken ct) =>
         {
-            var device = await auth.ResolveAsync(http.Request.Headers.Authorization, ct);
-            if (device is null) return Results.Unauthorized();
+            var device = http.Device();
 
             if (string.IsNullOrWhiteSpace(endpoint)) return Results.NoContent();
 

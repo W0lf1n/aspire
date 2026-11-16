@@ -19,27 +19,25 @@ public static class LinkEndpoints
 {
     public static void MapBoardLink(this WebApplication app)
     {
-        app.MapGet("/api/v1/board/link", async (
+        var paired = app.MapPaired();
+
+        paired.MapGet("/api/v1/board/link", async (
             HttpContext http,
-            DeviceAuth auth,
             BoardLinks links,
             CancellationToken ct) =>
         {
-            var device = await auth.ResolveAsync(http.Request.Headers.Authorization, ct);
-            if (device is null) return Results.Unauthorized();
+            var device = http.Device();
 
             var key = await links.KeyOfAsync(device.BoardId, ct);
             return Results.Ok(new LinkResponse(key is null ? null : BoardLinks.PathOf(key)));
         });
 
-        app.MapPost("/api/v1/board/link", async (
+        paired.MapPost("/api/v1/board/link", async (
             HttpContext http,
-            DeviceAuth auth,
             BoardLinks links,
             CancellationToken ct) =>
         {
-            var device = await auth.ResolveAsync(http.Request.Headers.Authorization, ct);
-            if (device is null) return Results.Unauthorized();
+            var device = http.Device();
 
             // A board has one link. Asking again makes a new key and the old
             // one stops opening anything, which is what revoking looks like
@@ -48,14 +46,12 @@ public static class LinkEndpoints
             return Results.Ok(new LinkResponse(BoardLinks.PathOf(key)));
         });
 
-        app.MapDelete("/api/v1/board/link", async (
+        paired.MapDelete("/api/v1/board/link", async (
             HttpContext http,
-            DeviceAuth auth,
             BoardLinks links,
             CancellationToken ct) =>
         {
-            var device = await auth.ResolveAsync(http.Request.Headers.Authorization, ct);
-            if (device is null) return Results.Unauthorized();
+            var device = http.Device();
 
             // Deleting a link that is not there is not a failure: the board
             // ends up with no link either way, which is what was asked.
