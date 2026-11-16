@@ -42,6 +42,7 @@
 	import FitControls from './FitControls.svelte';
 	import Icon from './Icon.svelte';
 	import { hands } from './placing';
+	import { modal } from './modal';
 
 	interface Props {
 		open: boolean;
@@ -72,8 +73,6 @@
 		oncancel
 	}: Props = $props();
 
-	let el: HTMLDialogElement | null = $state(null);
-
 	/** The template being tried, every cell's crop, and the photograph in hand. */
 	let trying = $state(0);
 	let crops = $state<Record<string, Focal>>({});
@@ -92,13 +91,6 @@
 	/** The photograph in hand, and its crop, for the fit and the mats. */
 	const heldPhoto = $derived(shown.find((photo) => photo.id === held) ?? null);
 	const heldCrop = $derived(held ? (crops[held] ?? null) : null);
-
-	$effect(() => {
-		const dialog = el;
-		if (!dialog) return;
-		if (open && !dialog.open) dialog.showModal();
-		else if (!open && dialog.open) dialog.close();
-	});
 
 	// Each opening starts from what is saved. Only the opening: the dream
 	// arriving again while it is up must not throw away what was moved.
@@ -157,15 +149,11 @@
 			.map((photo) => ({ image: photo, focal: { ...crops[photo.id] } }));
 		onsave(trying, moved);
 	}
-
-	function round(value: number): number {
-		return Math.round(value * 100) / 100;
-	}
 </script>
 
 <dialog
 	class="crop"
-	bind:this={el}
+	use:modal={open}
 	aria-label="Upravit koláž"
 	oncancel={(event) => {
 		event.preventDefault();
@@ -234,7 +222,9 @@
 		<div class="crop__top">
 			<p class="hint glass crop__how" aria-live="polite">
 				Klepni na fotku a posuň ji prstem, dvěma ji přiblížíš.
-				{#if heldZoom > MIN_ZOOM}<span class="crop__zoom">{round(heldZoom)}×</span>{/if}
+				{#if heldZoom > MIN_ZOOM}<span class="crop__zoom"
+						>{heldZoom.toLocaleString('cs', { maximumFractionDigits: 2 })}×</span
+					>{/if}
 			</p>
 
 			{#if templates.length > 1}

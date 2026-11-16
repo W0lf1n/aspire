@@ -5,29 +5,12 @@
  * on the server; forgetting is `clearToken()`.
  */
 
+import { store, stored } from '$lib/stored';
+
 export const TOKEN_KEY = 'aspire.token';
 
-export function readToken(): string | null {
-	if (typeof localStorage === 'undefined') return null;
-	try {
-		return localStorage.getItem(TOKEN_KEY);
-	} catch {
-		return null;
-	}
-}
+export const readToken = (): string | null => stored(TOKEN_KEY);
 
-export function writeToken(token: string): void {
-	try {
-		localStorage.setItem(TOKEN_KEY, token);
-	} catch {
-		/* private mode: paired for the session only */
-	}
-}
+export const writeToken = (token: string): void => store(TOKEN_KEY, token);
 
-export function clearToken(): void {
-	try {
-		localStorage.removeItem(TOKEN_KEY);
-	} catch {
-		/* nothing to forget */
-	}
-}
+export const clearToken = (): void => store(TOKEN_KEY, null);

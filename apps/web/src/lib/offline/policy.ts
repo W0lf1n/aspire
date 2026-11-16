@@ -15,6 +15,8 @@
  * *is* can be offered the middle one.
  */
 
+import { store, stored } from '$lib/stored';
+
 export type OfflinePolicy = 'window' | 'wifi' | 'all';
 
 /** On the control, where three have to fit across a phone. */
@@ -48,21 +50,12 @@ export const WINDOW_KEEP = 80;
 
 /** What this device has been told, or nothing yet. */
 export function readPolicy(): OfflinePolicy | null {
-	if (typeof localStorage === 'undefined') return null;
-	try {
-		const value = localStorage.getItem(OFFLINE_KEY);
-		return value === 'window' || value === 'wifi' || value === 'all' ? value : null;
-	} catch {
-		return null;
-	}
+	const value = stored(OFFLINE_KEY);
+	return value === 'window' || value === 'wifi' || value === 'all' ? value : null;
 }
 
 export function writePolicy(policy: OfflinePolicy): void {
-	try {
-		localStorage.setItem(OFFLINE_KEY, policy);
-	} catch {
-		/* private mode: the choice lasts the session */
-	}
+	store(OFFLINE_KEY, policy);
 }
 
 /**

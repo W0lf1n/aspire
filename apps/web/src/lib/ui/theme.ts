@@ -1,10 +1,11 @@
 /**
  * Theme preference.
  *
- * The one thing kept in localStorage besides the device token: it has to be
- * readable synchronously before first paint, so a dark launch never flashes
- * linen.
+ * Kept in localStorage, as the token is: it has to be readable
+ * synchronously before first paint, so a dark launch never flashes linen.
  */
+
+import { store, stored } from '$lib/stored';
 
 export type Theme = 'system' | 'light' | 'dark';
 
@@ -18,13 +19,8 @@ export const THEME_LABEL: Record<Theme, string> = {
 export const THEME_KEY = 'theme';
 
 export function readTheme(): Theme {
-	if (typeof localStorage === 'undefined') return 'system';
-	try {
-		const value = localStorage.getItem(THEME_KEY);
-		return value === 'light' || value === 'dark' ? value : 'system';
-	} catch {
-		return 'system';
-	}
+	const value = stored(THEME_KEY);
+	return value === 'light' || value === 'dark' ? value : 'system';
 }
 
 export function applyTheme(theme: Theme): void {
@@ -33,13 +29,7 @@ export function applyTheme(theme: Theme): void {
 	if (theme === 'system') root.removeAttribute('data-theme');
 	else root.setAttribute('data-theme', theme);
 	syncThemeColor();
-
-	try {
-		if (theme === 'system') localStorage.removeItem(THEME_KEY);
-		else localStorage.setItem(THEME_KEY, theme);
-	} catch {
-		/* private mode: the choice lasts the session */
-	}
+	store(THEME_KEY, theme === 'system' ? null : theme);
 }
 
 /**

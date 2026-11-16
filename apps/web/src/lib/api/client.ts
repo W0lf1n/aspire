@@ -177,14 +177,11 @@ export function markShown(id: string): Promise<void> {
 }
 
 /**
- * The photograph, already downscaled on the device. 202: the sizes follow.
- * The kind says which of the two it is — the dreamt one by default, the
- * achieved one when the dream came true (D28).
- */
-/**
- * The photograph, and where it is looked at (D54). The crop rides in the
- * query because a picture is positioned before it is sent: on the add screen
- * there is no dream yet to hang a second request on.
+ * The photograph, already downscaled on the device — 202, the sizes follow —
+ * and where it is looked at (D54). The kind says which of the two it is: the
+ * dreamt one by default, the achieved one when the dream came true (D28).
+ * The crop rides in the query because a picture is positioned before it is
+ * sent: on the add screen there is no dream yet to hang a second request on.
  */
 export function uploadImage(
 	dreamId: string,
@@ -196,11 +193,9 @@ export function uploadImage(
 	body.append('file', photo, 'photo.jpg');
 
 	const query = new URLSearchParams({ kind });
-	if (focal?.focusX !== undefined) query.set('focusX', String(focal.focusX));
-	if (focal?.focusY !== undefined) query.set('focusY', String(focal.focusY));
-	if (focal?.zoom !== undefined) query.set('zoom', String(focal.zoom));
-	if (focal?.fit !== undefined) query.set('fit', focal.fit);
-	if (focal?.mat !== undefined) query.set('mat', focal.mat);
+	for (const [name, value] of Object.entries(focal ?? {})) {
+		if (value !== undefined) query.set(name, String(value));
+	}
 
 	return call<DreamImage>(`/dreams/${dreamId}/images?${query}`, { method: 'POST', body });
 }

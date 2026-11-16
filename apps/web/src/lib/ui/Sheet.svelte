@@ -26,6 +26,7 @@
 	 */
 	import type { Snippet } from 'svelte';
 	import { dismisses, pulledBy } from './pull';
+	import { modal } from './modal';
 
 	interface Props {
 		/** Whether it is up. Owned by the screen. */
@@ -39,17 +40,7 @@
 
 	let { open, title, onclose, children }: Props = $props();
 
-	let el: HTMLDialogElement | null = $state(null);
 	let panel: HTMLElement | null = $state(null);
-
-	$effect(() => {
-		const dialog = el;
-		if (!dialog) return;
-		// `showModal` on an open dialog throws; `close` on a closed one fires
-		// a second `close` event. Ask the element what it already is.
-		if (open && !dialog.open) dialog.showModal();
-		else if (!open && dialog.open) dialog.close();
-	});
 
 	// ── the pull ────────────────────────────────────────────────────────────
 
@@ -101,7 +92,7 @@
 -->
 <dialog
 	class="sheet"
-	bind:this={el}
+	use:modal={open}
 	aria-label={title}
 	oncancel={(event) => {
 		event.preventDefault();

@@ -31,6 +31,7 @@
 	import FitControls from './FitControls.svelte';
 	import Icon from './Icon.svelte';
 	import { hands } from './placing';
+	import { modal } from './modal';
 
 	interface Props {
 		open: boolean;
@@ -65,7 +66,6 @@
 		oncancel
 	}: Props = $props();
 
-	let el: HTMLDialogElement | null = $state(null);
 	let frame = $state<HTMLElement | null>(null);
 
 	/** The crop being edited. Seeded from the prop each time it opens. */
@@ -114,13 +114,6 @@
 		measure();
 	});
 
-	$effect(() => {
-		const dialog = el;
-		if (!dialog) return;
-		if (open && !dialog.open) dialog.showModal();
-		else if (!open && dialog.open) dialog.close();
-	});
-
 	// A new photograph, or a new opening of the same one: start from what was
 	// saved rather than from wherever the last gesture left this component.
 	$effect(() => {
@@ -133,10 +126,6 @@
 	/** The mat behind it, and the blur under it when that is the mat. */
 	const mat = $derived(matStyle(now));
 	const blurred = $derived(matIsBlur(now));
-
-	function round(value: number): number {
-		return Math.round(value * 100) / 100;
-	}
 
 	function measured(): { width: number; height: number } {
 		const box = frame?.getBoundingClientRect();
@@ -155,7 +144,7 @@
 
 <dialog
 	class="crop"
-	bind:this={el}
+	use:modal={open}
 	aria-label="Umístit fotku"
 	oncancel={(event) => {
 		event.preventDefault();
@@ -200,7 +189,9 @@
 		<div class="crop__top">
 			<p class="hint glass crop__how" aria-live="polite">
 				Posuň fotku prstem, dvěma ji přiblížíš. Šipkami taky.
-				{#if now.zoom > MIN_ZOOM}<span class="crop__zoom">{round(now.zoom)}×</span>{/if}
+				{#if now.zoom > MIN_ZOOM}<span class="crop__zoom"
+						>{now.zoom.toLocaleString('cs', { maximumFractionDigits: 2 })}×</span
+					>{/if}
 			</p>
 
 			<FitControls focal={now} {src} {busy} onchange={(chosen) => (now = chosen)} />

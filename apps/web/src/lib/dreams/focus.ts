@@ -17,6 +17,7 @@
 import type { Dream } from '@aspire/contracts';
 import { reelDreams } from './board';
 import { FOCUS_MAX } from './rules';
+import { store, stored } from '$lib/stored';
 
 /**
  * The two reels, in the order the segment shows them. A sideways swipe steps
@@ -82,18 +83,9 @@ export function focusFullSentence(): string {
 export const REEL_KEY = 'reel';
 
 export function readReel(): Reel {
-	if (typeof localStorage === 'undefined') return 'all';
-	try {
-		return localStorage.getItem(REEL_KEY) === 'focus' ? 'focus' : 'all';
-	} catch {
-		return 'all';
-	}
+	return stored(REEL_KEY) === 'focus' ? 'focus' : 'all';
 }
 
 export function saveReel(reel: Reel): void {
-	try {
-		localStorage.setItem(REEL_KEY, reel);
-	} catch {
-		/* private mode: this open only */
-	}
+	store(REEL_KEY, reel);
 }
