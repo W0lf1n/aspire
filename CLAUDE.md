@@ -2,7 +2,7 @@
 
 Guidance for Claude Code working in this repository.
 
-**Last revised:** 2026-09-17 · §31 closed, D51–D89 · 466 web tests · 437 API tests
+**Last revised:** 2026-11-16 · rule 26 · §31 closed, D51–D89 · 466 web tests · 437 API tests
 
 ---
 
@@ -382,6 +382,16 @@ scripts/             check-bundle.mjs, and invite.sh — a board and its code
     same thirteen characters, and `POST /board/reset` is the only write that
     cannot be undone or held. Nothing else gets to delete more than one
     dream at a time.
+26. **Nothing is changed before Petr has read it in Czech and said yes.**
+    Every feature, bug, fix, refactor, migration, dependency bump or doc
+    rewrite is first written to the chat **in Czech** — co, proč, čeho se to
+    dotkne, jak to ověřím, co nedělám, otázky — and then Claude stops and
+    waits. Work starts on his approval, or on his modification of it. One
+    approval is one item: never the next one, never a batch, never something
+    found halfway, which stops the work and gets a proposal of its own.
+    Reading, running tests and investigating are free; a push and a deploy
+    are always asked about separately. Only the chat is Czech (rule 8).
+    `PLAN-NEXT.md` §0 is the long form.
 
 ---
 
@@ -492,6 +502,7 @@ you can write into it.
 | Document              | What it is                                           |
 | --------------------- | ---------------------------------------------------- |
 | `PLAN.md`             | The plan and its open questions                      |
+| `PLAN-NEXT.md`        | What follows the finished plan, and how it is worked |
 | `docs/DECISIONS.md`   | Every answered question and every deviation. Binding |
 | `docs/DEPLOYMENT.md`  | The VPS runbook                                      |
 | `apps/web/DESIGN.md`  | The design system as built                           |
