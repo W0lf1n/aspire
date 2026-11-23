@@ -1,4 +1,5 @@
 using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Formats;
 using SixLabors.ImageSharp.Formats.Jpeg;
 using SixLabors.ImageSharp.Formats.Webp;
 using SixLabors.ImageSharp.Processing;
@@ -51,13 +52,32 @@ public static class ImageProcessor
     /// </summary>
     private const float SharpenSigma = 0.5f;
 
-    /// <summary>Whether ImageSharp can read it at all: the upload's gate.</summary>
-    public static async Task<bool> IsImageAsync(Stream source, CancellationToken ct = default)
+    /// <summary>
+    /// The most pixels a picture may have to be let in (D90): a 48 MP phone
+    /// original still passes. The file-size cap does not bound this — a 10 MB
+    /// PNG can be 20 000 px square, which is 1.6 GB once decoded.
+    /// </summary>
+    public const long MaxPixels = 50_000_000;
+
+    /// <summary>
+    /// The first frame and no other (D90). An animation's frames are each a
+    /// whole picture in memory, and only the first is ever shown.
+    /// </summary>
+    private static readonly DecoderOptions OneFrame = new() { MaxFrames = 1 };
+
+    /// <summary>
+    /// Whether ImageSharp can read it, and it is small enough to decode: the
+    /// gate both the upload and the link fetcher pass through. The header is
+    /// all that is read, so a picture too big to decode is refused without
+    /// being decoded.
+    /// </summary>
+    public static async Task<bool> IsImageAsync(
+        Stream source, CancellationToken ct = default, long maxPixels = MaxPixels)
     {
         try
         {
-            await Image.IdentifyAsync(source, ct);
-            return true;
+            var info = await Image.IdentifyAsync(source, ct);
+            return (long)info.Width * info.Height <= maxPixels;
         }
         catch (UnknownImageFormatException)
         {
@@ -88,7 +108,7 @@ public static class ImageProcessor
         int longestEdge,
         CancellationToken ct = default)
     {
-        using var image = await Image.LoadAsync(source, ct);
+        using var image = await Image.LoadAsync(OneFrame, source, ct);
         image.Mutate(x => x.AutoOrient());
         // The same stripping an upload gets: a picture from somebody else's
         // site carries somebody else's metadata, and it is served from ours.
@@ -113,7 +133,7 @@ public static class ImageProcessor
         Func<string, string> pathFor,
         CancellationToken ct = default)
     {
-        using var image = await Image.LoadAsync(source, ct);
+        using var image = await Image.LoadAsync(OneFrame, source, ct);
         image.Mutate(x => x.AutoOrient());
         image.Metadata.ExifProfile = null;
         image.Metadata.XmpProfile = null;

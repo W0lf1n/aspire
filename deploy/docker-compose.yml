@@ -70,6 +70,10 @@ services:
       context: ../apps/api
     restart: unless-stopped
     logging: *logging
+    # A ceiling, so a picture that slips past the pixel limit takes down this
+    # container and not Postgres or a sibling app on the same box (D90). .NET
+    # reads it and sizes its heap to fit; a 50 MP decode is about 200 MB.
+    mem_limit: 1g
     depends_on:
       db:
         condition: service_healthy

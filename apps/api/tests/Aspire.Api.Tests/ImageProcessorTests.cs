@@ -1,5 +1,6 @@
 using Aspire.Infrastructure.Media;
 using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Formats.Gif;
 using SixLabors.ImageSharp.Formats.Jpeg;
 using SixLabors.ImageSharp.Metadata.Profiles.Exif;
 using SixLabors.ImageSharp.PixelFormats;
@@ -88,6 +89,44 @@ public sealed class ImageProcessorTests : IDisposable
         Assert.False(await ImageProcessor.IsImageAsync(text));
         Assert.True(await ImageProcessor.IsImageAsync(picture));
         Assert.Equal(0, picture.Position);
+    }
+
+    [Fact]
+    public async Task A_picture_with_more_pixels_than_the_limit_is_refused_at_the_gate()
+    {
+        // 100 × 100 is 10 000 pixels: one under the limit is refused, the
+        // limit itself is let in, and the stream is rewound either way.
+        using var picture = Jpeg(100, 100);
+
+        Assert.False(await ImageProcessor.IsImageAsync(picture, maxPixels: 9_999));
+        Assert.Equal(0, picture.Position);
+        Assert.True(await ImageProcessor.IsImageAsync(picture, maxPixels: 10_000));
+        Assert.Equal(0, picture.Position);
+        Assert.Equal(50_000_000, ImageProcessor.MaxPixels);
+    }
+
+    [Fact]
+    public async Task Only_the_first_frame_of_an_animation_is_decoded()
+    {
+        using var animation = new Image<Rgba32>(40, 30, new Rgba32(220, 90, 40));
+        using (var second = new Image<Rgba32>(40, 30, new Rgba32(90, 79, 214)))
+        {
+            animation.Frames.AddFrame(second.Frames.RootFrame);
+        }
+
+        using var source = new MemoryStream();
+        await animation.SaveAsync(source, new GifEncoder());
+        source.Position = 0;
+
+        await ImageProcessor.ProcessAsync(source, PathFor);
+
+        // The WebP encoder writes every frame it is handed, so a second frame
+        // decoded would be a second frame saved.
+        foreach (var size in MediaStore.Sizes)
+        {
+            using var saved = await Image.LoadAsync(PathFor(size));
+            Assert.Single(saved.Frames);
+        }
     }
 
     /// <summary>

@@ -294,6 +294,12 @@ drops. The directory is created in the API image owned by the app user,
 which is what lets the non-root API write into a volume Docker would
 otherwise create as root.
 
+The API container has a ceiling of 1 GB (`mem_limit` in the compose file,
+D90). A picture over 50 megapixels is refused before it is decoded, so a
+normal day never comes near it; the ceiling is there so that a picture that
+somehow does takes down this container, which restarts, and not Postgres or
+a sibling app. `docker stats --no-stream` shows how close it runs.
+
 ```bash
 cd /opt/aspire/deploy && docker compose exec api ls -la /data/media
 ```

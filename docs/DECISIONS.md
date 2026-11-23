@@ -2795,3 +2795,36 @@ the quality: it is in how many files there are and how much a board may hold.
   ImageSharp does not have, a slower worker and every file re-encoded
   (rule 3). And not a lower quality: under 75 the first thing to band is a
   sky, which is most of what this app shows.
+
+### D90 — A picture is measured in pixels before it is decoded, and the API has a ceiling
+
+The ponytail audit (PLAN-NEXT.md F1) found that only a file's size was
+checked — 10 MB — and never what it becomes once decoded. A 10 MB PNG can be
+20 000 px square, 1.6 GB in memory, and a pasted link to a page somebody
+else controls is enough to send one. The API container had no memory limit,
+so the kernel was free to kill Postgres or a sibling app on the same VPS
+instead.
+
+- **50 megapixels at the gate.** `ImageProcessor.IsImageAsync` already read
+  the header through `Image.IdentifyAsync`, which knows the size without
+  decoding anything; it now refuses a picture over `MaxPixels`. Both ways in
+  — an upload and the link fetcher — pass through it. A 48 MP phone original
+  still fits; the client sends at most 2048 px, about 4 MP, so the app itself
+  never meets the limit. A refused upload is „Tohle není obrázek.“ and a
+  refused link the fetcher's one sentence (rule 15): only a hand-made request
+  gets this far, and it is owed nothing more specific.
+- **The first frame and no other.** An animated GIF or WebP under 10 MB can
+  hold hundreds of frames, each a whole picture once decoded. Both places
+  that decode — `ProcessAsync` for the worker and `DownscaleAsync` for a link
+  — load with `DecoderOptions { MaxFrames = 1 }`. Only the first frame was
+  ever shown; before this, the WebP files kept the animation the app never
+  played.
+- **`mem_limit: 1g` on `api`**, which Prosper does not have. The VPS has
+  48 GB, so this is not about room: it is about which process loses when one
+  misbehaves. .NET reads the limit and sizes its heap to it, and a 50 MP
+  decode is about 200 MB, so the ceiling is five times what the worst
+  legitimate picture needs.
+- **Not a global allocation limit in ImageSharp.** The pixel check and the
+  frame cap bound every decode this code does; a third knob would be one more
+  thing to keep in step with them. `CollageRenderer` is untouched: it reads
+  only files this server wrote, none over 2048 px.

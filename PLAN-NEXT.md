@@ -1,6 +1,6 @@
 # Aspire — what comes next
 
-Status: **all 17 questions answered 2026-11-16; no item started** · Written: 2026-11-16 · Owner: Petr
+Status: **all 17 questions answered 2026-11-16; F1 done 2026-11-23 (D90), not deployed** · Written: 2026-11-16 · Owner: Petr
 
 An answer in §8 puts an item in the plan. It does not start it: every item
 still gets its own Czech proposal and its own approval (§0).
@@ -284,7 +284,7 @@ time.
 
 ### Must fix
 
-**F1. A small file can use gigabytes of memory** (`Media/ImageProcessor.cs:55-70`, `Net/ImageFetcher.cs` `ReadImageAsync`, `deploy/docker-compose.yml`)
+**F1. A small file can use gigabytes of memory — done 2026-11-23, D90** (`Media/ImageProcessor.cs:55-70`, `Net/ImageFetcher.cs` `ReadImageAsync`, `deploy/docker-compose.yml`)
 - **What this is:** Every upload, and every picture fetched from a pasted link, is decoded by ImageSharp to be resized.
 - **Problem:** Only the file size is checked (10 MB), never the pixel size. A 10 MB PNG can be 20 000 × 20 000 pixels, which is 1.6 GB decoded. A pasted link to a hostile page is enough. The `api` container has no memory limit, so the kernel may kill Postgres or a sibling app instead.
 - **Fix:** `IsImageAsync` already calls `Image.IdentifyAsync`, which reads the size without decoding. Reject anything over about 50 megapixels there, and add `mem_limit` to the `api` service. About six lines and one test.
