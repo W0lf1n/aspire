@@ -184,6 +184,32 @@ shows the switch when the server has a pair and this browser can be asked,
 and one sentence saying why when it cannot — „Server zatím upozornění
 posílat neumí“ is this step (D41).
 
+### 2c. The ImageSharp licence
+
+The API image will not build without it (D91). ImageSharp 3.2 checks for a
+licence at compile time, and a Release build — which the Dockerfile is —
+fails without one. The licence is the free community one (Hobbyist), tied
+to the `Aspire.Infrastructure` assembly, and it is a file, not a value in
+`.env`:
+
+```bash
+chmod 600 /opt/aspire/deploy/sixlabors.lic
+```
+
+It lives beside the compose file as `sixlabors.lic`, is gitignored, and
+reaches the build as a BuildKit secret: mounted for the one `dotnet publish`
+step, never written into a layer. A box without it fails the build, so
+`deploy.sh` stops before anything is replaced.
+
+**It expires on 2028-02-21.** Renew it from 2027-11-23 through the same form
+on sixlabors.com, with the same answers, and put the new file in the same
+place. Nothing running stops on that day — the check is in the build — but
+the first deploy after it fails until the file is new.
+
+```bash
+grep -o 'ExpiryDateUtc=[^;]*' /opt/aspire/deploy/sixlabors.lic
+```
+
 ### 3. Start the three containers
 
 ```bash
@@ -654,6 +680,10 @@ cd /opt/aspire/deploy && docker compose ps && docker compose logs --tail=50 api
 The usual cause is Postgres refusing the password, which means `.env` changed
 after the volume was created. The password lives in the volume, not the file.
 The other one is a migration that failed: the log names it.
+
+**The build fails with "No Six Labors license found" or "license".** The
+licence file is missing, unreadable or expired — step 2c. A missing
+`deploy/sixlabors.lic` fails before the build starts, at the secret.
 
 **Every request 502s after a rebuild.** nginx resolved the API's address once
 and kept it; `app.conf` goes through a variable and Docker's resolver to avoid

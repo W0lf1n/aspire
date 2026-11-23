@@ -2828,3 +2828,25 @@ instead.
   frame cap bound every decode this code does; a third knob would be one more
   thing to keep in step with them. `CollageRenderer` is untouched: it reads
   only files this server wrote, none over 2048 px.
+
+### D91 — ImageSharp's licence is a build secret beside the compose file
+
+ImageSharp 3.2.0 (64da80a) checks for a Six Labors licence at compile time:
+a warning in Debug, an **error in Release**. CI and the laptop build Debug and
+passed; the Dockerfile publishes Release, so every image build on the VPS since
+that bump failed. Aspire qualifies for the free community licence (Hobbyist,
+no revenue), tied to the `Aspire.Infrastructure` assembly, valid until
+**2028-02-21**.
+
+- **A file, as a BuildKit secret.** `deploy/sixlabors.lic` sits beside the
+  compose file, mode 600, gitignored by name. Compose hands it to the build
+  (`build.secrets`), the Dockerfile mounts it for the `dotnet publish` step
+  alone and passes its path as `-p:SixLaborsLicenseFile`. It is never in a
+  layer, never in git, and `deploy.sh`'s clean-tree check does not see it.
+- **Not an environment variable or a build arg.** The key holds semicolons
+  MSBuild would need escaped, a build arg is written into the image's history,
+  and an environment variable is one `compose config` away from a log.
+- **Not Release-only in CI.** CI stays Debug and needs no secret; the licence
+  is checked once, where the image is built.
+- **Renewal** from 2027-11-23, through the same form. The check is in the
+  build, so a lapsed licence stops the next deploy and never a running app.

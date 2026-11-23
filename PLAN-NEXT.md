@@ -1,6 +1,6 @@
 # Aspire — what comes next
 
-Status: **all 17 questions answered 2026-11-16; F1 done 2026-11-23 (D90), not deployed** · Written: 2026-11-16 · Owner: Petr
+Status: **all 17 questions answered 2026-11-16; F1 done 2026-11-23 (D90), ImageSharp licence as a build secret (D91), neither deployed** · Written: 2026-11-16 · Owner: Petr
 
 An answer in §8 puts an item in the plan. It does not start it: every item
 still gets its own Czech proposal and its own approval (§0).

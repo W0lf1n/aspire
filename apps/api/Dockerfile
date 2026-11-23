@@ -6,7 +6,11 @@ COPY src/Aspire.Infrastructure/Aspire.Infrastructure.csproj src/Aspire.Infrastru
 COPY src/Aspire.Api/Aspire.Api.csproj src/Aspire.Api/
 RUN dotnet restore src/Aspire.Api/Aspire.Api.csproj
 COPY src/ src/
-RUN dotnet publish src/Aspire.Api/Aspire.Api.csproj -c Release -o /app
+# ImageSharp's licence (D91): a Release build fails without one. The file is a
+# build secret — mounted for this one step, never a layer, never in git.
+RUN --mount=type=secret,id=sixlabors_lic,required=true \
+    dotnet publish src/Aspire.Api/Aspire.Api.csproj -c Release -o /app \
+    -p:SixLaborsLicenseFile=/run/secrets/sixlabors_lic
 
 # Run
 FROM mcr.microsoft.com/dotnet/aspnet:10.0

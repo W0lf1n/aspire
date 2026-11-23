@@ -2,7 +2,7 @@
 
 Guidance for Claude Code working in this repository.
 
-**Last revised:** 2026-11-16 · rule 26 · §31 closed, D51–D89 · 466 web tests · 437 API tests
+**Last revised:** 2026-11-23 · rule 26 · §31 closed, D51–D91 · 466 web tests · 439 API tests
 
 ---
 
@@ -496,6 +496,13 @@ said why (D26). `media-init` in the compose file sets the owner rather than
 hoping for it, and `MediaStore.EnsureWritable` makes the API prove it can
 write before it serves. A check that a directory _exists_ is not a check that
 you can write into it.
+
+**ImageSharp only warns in Debug and fails in Release.** Without a Six Labors
+licence, `dotnet build` and CI pass with a warning nobody reads, and the
+Dockerfile's Release publish fails on the VPS — which is how every deploy
+after the 3.2.0 bump broke. The licence is `deploy/sixlabors.lic`, a build
+secret, gitignored, valid until 2028-02-21 (D91). Check a change to the image
+build with `dotnet build -c Release`, which fails the same way here.
 
 ## Where the answers are
 

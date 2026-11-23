@@ -29,6 +29,8 @@ Thumbs.db
 .env
 .env.*
 !.env.example
+# ImageSharp's licence key (D91)
+sixlabors.lic
 
 # local worktrees created by tooling
 .claude/worktrees/

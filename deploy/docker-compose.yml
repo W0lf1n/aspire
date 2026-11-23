@@ -68,6 +68,9 @@ services:
   api:
     build:
       context: ../apps/api
+      # ImageSharp's licence, beside this file and never in git (D91).
+      secrets:
+        - sixlabors_lic
     restart: unless-stopped
     logging: *logging
     # A ceiling, so a picture that slips past the pixel limit takes down this
@@ -121,3 +124,7 @@ services:
 volumes:
   pgdata:
   media:
+
+secrets:
+  sixlabors_lic:
+    file: ./sixlabors.lic
