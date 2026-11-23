@@ -2,7 +2,7 @@
 
 Guidance for Claude Code working in this repository.
 
-**Last revised:** 2026-11-23 · rule 26 · §31 closed, D51–D92 · 468 web tests · 439 API tests
+**Last revised:** 2026-11-23 · rule 26 · §31 closed, D51–D93 · 472 web tests · 446 API tests
 
 ---
 
@@ -415,6 +415,10 @@ JSON body goes in with the Edit tool.
 running**, because the running process holds `Aspire.Domain.dll` and
 `Aspire.Infrastructure.dll` open — ten retries, then an error that reads like
 a broken build. Stop the `aspire-api` preview (or `pnpm api`) first.
+
+**The laptop's `aspire.db` gained `push_subscriptions.device_id`** (text,
+nullable, D93) on 2026-11-23; a file older than that needs the same
+`ALTER TABLE` as below.
 
 **The laptop's `aspire.db` is behind by three columns after 2026-09-17**:
 `dream_images.fit` and `.mat` (text, `'fill'` and `'night'`) and

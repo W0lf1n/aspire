@@ -7,14 +7,15 @@
  * this can fail arrives as a status, and each status has its sentence.
  *
  * There is no account, no password and no e-mail: one board, its own devices,
- * and a code that is typed once. Unpairing forgets the token here; the row on
- * the server stays until it is deleted there, which is what revocation is.
+ * and a code that is typed once. Unpairing deletes the device's row on the
+ * server first and only then forgets the token here (D93): a token never
+ * expires, so the row is the only thing that can be revoked.
  */
 
 import type { PairRequest } from '@aspire/contracts';
 import { forgetBoard } from '$lib/offline/cache';
-import { ApiError, pair } from './client';
-import { clearToken, writeToken } from './token';
+import { ApiError, disconnectThisDevice, pair } from './client';
+import { clearToken, readToken, writeToken } from './token';
 
 /** What a device is called when the name is left blank. */
 export const DEFAULT_DEVICE_NAME = 'Telefon';
@@ -58,11 +59,38 @@ export async function pairDevice(code: string, deviceName: string): Promise<void
 	writeToken(token);
 }
 
-/**
- * Forget the token, and the board kept for offline with it. The device row
- * stays on the server until it is deleted there.
- */
-export function unpairDevice(): void {
+/** The token gone from this device, and the board kept for offline with it. */
+export function forgetDevice(): void {
 	clearToken();
 	void forgetBoard();
 }
+
+/**
+ * Odpojit on this device (D93): the row on the server first, then the token
+ * here. A server that cannot be reached throws and nothing is forgotten — a
+ * row left behind with no phone to remove it is the thing this exists to
+ * prevent. A 401 is a device already removed from elsewhere, which is done.
+ */
+export async function unpairDevice(
+	disconnect: () => Promise<void> = disconnectThisDevice,
+	forget: () => void = forgetDevice
+): Promise<void> {
+	try {
+		await disconnect();
+	} catch (e) {
+		if (!(e instanceof ApiError && e.status === 401)) throw e;
+	}
+	forget();
+}
+
+/**
+ * Whether a request failed because this device was removed from the board
+ * (D93): a 401 while it still holds a token. The board answers it by
+ * forgetting the token and opening Párování.
+ */
+export function wasDisconnected(e: unknown, token: string | null = readToken()): boolean {
+	return e instanceof ApiError && e.status === 401 && token !== null;
+}
+
+/** The sentence when Odpojit could not reach the server. */
+export const UNPAIR_OFFLINE = 'Bez připojení nejde zařízení odpojit. Zkus to, až bude signál.';

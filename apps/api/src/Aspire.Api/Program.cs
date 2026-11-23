@@ -342,6 +342,7 @@ app.MapWallpaper(LinkPolicy);
 app.MapBoardLink();
 app.MapBoard();
 app.MapNudges();
+app.MapDevices();
 app.Run();
 return 0;
 

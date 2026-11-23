@@ -1,6 +1,12 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { ApiError } from './client';
-import { DEFAULT_DEVICE_NAME, pairingError, pairingRequest } from './pairing';
+import {
+	DEFAULT_DEVICE_NAME,
+	pairingError,
+	pairingRequest,
+	unpairDevice,
+	wasDisconnected
+} from './pairing';
 
 describe('pairingRequest', () => {
 	it('trims the code and the name', () => {
@@ -42,5 +48,46 @@ describe('pairingError', () => {
 
 	it('never lets an English message through', () => {
 		expect(pairingError(new SyntaxError('Unexpected token'))).toBe('Spárovat se nepodařilo.');
+	});
+});
+
+describe('unpairDevice', () => {
+	it('asks the server first and forgets only once it has answered', async () => {
+		const order: string[] = [];
+
+		await unpairDevice(
+			async () => {
+				order.push('server');
+			},
+			() => order.push('forget')
+		);
+
+		expect(order).toEqual(['server', 'forget']);
+	});
+
+	it('keeps the token when the server cannot be reached', async () => {
+		const forget = vi.fn();
+
+		await expect(
+			unpairDevice(() => Promise.reject(new TypeError('Failed to fetch')), forget)
+		).rejects.toThrow('Failed to fetch');
+		expect(forget).not.toHaveBeenCalled();
+	});
+
+	it('forgets a device the server had already let go of', async () => {
+		const forget = vi.fn();
+
+		await unpairDevice(() => Promise.reject(new ApiError(401, 'Unauthorized')), forget);
+
+		expect(forget).toHaveBeenCalledOnce();
+	});
+});
+
+describe('wasDisconnected', () => {
+	it('is a 401 to a device that still holds a token', () => {
+		expect(wasDisconnected(new ApiError(401, 'Unauthorized'), 't')).toBe(true);
+		expect(wasDisconnected(new ApiError(401, 'Unauthorized'), null)).toBe(false);
+		expect(wasDisconnected(new ApiError(404, 'Not Found'), 't')).toBe(false);
+		expect(wasDisconnected(new TypeError('Failed to fetch'), 't')).toBe(false);
 	});
 });

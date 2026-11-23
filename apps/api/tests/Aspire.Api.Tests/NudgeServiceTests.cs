@@ -242,6 +242,39 @@ public sealed class NudgeServiceTests : IDisposable
         Assert.Empty(await _db.PushSubscriptions.ToListAsync());
     }
 
+    // ── whose phone it is (D93) ─────────────────────────────────────────────
+
+    private void ADevice(string id) =>
+        _db.Devices.Add(new Device { Id = id, Name = id, BoardId = BoardA, TokenHash = $"hash-{id}" });
+
+    [Fact]
+    public async Task A_subscription_remembers_the_device_and_goes_when_the_device_does()
+    {
+        ADevice("phone");
+        await _db.SaveChangesAsync();
+
+        await _nudges.SaveAsync(BoardA, Input(), "phone");
+        Assert.Equal("phone", (await _nudges.FindAsync(BoardA, Endpoint))!.DeviceId);
+
+        await _db.Devices.Where(d => d.Id == "phone").ExecuteDeleteAsync();
+
+        Assert.Empty(await _db.PushSubscriptions.AsNoTracking().ToListAsync());
+    }
+
+    [Fact]
+    public async Task Opening_the_app_tells_an_older_subscription_whose_it_is_and_never_forgets_it()
+    {
+        ADevice("phone");
+        await _db.SaveChangesAsync();
+        await _nudges.SaveAsync(BoardA, Input());
+
+        await _nudges.UpdateOffsetAsync(BoardA, Endpoint, 60, "phone");
+        await _nudges.UpdateOffsetAsync(BoardA, Endpoint, 60);
+
+        var row = await _db.PushSubscriptions.AsNoTracking().SingleAsync();
+        Assert.Equal("phone", row.DeviceId);
+    }
+
     [Fact]
     public async Task One_board_cannot_move_another_boards_offset()
     {

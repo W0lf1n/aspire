@@ -5,7 +5,10 @@ declare global {
 		// interface Error {}
 		// interface Locals {}
 		// interface PageData {}
-		// interface PageState {}
+		interface PageState {
+			/** Párování, opened because the board took this device off it (D93). */
+			disconnected?: boolean;
+		}
 		// interface Platform {}
 	}
 }

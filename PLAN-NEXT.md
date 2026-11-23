@@ -1,6 +1,6 @@
 # Aspire — what comes next
 
-Status: **all 17 questions answered 2026-11-16; F1 done 2026-11-23 (D90), ImageSharp licence as a build secret (D91), F2 done (D92), none deployed** · Written: 2026-11-16 · Owner: Petr
+Status: **all 17 questions answered 2026-11-16; F1 done 2026-11-23 (D90), ImageSharp licence as a build secret (D91), F2 done (D92), F3 done (D93), none deployed** · Written: 2026-11-16 · Owner: Petr
 
 An answer in §8 puts an item in the plan. It does not start it: every item
 still gets its own Czech proposal and its own approval (§0).
@@ -296,7 +296,7 @@ time.
 - **Fix:** Upload first, delete after it succeeds. When the dream is already at five, delete one, not all. The test that asserts „out before in“ changes with it.
 - **If we skip it:** A flaky connection at the wrong second costs him photographs he may not have anywhere else.
 
-**F3. A lost phone cannot be cut off** (`Auth/DeviceAuth.cs`, `lib/api/pairing.ts:65`, `Boards/BoardCommand.cs`)
+**F3. A lost phone cannot be cut off — done 2026-11-23, D93** (`Auth/DeviceAuth.cs`, `lib/api/pairing.ts:65`, `Boards/BoardCommand.cs`)
 - **What this is:** A device's token never expires, on purpose. „Revocation is deleting the row.“
 - **Problem:** Nothing deletes the row. Odpojit only forgets the token on that phone; there is no endpoint and no `board` command. A lost or sold phone, or a person who was invited and should leave, keeps the whole board until somebody edits Postgres by hand.
 - **Fix (decided, answer 11):** `DELETE /api/v1/device` for Odpojit, and a list of the board's devices in Párování with Odpojit beside each (name, last seen — both columns exist).

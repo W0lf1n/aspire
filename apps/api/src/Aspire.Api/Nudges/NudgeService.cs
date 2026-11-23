@@ -87,7 +87,7 @@ public sealed class NudgeService(AppDbContext db)
     /// and the offset rather than leaving a second row to nudge from.
     /// </summary>
     public async Task<PushSubscription> SaveAsync(
-        string boardId, NudgeInput input, CancellationToken ct = default)
+        string boardId, NudgeInput input, string? deviceId = null, CancellationToken ct = default)
     {
         var endpoint = input.Endpoint!.Trim();
 
@@ -110,6 +110,7 @@ public sealed class NudgeService(AppDbContext db)
         }
 
         subscription.BoardId = boardId;
+        subscription.DeviceId = deviceId;
         subscription.P256dh = input.P256dh!.Trim();
         subscription.Auth = input.Auth!.Trim();
         subscription.Mode = input.Mode ?? NudgeMode.Daily;
@@ -133,13 +134,19 @@ public sealed class NudgeService(AppDbContext db)
     /// a subscription made in summer nudged an hour out all winter. False
     /// when this board has no such subscription, which is not a failure: a
     /// device that has never asked to be nudged has no offset to keep.
+    ///
+    /// It also says which device it is (D93), which is how a subscription made
+    /// before devices were remembered on it learns its owner.
     /// </summary>
     public async Task<bool> UpdateOffsetAsync(
-        string boardId, string endpoint, int utcOffsetMinutes, CancellationToken ct = default)
+        string boardId, string endpoint, int utcOffsetMinutes, string? deviceId = null,
+        CancellationToken ct = default)
     {
         var changed = await db.PushSubscriptions
             .Where(s => s.BoardId == boardId && s.Endpoint == endpoint)
-            .ExecuteUpdateAsync(set => set.SetProperty(s => s.UtcOffsetMinutes, utcOffsetMinutes), ct);
+            .ExecuteUpdateAsync(set => set
+                .SetProperty(s => s.UtcOffsetMinutes, utcOffsetMinutes)
+                .SetProperty(s => s.DeviceId, s => deviceId ?? s.DeviceId), ct);
         return changed > 0;
     }
 

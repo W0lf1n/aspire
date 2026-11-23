@@ -60,7 +60,7 @@ public static class NudgeEndpoints
                 return Results.Ok(NudgeDto.None);
             }
 
-            return Results.Ok(NudgeDto.From(await nudges.SaveAsync(device.BoardId, input, ct)));
+            return Results.Ok(NudgeDto.From(await nudges.SaveAsync(device.BoardId, input, device.Id, ct)));
         });
 
         // Where the device is, every time the app opens (D34's promise, kept
@@ -79,7 +79,7 @@ public static class NudgeEndpoints
             if (NudgeService.Problem(input) is { } problem) return Results.Problem(problem, statusCode: 400);
 
             await nudges.UpdateOffsetAsync(
-                device.BoardId, input.Endpoint!.Trim(), input.UtcOffsetMinutes!.Value, ct);
+                device.BoardId, input.Endpoint!.Trim(), input.UtcOffsetMinutes!.Value, device.Id, ct);
             return Results.NoContent();
         });
 

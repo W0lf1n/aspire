@@ -34,6 +34,13 @@ public sealed class PushSubscription
     /// <summary>The board this device paired into; the nudge comes from its dreams.</summary>
     public required string BoardId { get; set; }
 
+    /// <summary>
+    /// The paired device that asked, so disconnecting it stops its mornings
+    /// too (D93). Null on a row made before that, until the device opens the
+    /// app and says where it is.
+    /// </summary>
+    public string? DeviceId { get; set; }
+
     /// <summary>The push service's URL for this device. Unique: it is the device.</summary>
     public required string Endpoint { get; set; }
 

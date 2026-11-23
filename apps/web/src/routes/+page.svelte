@@ -27,19 +27,13 @@
 	 * it. That screen is a page rather than a reel: there is nothing to swipe.
 	 */
 	import { untrack } from 'svelte';
+	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
 	import type { Dream } from '@aspire/contracts';
 	import { DREAM_CATEGORIES } from '@aspire/contracts';
-	import {
-		ApiError,
-		getDream,
-		likeDream,
-		listBoard,
-		markShown,
-		uploadImage
-	} from '$lib/api/client';
+	import { getDream, likeDream, listBoard, markShown, uploadImage } from '$lib/api/client';
 	import { describeError } from '$lib/api/errors';
-	import { readToken } from '$lib/api/token';
+	import { forgetDevice, wasDisconnected } from '$lib/api/pairing';
 	import {
 		REEL_WINDOW,
 		anniversaryToday,
@@ -84,9 +78,6 @@
 	 * without a second trip to the server.
 	 */
 	const board = $derived(dreams === null ? null : dreams.filter((one) => !deleting.has(one.id)));
-
-	/** The server answered 401 to a token this device still holds. */
-	let unknownDevice = $state(false);
 
 	/**
 	 * Whether the board on screen came from the server. Only then is there
@@ -355,7 +346,6 @@
 				.then(({ dreams: rows, fromCache }) => {
 					if (!live) return;
 					dreams = rows;
-					unknownDevice = false;
 					openWith(rows.filter((one) => !deleting.has(one.id)));
 					// The cache's board is the last one seen: nothing to fetch
 					// and nothing to prune against, because a board from the
@@ -369,11 +359,16 @@
 				})
 				.catch((e: unknown) => {
 					if (!live) return;
+					// A token the server no longer knows is a device taken off the
+					// board (D93): it forgets the token and goes where it pairs.
+					if (wasDisconnected(e)) {
+						forgetDevice();
+						void goto(resolve('/nastaveni/parovani'), { state: { disconnected: true } });
+						return;
+					}
 					// Not paired, or nothing cached and no signal: the board is
 					// empty either way, and the empty state says what to do next.
-					// A token the server no longer knows gets its own sentence.
 					dreams = [];
-					unknownDevice = e instanceof ApiError && e.status === 401 && readToken() !== null;
 				});
 		};
 		load();
@@ -597,11 +592,6 @@
 				<p class="hint glass board__note">
 					Bez připojení. Nástěnka je z paměti; srdíčka a přidávání počkají, až bude signál.
 				</p>
-			{:else if unknownDevice}
-				<p class="hint glass board__note">
-					Server tohle zařízení nezná.
-					<a class="link" href={resolve('/nastaveni/parovani')}>Spáruj ho znovu.</a>
-				</p>
 			{/if}
 		</div>
 	</main>
@@ -641,11 +631,6 @@
 		{#if !connection.online}
 			<p class="hint how">
 				Bez připojení. Nástěnka je z paměti; srdíčka a přidávání počkají, až bude signál.
-			</p>
-		{:else if unknownDevice}
-			<p class="hint how">
-				Server tohle zařízení nezná.
-				<a class="link" href={resolve('/nastaveni/parovani')}>Spáruj ho znovu.</a>
 			</p>
 		{/if}
 

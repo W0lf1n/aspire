@@ -2872,3 +2872,36 @@ and the old files were gone from the server for good.
   is lost, and that is the price of not losing anything. The five-photograph
   cap (D82) is not met here: a dream with two or more dreamt photographs is
   changed from its shelf, never replaced through the picker.
+
+### D93 — A device is disconnected on the server, and its mornings go with it
+
+The ponytail audit (PLAN-NEXT.md F3) found that a token never expires and
+nothing ever deleted a device's row: Odpojit forgot the token on the phone
+holding it, and a lost or sold phone, or somebody invited who should leave,
+kept the whole board until Postgres was edited by hand. Answer 11 settled the
+shape.
+
+- **Revocation is deleting the row, and now something does.**
+  `DELETE /api/v1/device` is Odpojit on the device itself; `DELETE
+  /api/v1/devices/{id}` takes another device of the same board off it, and
+  another board's device is a 404 exactly as one that does not exist.
+  `GET /api/v1/devices` is the list Párování shows — name, when it was paired,
+  when it was last seen, which one is asking — and never the token or its hash.
+- **The last device can go too.** The board stays and the pairing code opens
+  it again; refusing would keep a lost phone in when it is the only one.
+- **Odpojit asks the server first and forgets second.** A server that cannot
+  be reached throws and nothing is forgotten, so no row is left behind with no
+  phone to remove it. A 401 means the row was already gone, which is done.
+- **A push subscription belongs to the device that made it** —
+  `push_subscriptions.device_id`, a cascade from `devices`. Without it a
+  disconnected phone would go on being told the title and the photograph of a
+  dream every morning. Rows made before this have no device until that phone
+  next opens the app, which sends its offset (D51) and now its device with it.
+- **A device that was taken off the board forgets itself.** The board asked
+  for with a token the server no longer knows is a 401, and the board answers
+  it by forgetting the token and the offline board and opening Párování with
+  „Toto zařízení bylo odpojeno.“ — rather than the note that said the server
+  did not know it and left a dead token in place. Photographs it already
+  cached stay on it; nothing on the server can reach into a phone.
+- **No `board devices` command.** The list in the app is the answer, and a
+  second device is how a lost first one is removed.

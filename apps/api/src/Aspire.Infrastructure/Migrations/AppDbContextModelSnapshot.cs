@@ -318,6 +318,11 @@ namespace Aspire.Infrastructure.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
 
+                    b.Property<string>("DeviceId")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("device_id");
+
                     b.Property<string>("Endpoint")
                         .IsRequired()
                         .HasMaxLength(512)
@@ -357,6 +362,8 @@ namespace Aspire.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("BoardId");
+
+                    b.HasIndex("DeviceId");
 
                     b.HasIndex("Endpoint")
                         .IsUnique();
@@ -398,6 +405,11 @@ namespace Aspire.Infrastructure.Migrations
                         .HasForeignKey("BoardId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.HasOne("Aspire.Domain.Device", null)
+                        .WithMany()
+                        .HasForeignKey("DeviceId")
+                        .OnDelete(DeleteBehavior.Cascade);
                 });
 #pragma warning restore 612, 618
         }

@@ -17,6 +17,13 @@ public sealed record PairRequest(string Code, string DeviceName);
 public sealed record PairResponse(string DeviceId, string Token);
 
 /// <summary>
+/// One device paired into the board, as Párování lists it (D93). `Current` is
+/// the one asking. Never the token or its hash.
+/// </summary>
+public sealed record DeviceDto(
+    string Id, string Name, DateTimeOffset PairedAt, DateTimeOffset? LastSeenAt, bool Current);
+
+/// <summary>
 /// What the client sends to make or change a dream. Everything is optional
 /// on the wire so a missing field earns a sentence, not a 400 from the binder.
 /// </summary>

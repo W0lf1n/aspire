@@ -30,6 +30,18 @@ export interface PairResponse {
 	token: string;
 }
 
+/** One device paired into the board, as Párování lists it (D93). Never the token. */
+export interface DeviceDto {
+	id: string;
+	name: string;
+	/** ISO 8601. */
+	pairedAt: string;
+	/** ISO 8601, to a quarter of an hour; null for a device that has not been back. */
+	lastSeenAt: string | null;
+	/** The device asking. */
+	current: boolean;
+}
+
 // ── GET /api/v1/dreams ──────────────────────────────────────────────────────
 
 export const DREAM_STATUSES = ['dreaming', 'in-progress', 'achieved'] as const;

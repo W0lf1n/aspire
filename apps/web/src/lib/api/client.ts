@@ -10,6 +10,7 @@
 
 import type {
 	BoardResponse,
+	DeviceDto,
 	Dream,
 	DreamImage,
 	DreamImageKind,
@@ -94,6 +95,21 @@ export function health(): Promise<HealthResponse> {
 
 export function pair(request: PairRequest): Promise<PairResponse> {
 	return call<PairResponse>('/pair', { method: 'POST', body: JSON.stringify(request) });
+}
+
+/** The board's devices, oldest first, this one marked (D93). */
+export function listDevices(): Promise<DeviceDto[]> {
+	return call<DeviceDto[]>('/devices');
+}
+
+/** Another device of this board off it: its token stops working at once (D93). */
+export function removeDevice(id: string): Promise<void> {
+	return call<void>(`/devices/${encodeURIComponent(id)}`, { method: 'DELETE' });
+}
+
+/** This device off the board, on the server, before it forgets its token (D93). */
+export function disconnectThisDevice(): Promise<void> {
+	return call<void>('/device', { method: 'DELETE' });
 }
 
 export interface BoardSnapshot {

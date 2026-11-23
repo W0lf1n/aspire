@@ -175,6 +175,14 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
                 .WithMany()
                 .HasForeignKey(s => s.BoardId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            // And so does a device that is disconnected (D93): a phone that
+            // can no longer read the board is not told about it every morning.
+            entity.Property(s => s.DeviceId).HasMaxLength(64);
+            entity.HasOne<Device>()
+                .WithMany()
+                .HasForeignKey(s => s.DeviceId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
 
         model.Entity<Device>(entity =>
