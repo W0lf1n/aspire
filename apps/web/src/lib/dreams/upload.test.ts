@@ -74,13 +74,13 @@ function fake(answers: Dream[]) {
 }
 
 describe('replacePhotograph', () => {
-	it('takes the old photograph out before it puts the new one in', async () => {
-		// So an upload that fails leaves the sky rather than the wrong picture.
+	it('puts the new photograph in before it takes the old one out', async () => {
+		// So an upload that fails costs nothing (D92).
 		const { api, calls, wait } = fake([dream([image('new', 'dreamt')])]);
 
 		await replacePhotograph(dream([image('old', 'dreamt')]), photo, 'dreamt', api, undefined, wait);
 
-		expect(calls.slice(0, 2)).toEqual(['delete old', 'upload dreamt']);
+		expect(calls.slice(0, 2)).toEqual(['upload dreamt', 'delete old']);
 	});
 
 	it('leaves the other kind where it is', async () => {
@@ -117,7 +117,8 @@ describe('replacePhotograph', () => {
 		const after = await replacePhotograph(dream([]), photo, 'dreamt', api, undefined, wait);
 
 		expect(calls.filter((call) => call.startsWith('delete'))).toEqual([]);
-		expect(after.images.map((i) => i.id)).toEqual(['new']);
+		expect(after.dream.images.map((i) => i.id)).toEqual(['new']);
+		expect(after.failed).toBeNull();
 	});
 
 	it('sends the crop with the photograph', async () => {
@@ -154,7 +155,7 @@ describe('replacePhotograph', () => {
 		const after = await replacePhotograph(dream([]), photo, 'dreamt', api, undefined, wait);
 
 		expect(calls.filter((call) => call === 'get')).toHaveLength(2);
-		expect(after.images[0].ready).toBe(true);
+		expect(after.dream.images[0].ready).toBe(true);
 	});
 
 	it('gives up in the end and hands back the dream as it stands', async () => {
@@ -165,10 +166,22 @@ describe('replacePhotograph', () => {
 		const after = await replacePhotograph(dream([]), photo, 'dreamt', api, undefined, wait);
 
 		expect(calls.filter((call) => call === 'get')).toHaveLength(READY_ATTEMPTS);
-		expect(after.images).toEqual([]);
+		expect(after.dream.images).toEqual([]);
 	});
 
-	it('throws what the upload threw, with the old photograph already gone', async () => {
+	it('waits for the new photograph, not for the old one still being ready', async () => {
+		// The old one is ready from the start; only the new id ends the wait.
+		const { api, calls, wait } = fake([
+			dream([image('old', 'dreamt'), image('new', 'dreamt', false)]),
+			dream([image('new', 'dreamt', true)])
+		]);
+
+		await replacePhotograph(dream([image('old', 'dreamt')]), photo, 'dreamt', api, undefined, wait);
+
+		expect(calls.filter((call) => call === 'get')).toHaveLength(2);
+	});
+
+	it('throws what the upload threw, and the old photograph is still there', async () => {
 		const { calls, wait } = fake([]);
 		const api: PhotoApi = {
 			deleteImage: (_dreamId, imageId) => {
@@ -182,8 +195,26 @@ describe('replacePhotograph', () => {
 		await expect(
 			replacePhotograph(dream([image('old', 'dreamt')]), photo, 'dreamt', api, undefined, wait)
 		).rejects.toThrow('413');
-		expect(calls).toEqual(['delete old']);
+		expect(calls).toEqual([]);
 		expect(api.getDream).not.toHaveBeenCalled();
+	});
+
+	it('hands back the dream with both when the old one will not come out', async () => {
+		// The new photograph is in; the screen says why the old one stayed.
+		const { api, wait } = fake([dream([image('old', 'dreamt'), image('new', 'dreamt')])]);
+		const stuck: PhotoApi = { ...api, deleteImage: () => Promise.reject(new Error('offline')) };
+
+		const after = await replacePhotograph(
+			dream([image('old', 'dreamt')]),
+			photo,
+			'dreamt',
+			stuck,
+			undefined,
+			wait
+		);
+
+		expect(after.dream.images.map((i) => i.id)).toEqual(['old', 'new']);
+		expect(after.failed).toEqual(new Error('offline'));
 	});
 });
 

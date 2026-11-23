@@ -2,7 +2,7 @@
 
 Guidance for Claude Code working in this repository.
 
-**Last revised:** 2026-11-23 · rule 26 · §31 closed, D51–D91 · 466 web tests · 439 API tests
+**Last revised:** 2026-11-23 · rule 26 · §31 closed, D51–D92 · 468 web tests · 439 API tests
 
 ---
 

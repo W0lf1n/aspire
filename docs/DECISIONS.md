@@ -1511,7 +1511,7 @@ screens away — open the dream, then the picker. It is on the tile now.
 - **The pill is gone once there is a photograph.** Replacing one stays on the
   dream's own screen, where there is room to look at what is there first. A
   reel tile offers the thing that is missing and nothing else.
-- **The sequence moved to `dreams/upload.ts`.** Out before in, and only its
+- **The sequence moved to `dreams/upload.ts`.** Out before in (reversed by D92), and only its
   own kind: a failed upload leaves the sky rather than the wrong picture, and
   changing the dreamt photograph never takes the proof with it (D28). Two
   screens do this now, and the order is the part that is easy to get wrong,
@@ -2850,3 +2850,25 @@ no revenue), tied to the `Aspire.Infrastructure` assembly, valid until
   is checked once, where the image is built.
 - **Renewal** from 2027-11-23, through the same form. The check is in the
   build, so a lapsed licence stops the next deploy and never a running app.
+
+### D92 — A photograph is replaced in before out (D52's order reversed)
+
+The ponytail audit (PLAN-NEXT.md F2) found that `replacePhotograph` deleted
+every photograph of the kind first and uploaded after. An upload that failed —
+a lift, a dropped signal, „Tohle není obrázek“ — left the dream with nothing,
+and the old files were gone from the server for good.
+
+- **The new photograph goes in first**, and the old ones of its kind are
+  deleted only once the server has it. It stands behind them, so once they are
+  gone it is the cover. A failed upload throws as before and nothing has been
+  deleted.
+- **A delete that fails afterwards does not throw.** The new photograph is
+  already in, so the dream is handed back with both and the screen says why;
+  the old one is deleted by hand from the shelf.
+- **The wait is for the new photograph's id**, not for any ready photograph of
+  the kind — the old one is ready from the start.
+- **Room for both, for a moment.** A board within one photograph of its
+  300 MB ceiling (D89) may now be told it is full where it was not; nothing
+  is lost, and that is the price of not losing anything. The five-photograph
+  cap (D82) is not met here: a dream with two or more dreamt photographs is
+  changed from its shelf, never replaced through the picker.

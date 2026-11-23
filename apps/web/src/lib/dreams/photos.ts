@@ -75,7 +75,7 @@ export function photoComing(dream: Pick<Dream, 'images'>, kind: DreamImageKind):
 
 /**
  * A dream's photographs of one kind, ready or not. What the screen deletes
- * before it puts a new one in that place: replacing the dreamt photograph
+ * once a new one is in that place (D92): replacing the dreamt photograph
  * must not touch the achieved one, and a row still being resized has to go
  * too or it comes back as a second picture a moment later.
  */

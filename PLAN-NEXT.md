@@ -1,6 +1,6 @@
 # Aspire — what comes next
 
-Status: **all 17 questions answered 2026-11-16; F1 done 2026-11-23 (D90), ImageSharp licence as a build secret (D91), neither deployed** · Written: 2026-11-16 · Owner: Petr
+Status: **all 17 questions answered 2026-11-16; F1 done 2026-11-23 (D90), ImageSharp licence as a build secret (D91), F2 done (D92), none deployed** · Written: 2026-11-16 · Owner: Petr
 
 An answer in §8 puts an item in the plan. It does not start it: every item
 still gets its own Czech proposal and its own approval (§0).
@@ -290,7 +290,7 @@ time.
 - **Fix:** `IsImageAsync` already calls `Image.IdentifyAsync`, which reads the size without decoding. Reject anything over about 50 megapixels there, and add `mem_limit` to the `api` service. About six lines and one test.
 - **If we skip it:** One bad picture takes the API down, and maybe Prosper with it.
 
-**F2. Replacing a photograph deletes the old ones first** (`apps/web/src/lib/dreams/upload.ts:156-175`)
+**F2. Replacing a photograph deletes the old ones first — done 2026-11-23, D92** (`apps/web/src/lib/dreams/upload.ts:156-175`)
 - **What this is:** `replacePhotograph` swaps a dream's picture for a new one.
 - **Problem:** It deletes every photograph of that kind — up to five — and only then uploads. If the upload fails (signal drops in the lift, the server answers „Tohle není obrázek“), the dream is left with nothing and the old files are gone.
 - **Fix:** Upload first, delete after it succeeds. When the dream is already at five, delete one, not all. The test that asserts „out before in“ changes with it.

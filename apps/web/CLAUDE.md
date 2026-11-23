@@ -123,8 +123,8 @@ scroll region and a frame queue the test turns by hand), `dreams/format.test.ts`
 and the style that says where it is looked at),
 `images/focal.test.ts` (a drag and a pinch into a point and a zoom, and the
 axis there is nothing more of to see),
-`dreams/upload.test.ts` (the order a photograph is replaced in: out before
-in, only its own kind, and what happens when the sizes never come),
+`dreams/upload.test.ts` (the order a photograph is replaced in: in before
+out, D92, only its own kind, and what happens when the sizes never come),
 `dreams/focus.test.ts` (who is on Teď and in what order, and that the ten
 are full at ten),
 `dreams/wallpaper.test.ts` (who can be on a collage, which six it starts

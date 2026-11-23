@@ -6,9 +6,9 @@
  * dream's own screen, where a photograph is replaced or up to five are added
  * (D82, D84), and the reel, where a dream that has none asks for them on the
  * tile itself (D52). The order is the part worth keeping in one place: when a
- * photograph is replaced the old one goes *first*, so an
- * upload that fails leaves the sky rather than the wrong picture, and only
- * its own kind goes, so changing the dreamt photograph never takes the proof
+ * photograph is replaced the new one goes in *first* and the old one comes out
+ * only once it has, so an upload that fails costs nothing (D92), and only its
+ * own kind comes out, so changing the dreamt photograph never takes the proof
  * with it (D28).
  *
  * The API calls arrive as an argument. Not for the indirection — there is one
@@ -19,7 +19,7 @@
 
 import type { Dream, DreamImage, DreamImageKind, FocalInput } from '@aspire/contracts';
 import { PHOTOS_MAX } from './collage';
-import { photoOf, photosToReplace } from './photos';
+import { photosToReplace } from './photos';
 
 /**
  * How long to keep asking whether the sizes are ready. The worker takes about
@@ -146,12 +146,27 @@ function sleep(ms: number): Promise<void> {
 	return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+/** What replacing a photograph came to. */
+export interface PhotographReplaced {
+	/** The dream as the server now has it. */
+	dream: Dream;
+	/**
+	 * What the API threw when an old photograph would not come out. The new
+	 * one is in regardless, so the dream has both until one is deleted by hand.
+	 */
+	failed: unknown;
+}
+
 /**
  * The dream with its new photograph, once the server has made the sizes — or
  * as it stands if they never arrived, so the caller always has something
  * truthful to put back in its state.
  *
- * Throws what the API threw: the screens turn that into a sentence.
+ * In before out (D92): the old photographs of this kind are deleted only once
+ * the new one is on the server, so a refused or interrupted upload leaves the
+ * dream exactly as it was. Throws what the upload threw. A delete that fails
+ * after it does not throw — the new photograph is there and the dream is handed
+ * back with it — and `failed` is the reason the old one is still there.
  */
 export async function replacePhotograph(
 	dream: Dream,
@@ -161,23 +176,31 @@ export async function replacePhotograph(
 	/** Where the new photograph is looked at, chosen before it was sent (D54). */
 	focal?: FocalInput,
 	wait: (ms: number) => Promise<void> = sleep
-): Promise<Dream> {
-	// Out before in, and only this kind (D28). A row still being resized goes
-	// too, or it comes back as a second picture a moment later.
-	for (const image of photosToReplace(dream, kind)) {
-		await api.deleteImage(dream.id, image.id);
+): Promise<PhotographReplaced> {
+	// Only this kind (D28). A row still being resized goes too, or it comes
+	// back as a second picture a moment later.
+	const old = photosToReplace(dream, kind);
+
+	const added = await api.uploadImage(dream.id, photo, kind, focal);
+
+	let failed: unknown = null;
+	for (const image of old) {
+		try {
+			await api.deleteImage(dream.id, image.id);
+		} catch (e) {
+			failed = e;
+			break;
+		}
 	}
 
-	await api.uploadImage(dream.id, photo, kind, focal);
-
 	// The row exists from the upload and the WebPs follow (D23), so the dream
-	// is asked for again until one of them is ready to point an `<img>` at.
+	// is asked for again until this photograph is ready to point an `<img>` at.
 	let latest = dream;
 	for (let attempt = 0; attempt < READY_ATTEMPTS; attempt++) {
 		await wait(READY_EVERY_MS);
 		latest = await api.getDream(dream.id);
-		if (photoOf(latest, kind)) break;
+		if (latest.images.some((image) => image.id === added.id && image.ready)) break;
 	}
 
-	return latest;
+	return { dream: latest, failed };
 }

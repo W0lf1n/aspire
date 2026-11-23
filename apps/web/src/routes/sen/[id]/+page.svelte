@@ -209,22 +209,22 @@
 	}
 
 	/**
-	 * The new photograph replaces the old of the same kind. The sequence — out
-	 * before in, and only its own kind — is `dreams/upload.ts`, because the
-	 * reel does the same thing to a dream that has no photograph yet (D52).
+	 * The new photograph replaces the old of the same kind. The sequence — in
+	 * before out, and only its own kind — is `dreams/upload.ts` (D92).
 	 */
 	async function replacePhoto(picked: Blob, kind: DreamImageKind, at: Focal) {
 		if (!dream || uploading) return;
 		uploading = kind;
 		try {
-			dream = await replacePhotograph(
+			const replaced = await replacePhotograph(
 				dream,
 				picked,
 				kind,
 				{ deleteImage, uploadImage, getDream },
 				toInput(at)
 			);
-			toast.show(photographDone(kind));
+			dream = replaced.dream;
+			toast.show(replaced.failed ? describeError(replaced.failed) : photographDone(kind));
 		} catch (e) {
 			toast.show(describeError(e));
 		} finally {
